@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoldRewards</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #101014;
+    color: white;
+    text-align: center;
+}
+header {
+    background: #19191f;
+    padding: 25px;
+    border-bottom: 2px solid gold;
+}
+h1 { color: gold; }
+.container {
+    max-width: 420px;
+    margin: 35px auto;
+    padding: 25px;
+    background: #202027;
+    border-radius: 12px;
+}
+input {
+    width: 90%;
+    padding: 13px;
+    margin: 8px 0;
+    border: 1px solid #555;
+    border-radius: 7px;
+    background: #303039;
+    color: white;
+}
+button {
+    padding: 13px 20px;
+    margin: 8px;
+    border: none;
+    border-radius: 7px;
+    background: gold;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+}
+button:hover { background: #e6b800; }
+.hidden { display: none; }
+#message { color: gold; }
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>GoldRewards</h1>
+    <p>Gana, comparte y crece</p>
+</header>
+
+<div class="container" id="inicio">
+    <h2>Bienvenido</h2>
+    <button onclick="mostrar('registro')">Registrarse</button>
+    <button onclick="mostrar('login')">Iniciar sesión</button>
+</div>
+
+<div class="container hidden" id="registro">
+    <h2>Crear cuenta</h2>
+
+    <input id="nombre" placeholder="Nombre completo">
+    <input id="usuario" placeholder="Nombre de usuario">
+    <button onclick="comprobarUsuario()">Comprobar usuario</button>
+
+    <input id="correo" type="email" placeholder="Correo electrónico">
+    <input id="clave" type="password" placeholder="Contraseña">
+    <input id="invitacion" placeholder="Código de invitación (opcional)">
+
+    <button onclick="registrar()">Crear cuenta</button>
+    <button onclick="mostrar('inicio')">Volver</button>
+</div>
+
+<div class="container hidden" id="login">
+    <h2>Iniciar sesión</h2>
+
+    <input id="correoLogin" type="email" placeholder="Correo electrónico">
+    <input id="claveLogin" type="password" placeholder="Contraseña">
+
+    <button onclick="entrar()">Entrar</button>
+    <button onclick="mostrar('inicio')">Volver</button>
+</div>
+
+<div class="container hidden" id="cuenta">
+    <h2>Mi cuenta</h2>
+    <p id="datos"></p>
+    <button onclick="salir()">Cerrar sesión</button>
+</div>
+
+<p id="message"></p>
+
+<script>
+const SUPABASE_URL = "https://yygykfyfpeetdzycirfs.supabase.co";
+
+const SUPABASE_KEY = "sb_publishable_TAB8Yp-12ROav3Z4aoYoQQ_PH2Tet6L";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+function mostrar(id) {
+    document.querySelectorAll(".container").forEach(c => {
+        c.classList.add("hidden");
+    });
+    document.getElementById(id).classList.remove("hidden");
+    document.getElementById("message").textContent = "";
+}
+
+function mensaje(texto) {
+    document.getElementById("message").textContent = texto;
+}
+
+async function comprobarUsuario() {
+    const username = document.getElementById("usuario").value.trim().toLowerCase();
+
+    if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+        mensaje("Usa entre 3 y 20 letras, números o guiones bajos.");
+        return;
+    }
+
+    const { data, error } = await supabaseClient.rpc(
+        "check_username_available",
+        { p_username: username }
+    );
+
+    if (error) {
+        mensaje("No se pudo comprobar el usuario. Inténtalo de nuevo.");
+        return;
+    }
+
+    if (data && data[0] && data[0].available) {
+        mensaje("¡Ese nombre de usuario está disponible!");
+    } else {
+        const sugerencias = data?.[0]?.suggestions || [];
+        mensaje("Ese usuario está ocupado. Sugerencias: " + sugerencias.join(", "));
+    }
+}
+
+async function registrar() {
+    const full_name = document.getElementById("nombre").value.trim();
+    const username = document.getElementById("usuario").value.trim().toLowerCase();
+    const email = document.getElementById("correo").value.trim();
+    const password = document.getElementById("clave").value;
+    const referral_code = document.getElementById("invitacion").value.trim();
+
+    if (!full_name || !username || !email || !password) {
+        mensaje("Completa todos los campos obligatorios.");
+        return;
+    }
+
+    if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+        mensaje("El nombre de usuario no es válido.");
+        return;
+    }
+
+    if (password.length < 6) {
+        mensaje("La contraseña debe tener al menos 6 caracteres.");
+        return;
+    }
+
+    mensaje("Comprobando disponibilidad...");
+
+    const { data: disponibilidad, error: errorUsuario } =
+        await supabaseClient.rpc("check_username_available", {
+            p_username: username
+        });
+
+    if (errorUsuario) {
+        mensaje("No se pudo comprobar el nombre de usuario.");
+        return;
+    }
+
+    if (!disponibilidad?.[0]?.available) {
+        mensaje("Ese nombre de usuario ya está ocupado.");
+        return;
+    }
+
+    mensaje("Creando tu cuenta...");
+
+    const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+            emailRedirectTo: window.location.origin,
+            data: {
+                full_name,
+                username,
+                referral_code
+            }
+        }
+    });
+
+    if (error) {
+        mensaje("Error: " + error.message);
+        return;
+    }
+
+    mensaje("¡Registro enviado! Revisa tu correo para confirmar la cuenta.");
+}
+
+async function entrar() {
+    const email = document.getElementById("correoLogin").value.trim();
+    const password = document.getElementById("claveLogin").value;
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (error) {
+        mensaje("No se pudo iniciar sesión: " + error.message);
+        return;
+    }
+
+    mostrar("cuenta");
+    mensaje("¡Bienvenido a GoldRewards!");
+
+    const { data: perfil } = await supabaseClient
+        .from("profiles")
+        .select("full_name, username, role, referral_code")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+    if (perfil) {
+        document.getElementById("datos").innerHTML =
+            "Nombre: " + perfil.full_name +
+            "<br>Usuario: @" + perfil.username +
+            "<br>Rol: " + perfil.role +
+            "<br>Código de invitación: " + (perfil.referral_code || "Pendiente");
+    } else {
+        document.getElementById("datos").textContent =
+            "Sesión iniciada. No se pudo cargar el perfil.";
+    }
+}
+
+async function salir() {
+    await supabaseClient.auth.signOut();
+    mostrar("inicio");
+    mensaje("Has cerrado sesión.");
+}
+</script>
+
+</body>
+</html>
