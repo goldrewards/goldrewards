@@ -168,7 +168,8 @@ function generarNombreArchivo(extension){
   return Array.from(valores).map(v=>v.toString(16).padStart(2,"0")).join("")+"."+extension;
 }
 function errorTexto(e){return e?.message||"Ocurrió un error inesperado."}
-    async function comprobarUsuario(){
+
+async function comprobarUsuario(){
   const boton=document.getElementById("botonComprobar");
   const username=document.getElementById("usuario").value.trim().toLowerCase();
   if(!/^[a-z0-9_]{3,20}$/.test(username)){mensaje("Usa entre 3 y 20 letras, números o guiones bajos.");return;}
@@ -333,7 +334,7 @@ async function cargarSaldoYGanancias(){
 }
 async function cargarReferidos(){
   const cont=document.getElementById("listaReferidos");
-  const {data,error}=await supabaseClient.from("profiles").select("id,username,full_name,created_at").eq("referred_by",usuarioActual.id).order("created_at",{ascending:false});
+  const {data,error}=await supabaseClient.rpc("get_my_referrals");
   if(error){tarjetaVacia(cont,"No se pudo mostrar la lista de invitados. El saldo y las comisiones sí se consultan por separado.");return;}
   if(!data?.length){tarjetaVacia(cont,"Todavía no tienes personas invitadas.");return;}
   cont.replaceChildren();
@@ -345,7 +346,7 @@ async function cargarReferidos(){
     cont.append(c);
   });
 }
-    async function cargarHistorialPagos(){
+async function cargarHistorialPagos(){
   const cont=document.getElementById("historialPagos");
   const {data,error}=await supabaseClient.from("payment_requests").select("id,plan,amount_cup,status,created_at").eq("user_id",usuarioActual.id).order("created_at",{ascending:false});
   if(error){tarjetaVacia(cont,"No se pudo cargar el historial de depósitos.");return;}
