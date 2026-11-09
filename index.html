@@ -1,13 +1,8 @@
-<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html><html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GoldRewards</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
+<title>GoldRewards</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -22,7 +17,9 @@ header {
     border-bottom: 2px solid gold;
 }
 
-h1 { color: gold; }
+h1 {
+    color: gold;
+}
 
 .container {
     max-width: 500px;
@@ -45,7 +42,9 @@ input {
     box-sizing: border-box;
 }
 
-input[type="file"] { max-width: 100%; }
+input[type="file"] {
+    max-width: 100%;
+}
 
 button {
     padding: 13px 20px;
@@ -58,16 +57,21 @@ button {
     cursor: pointer;
 }
 
-button:hover { background: #e6b800; }
+button:hover {
+    background: #e6b800;
+}
 
 button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-.hidden { display: none; }
+.hidden {
+    display: none;
+}
 
-#message, #estadoDeposito {
+#message,
+#estadoDeposito {
     color: gold;
     overflow-wrap: anywhere;
 }
@@ -91,112 +95,153 @@ button:disabled {
     display: inline-block;
 }
 
-.aprobar { background: #38d878; }
-.rechazar { background: #ff6464; }
+.aprobar {
+    background: #38d878;
+}
+
+.negar {
+    background: #ff6464;
+}
 
 .comprobante-link {
     display: inline-block;
     color: gold;
     margin: 10px 0;
 }
-</style>
-</head>
 
-<body>
-
-<header>
+.seccion-admin {
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid #555;
+}
+</style></head><body><header>
     <h1>GoldRewards</h1>
     <p>Gana, comparte y crece</p>
-</header>
-
-<div class="container" id="inicio">
+</header><!-- INICIO --><div class="container" id="inicio">
     <h2>Bienvenido</h2>
     <button onclick="mostrar('registro')">Registrarse</button>
     <button onclick="mostrar('login')">Iniciar sesión</button>
+</div><!-- REGISTRO --><div class="container hidden" id="registro">
+    <h2>Crear cuenta</h2><input id="nombre" placeholder="Nombre completo">
+<input id="usuario" placeholder="Nombre de usuario">
+
+<button id="botonComprobar" onclick="comprobarUsuario()">
+    Comprobar usuario
+</button>
+
+<input id="correo" type="email" placeholder="Correo electrónico">
+<input id="clave" type="password" placeholder="Contraseña">
+<input id="invitacion" placeholder="Código de invitación (opcional)">
+
+<button id="botonRegistro" onclick="registrar()">
+    Crear cuenta
+</button>
+
+<button onclick="mostrar('inicio')">
+    Volver
+</button>
+
+</div><!-- LOGIN --><div class="container hidden" id="login">
+    <h2>Iniciar sesión</h2><input
+    id="correoLogin"
+    type="email"
+    placeholder="Correo electrónico"
+>
+
+<input
+    id="claveLogin"
+    type="password"
+    placeholder="Contraseña"
+>
+
+<button id="botonLogin" onclick="entrar()">
+    Entrar
+</button>
+
+<button onclick="mostrar('inicio')">
+    Volver
+</button>
+
+</div><!-- CUENTA DEL USUARIO --><div class="container hidden" id="cuenta">
+    <h2>Mi cuenta</h2><p id="datos"></p>
+
+<hr>
+
+<h3>Depósito de membresía</h3>
+
+<p>Realiza tu transferencia a esta tarjeta:</p>
+
+<h2>9224069998634642</h2>
+
+<p>Titular: Cuenta del grupo de GoldRewards</p>
+
+<p>Después de transferir, sube la captura del comprobante:</p>
+
+<input
+    type="file"
+    id="comprobante"
+    accept="image/jpeg,image/png,image/webp"
+>
+
+<button id="botonComprobante" onclick="subirComprobante()">
+    Enviar comprobante
+</button>
+
+<p id="estadoDeposito"></p>
+
+<hr>
+
+<button onclick="salir()">
+    Cerrar sesión
+</button>
+
+</div><!-- LOBBY DEL USUARIO --><div class="container hidden" id="lobby">
+    <h2>🏆 Lobby GoldRewards</h2><p id="bienvenidaLobby"></p>
+
+<hr>
+
+<h3>¡Tu membresía está activa! 🎉</h3>
+
+<p>Bienvenido oficialmente a GoldRewards.</p>
+
+<button onclick="salir()">
+    Cerrar sesión
+</button>
+
+</div><!-- PANEL DE ADMINISTRACIÓN --><div class="container hidden" id="panelAdmin">
+    <h2>👑 Panel de administración</h2><p>Gestión de depósitos de GoldRewards</p>
+
+<button onclick="cargarSolicitudes()">
+    Actualizar solicitudes
+</button>
+
+<p id="mensajeAdmin"></p>
+
+<!-- POR APROBAR -->
+<div class="seccion-admin">
+    <h3>🟡 Por aprobar</h3>
+    <div id="listaPorAprobar"></div>
 </div>
 
-<div class="container hidden" id="registro">
-    <h2>Crear cuenta</h2>
-
-    <input id="nombre" placeholder="Nombre completo">
-    <input id="usuario" placeholder="Nombre de usuario">
-
-    <button id="botonComprobar" onclick="comprobarUsuario()">
-        Comprobar usuario
-    </button>
-
-    <input id="correo" type="email" placeholder="Correo electrónico">
-    <input id="clave" type="password" placeholder="Contraseña">
-    <input id="invitacion" placeholder="Código de invitación (opcional)">
-
-    <button id="botonRegistro" onclick="registrar()">Crear cuenta</button>
-    <button onclick="mostrar('inicio')">Volver</button>
+<!-- APROBADOS -->
+<div class="seccion-admin">
+    <h3>🟢 Aprobados</h3>
+    <div id="listaAprobados"></div>
 </div>
 
-<div class="container hidden" id="login">
-    <h2>Iniciar sesión</h2>
-
-    <input id="correoLogin" type="email" placeholder="Correo electrónico">
-    <input id="claveLogin" type="password" placeholder="Contraseña">
-
-    <button id="botonLogin" onclick="entrar()">Entrar</button>
-    <button onclick="mostrar('inicio')">Volver</button>
+<!-- NEGADOS -->
+<div class="seccion-admin">
+    <h3>🔴 Negados</h3>
+    <div id="listaNegados"></div>
 </div>
 
-<div class="container hidden" id="cuenta">
-    <h2>Mi cuenta</h2>
+<hr>
 
-    <p id="datos"></p>
+<button onclick="salir()">
+    Cerrar sesión
+</button>
 
-    <hr>
-
-    <h3>Depósito de membresía</h3>
-
-    <p>Realiza tu transferencia a esta tarjeta:</p>
-
-    <h2>9224069998634642</h2>
-
-    <p>Titular: Cuenta del grupo de GoldRewards</p>
-
-    <p>Después de transferir, sube la captura del comprobante:</p>
-
-    <input
-        type="file"
-        id="comprobante"
-        accept="image/jpeg,image/png,image/webp"
-    >
-
-    <button id="botonComprobante" onclick="subirComprobante()">
-        Enviar comprobante
-    </button>
-
-    <p id="estadoDeposito"></p>
-
-    <hr>
-
-    <button onclick="salir()">Cerrar sesión</button>
-</div>
-
-<!-- PANEL DE ADMINISTRACIÓN -->
-<div class="container hidden" id="panelAdmin">
-    <h2>Panel de administración</h2>
-
-    <p>Gestión de depósitos de GoldRewards</p>
-
-    <button onclick="cargarSolicitudes()">Actualizar solicitudes</button>
-
-    <p id="mensajeAdmin"></p>
-
-    <div id="listaSolicitudes"></div>
-
-    <hr>
-
-    <button onclick="salir()">Cerrar sesión</button>
-</div>
-
-<p id="message"></p>
-
-<script>
+</div><p id="message"></p><script>
 const SUPABASE_URL = "https://yygykfyfpeetdzycirfs.supabase.co";
 
 const SUPABASE_KEY = "sb_publishable_TAB8Yp-12ROav3Z4aoYoQQ_PH2Tet6L";
@@ -208,7 +253,8 @@ const supabaseClient = window.supabase.createClient(
 
 let usuarioActual = null;
 
-// Mostrar secciones
+
+// MOSTRAR SECCIONES
 function mostrar(id) {
     document.querySelectorAll(".container").forEach(contenedor => {
         contenedor.classList.add("hidden");
@@ -218,13 +264,17 @@ function mostrar(id) {
     document.getElementById("message").textContent = "";
 }
 
+
+// MOSTRAR MENSAJE
 function mensaje(texto) {
     document.getElementById("message").textContent = texto;
 }
 
-// Generar nombre único para el comprobante
+
+// GENERAR NOMBRE ÚNICO PARA EL COMPROBANTE
 function generarNombreArchivo(extension) {
     const valores = new Uint8Array(16);
+
     crypto.getRandomValues(valores);
 
     return Array.from(valores)
@@ -232,7 +282,8 @@ function generarNombreArchivo(extension) {
         .join("") + "." + extension;
 }
 
-// Comprobar nombre de usuario
+
+// COMPROBAR NOMBRE DE USUARIO
 async function comprobarUsuario() {
     const boton = document.getElementById("botonComprobar");
 
@@ -241,7 +292,9 @@ async function comprobarUsuario() {
         .toLowerCase();
 
     if (!/^[a-z0-9_]{3,20}$/.test(username)) {
-        mensaje("Usa entre 3 y 20 letras, números o guiones bajos.");
+        mensaje(
+            "Usa entre 3 y 20 letras, números o guiones bajos."
+        );
         return;
     }
 
@@ -255,15 +308,23 @@ async function comprobarUsuario() {
         );
 
         if (error) {
-            mensaje("No se pudo comprobar el usuario: " + error.message);
+            mensaje(
+                "No se pudo comprobar el usuario: " +
+                error.message
+            );
             return;
         }
 
         if (data && data[0] && data[0].available) {
             mensaje("¡Ese nombre de usuario está disponible!");
         } else {
-            const sugerencias = data?.[0]?.suggestions || [];
-            mensaje("Ese usuario está ocupado. Sugerencias: " + sugerencias.join(", "));
+            const sugerencias =
+                data?.[0]?.suggestions || [];
+
+            mensaje(
+                "Ese usuario está ocupado. Sugerencias: " +
+                sugerencias.join(", ")
+            );
         }
 
     } catch (error) {
@@ -273,15 +334,27 @@ async function comprobarUsuario() {
     }
 }
 
-// Registrar usuario
+
+// REGISTRAR USUARIO
 async function registrar() {
     const boton = document.getElementById("botonRegistro");
 
-    const full_name = document.getElementById("nombre").value.trim();
-    const username = document.getElementById("usuario").value.trim().toLowerCase();
-    const email = document.getElementById("correo").value.trim();
-    const password = document.getElementById("clave").value;
-    const referral_code = document.getElementById("invitacion").value.trim();
+    const full_name =
+        document.getElementById("nombre").value.trim();
+
+    const username =
+        document.getElementById("usuario").value
+            .trim()
+            .toLowerCase();
+
+    const email =
+        document.getElementById("correo").value.trim();
+
+    const password =
+        document.getElementById("clave").value;
+
+    const referral_code =
+        document.getElementById("invitacion").value.trim();
 
     if (!full_name || !username || !email || !password) {
         mensaje("Completa todos los campos obligatorios.");
@@ -294,7 +367,9 @@ async function registrar() {
     }
 
     if (password.length < 6) {
-        mensaje("La contraseña debe tener al menos 6 caracteres.");
+        mensaje(
+            "La contraseña debe tener al menos 6 caracteres."
+        );
         return;
     }
 
@@ -307,13 +382,21 @@ async function registrar() {
     mensaje("Comprobando disponibilidad...");
 
     try {
-        const { data: disponibilidad, error: errorUsuario } =
-            await supabaseClient.rpc("check_username_available", {
+        const {
+            data: disponibilidad,
+            error: errorUsuario
+        } = await supabaseClient.rpc(
+            "check_username_available",
+            {
                 p_username: username
-            });
+            }
+        );
 
         if (errorUsuario) {
-            mensaje("No se pudo comprobar el usuario: " + errorUsuario.message);
+            mensaje(
+                "No se pudo comprobar el usuario: " +
+                errorUsuario.message
+            );
             return;
         }
 
@@ -324,21 +407,26 @@ async function registrar() {
 
         mensaje("Creando tu cuenta...");
 
-        const { error } = await supabaseClient.auth.signUp({
-            email,
-            password,
-            options: {
-                emailRedirectTo: "https://goldrewards.github.io/goldrewards/",
-                data: {
-                    full_name,
-                    username,
-                    referral_code
+        const { error } =
+            await supabaseClient.auth.signUp({
+                email,
+                password,
+                options: {
+                    emailRedirectTo:
+                        "https://goldrewards.github.io/goldrewards/",
+                    data: {
+                        full_name,
+                        username,
+                        referral_code
+                    }
                 }
-            }
-        });
+            });
 
         if (error) {
-            mensaje("Error al crear la cuenta: " + error.message);
+            mensaje(
+                "Error al crear la cuenta: " +
+                error.message
+            );
             return;
         }
 
@@ -349,7 +437,10 @@ async function registrar() {
         document.getElementById("invitacion").value = "";
 
         mostrar("login");
-        mensaje("¡Bienvenido a GoldRewards! Inicia sesión para acceder a tu cuenta.");
+
+        mensaje(
+            "¡Bienvenido a GoldRewards! Inicia sesión para acceder a tu cuenta."
+        );
 
     } catch (error) {
         mensaje("Error de conexión. Inténtalo de nuevo.");
@@ -358,12 +449,17 @@ async function registrar() {
     }
 }
 
-// Iniciar sesión
-async function entrar() {
-    const boton = document.getElementById("botonLogin");
 
-    const email = document.getElementById("correoLogin").value.trim();
-    const password = document.getElementById("claveLogin").value;
+// INICIAR SESIÓN
+async function entrar() {
+    const boton =
+        document.getElementById("botonLogin");
+
+    const email =
+        document.getElementById("correoLogin").value.trim();
+
+    const password =
+        document.getElementById("claveLogin").value;
 
     if (!email || !password) {
         mensaje("Escribe tu correo y contraseña.");
@@ -374,45 +470,109 @@ async function entrar() {
     mensaje("Iniciando sesión...");
 
     try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email,
-            password
-        });
+        const { data, error } =
+            await supabaseClient.auth.signInWithPassword({
+                email,
+                password
+            });
 
         if (error) {
-            mensaje("No se pudo iniciar sesión: " + error.message);
+            mensaje(
+                "No se pudo iniciar sesión: " +
+                error.message
+            );
             return;
         }
 
         usuarioActual = data.user;
 
-        const { data: perfil, error: errorPerfil } = await supabaseClient
+        const {
+            data: perfil,
+            error: errorPerfil
+        } = await supabaseClient
             .from("profiles")
-            .select("full_name, username, role, referral_code")
+            .select(
+                "full_name, username, role, referral_code"
+            )
             .eq("id", data.user.id)
             .maybeSingle();
 
         if (errorPerfil || !perfil) {
-            mensaje("Sesión iniciada, pero no se pudo cargar el perfil.");
+            mensaje(
+                "Sesión iniciada, pero no se pudo cargar el perfil."
+            );
             return;
         }
 
+        // ADMINISTRADOR
         if (perfil.role === "admin") {
             mostrar("panelAdmin");
+
             document.getElementById("mensajeAdmin").textContent =
                 "Bienvenido al panel de administración.";
+
             await cargarSolicitudes();
-        } else {
-            mostrar("cuenta");
-
-            document.getElementById("datos").textContent =
-                "Nombre: " + (perfil.full_name || "") +
-                "\nUsuario: @" + (perfil.username || "") +
-                "\nRol: " + (perfil.role || "user") +
-                "\nCódigo de invitación: " + (perfil.referral_code || "Pendiente");
-
-            mensaje("¡Bienvenido a GoldRewards!");
+            return;
         }
+
+        // COMPROBAR DEPÓSITO APROBADO
+        const {
+            data: deposito,
+            error: errorDeposito
+        } = await supabaseClient
+            .from("payment_requests")
+            .select("id, status")
+            .eq("user_id", data.user.id)
+            .eq("status", "approved")
+            .limit(1)
+            .maybeSingle();
+
+        if (errorDeposito) {
+            mensaje(
+                "No se pudo comprobar el estado del depósito: " +
+                errorDeposito.message
+            );
+            return;
+        }
+
+        // DEPÓSITO APROBADO → LOBBY
+        if (deposito) {
+            mostrar("lobby");
+
+            document.getElementById(
+                "bienvenidaLobby"
+            ).textContent =
+                "¡Bienvenido, " +
+                (
+                    perfil.full_name ||
+                    perfil.username ||
+                    "usuario"
+                ) +
+                "!";
+
+            return;
+        }
+
+        // SIN DEPÓSITO APROBADO → CUENTA
+        mostrar("cuenta");
+
+        document.getElementById("datos").textContent =
+            "Nombre: " +
+            (perfil.full_name || "") +
+
+            "\nUsuario: @" +
+            (perfil.username || "") +
+
+            "\nRol: " +
+            (perfil.role || "Usuario") +
+
+            "\nCódigo de invitación: " +
+            (
+                perfil.referral_code ||
+                "Pendiente"
+            );
+
+        mensaje("¡Bienvenido a GoldRewards!");
 
     } catch (error) {
         mensaje("Error de conexión. Inténtalo de nuevo.");
@@ -421,19 +581,28 @@ async function entrar() {
     }
 }
 
-// Enviar comprobante de depósito
+
+// ENVIAR COMPROBANTE
 async function subirComprobante() {
-    const archivo = document.getElementById("comprobante").files[0];
-    const estado = document.getElementById("estadoDeposito");
-    const boton = document.getElementById("botonComprobante");
+    const archivo =
+        document.getElementById("comprobante").files[0];
+
+    const estado =
+        document.getElementById("estadoDeposito");
+
+    const boton =
+        document.getElementById("botonComprobante");
 
     if (!archivo) {
-        estado.textContent = "Selecciona primero la captura de tu transferencia.";
+        estado.textContent =
+            "Selecciona primero la captura de tu transferencia.";
         return;
     }
 
-    const { data: sesion, error: errorSesion } =
-        await supabaseClient.auth.getUser();
+    const {
+        data: sesion,
+        error: errorSesion
+    } = await supabaseClient.auth.getUser();
 
     if (errorSesion || !sesion.user) {
         estado.textContent = "Debes iniciar sesión.";
@@ -442,15 +611,21 @@ async function subirComprobante() {
 
     const usuario = sesion.user;
 
-    const tiposPermitidos = ["image/jpeg", "image/png", "image/webp"];
+    const tiposPermitidos = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ];
 
     if (!tiposPermitidos.includes(archivo.type)) {
-        estado.textContent = "Solo se permiten imágenes JPG, PNG o WEBP.";
+        estado.textContent =
+            "Solo se permiten imágenes JPG, PNG o WEBP.";
         return;
     }
 
     if (archivo.size > 5 * 1024 * 1024) {
-        estado.textContent = "La imagen no puede pesar más de 5 MB.";
+        estado.textContent =
+            "La imagen no puede pesar más de 5 MB.";
         return;
     }
 
@@ -458,32 +633,47 @@ async function subirComprobante() {
     estado.textContent = "Enviando comprobante...";
 
     try {
-        const extension = archivo.type === "image/jpeg" ? "jpg" :
-            archivo.type === "image/png" ? "png" : "webp";
+        const extension =
+            archivo.type === "image/jpeg"
+                ? "jpg"
+                : archivo.type === "image/png"
+                ? "png"
+                : "webp";
 
-        const ruta = usuario.id + "/" + generarNombreArchivo(extension);
+        const ruta =
+            usuario.id +
+            "/" +
+            generarNombreArchivo(extension);
 
-        const { error: subidaError } = await supabaseClient.storage
-            .from("payment_receipts")
-            .upload(ruta, archivo, {
-                contentType: archivo.type,
-                upsert: false
-            });
+        const { error: subidaError } =
+            await supabaseClient.storage
+                .from("payment_receipts")
+                .upload(
+                    ruta,
+                    archivo,
+                    {
+                        contentType: archivo.type,
+                        upsert: false
+                    }
+                );
 
         if (subidaError) {
-            estado.textContent = "Error al subir el comprobante: " + subidaError.message;
+            estado.textContent =
+                "Error al subir el comprobante: " +
+                subidaError.message;
             return;
         }
 
-        const { error: registroError } = await supabaseClient
-            .from("payment_requests")
-            .insert({
-                user_id: usuario.id,
-                plan: "basic",
-                amount_cup: 100,
-                receipt_url: ruta,
-                status: "pending"
-            });
+        const { error: registroError } =
+            await supabaseClient
+                .from("payment_requests")
+                .insert({
+                    user_id: usuario.id,
+                    plan: "basic",
+                    amount_cup: 100,
+                    receipt_url: ruta,
+                    status: "pending"
+                });
 
         if (registroError) {
             estado.textContent =
@@ -493,200 +683,429 @@ async function subirComprobante() {
         }
 
         estado.textContent =
-            "¡Comprobante enviado correctamente! Tu depósito está pendiente de aprobación.";
+            "¡Comprobante enviado correctamente! Está por aprobar.";
 
         document.getElementById("comprobante").value = "";
 
     } catch (error) {
-        estado.textContent = "Ocurrió un error: " + error.message;
+        estado.textContent =
+            "Ocurrió un error: " +
+            error.message;
     } finally {
         boton.disabled = false;
     }
 }
 
-// Cargar solicitudes para el administrador
+
+// CARGAR SOLICITUDES DEL ADMINISTRADOR
 async function cargarSolicitudes() {
-    const lista = document.getElementById("listaSolicitudes");
-    const mensajeAdmin = document.getElementById("mensajeAdmin");
+    const listaPorAprobar =
+        document.getElementById("listaPorAprobar");
 
-    lista.replaceChildren();
-    mensajeAdmin.textContent = "Cargando solicitudes...";
+    const listaAprobados =
+        document.getElementById("listaAprobados");
 
-    const { data: sesion, error: errorSesion } =
-        await supabaseClient.auth.getUser();
+    const listaNegados =
+        document.getElementById("listaNegados");
+
+    const mensajeAdmin =
+        document.getElementById("mensajeAdmin");
+
+    listaPorAprobar.replaceChildren();
+    listaAprobados.replaceChildren();
+    listaNegados.replaceChildren();
+
+    mensajeAdmin.textContent =
+        "Cargando solicitudes...";
+
+    const {
+        data: sesion,
+        error: errorSesion
+    } = await supabaseClient.auth.getUser();
 
     if (errorSesion || !sesion.user) {
-        mensajeAdmin.textContent = "Debes iniciar sesión.";
+        mensajeAdmin.textContent =
+            "Debes iniciar sesión.";
         return;
     }
 
-    const { data: perfil, error: errorPerfil } = await supabaseClient
+    const {
+        data: perfil,
+        error: errorPerfil
+    } = await supabaseClient
         .from("profiles")
         .select("role")
         .eq("id", sesion.user.id)
         .maybeSingle();
 
     if (errorPerfil || perfil?.role !== "admin") {
-        mensajeAdmin.textContent = "Acceso denegado.";
+        mensajeAdmin.textContent =
+            "Acceso denegado.";
+
         mostrar("inicio");
         return;
     }
 
-    const { data: solicitudes, error } = await supabaseClient
+    const {
+        data: solicitudes,
+        error
+    } = await supabaseClient
         .from("payment_requests")
-        .select("id, user_id, plan, amount_cup, receipt_url, status, created_at")
-        .order("created_at", { ascending: false });
+        .select(
+            "id, user_id, plan, amount_cup, receipt_url, status, created_at"
+        )
+        .order(
+            "created_at",
+            { ascending: false }
+        );
 
     if (error) {
         mensajeAdmin.textContent =
-            "No se pudieron cargar las solicitudes: " + error.message;
+            "No se pudieron cargar las solicitudes: " +
+            error.message;
         return;
     }
 
     if (!solicitudes || solicitudes.length === 0) {
-        mensajeAdmin.textContent = "Todavía no hay solicitudes de depósito.";
+        mensajeAdmin.textContent =
+            "Todavía no hay solicitudes de depósito.";
         return;
     }
 
-    mensajeAdmin.textContent = "Solicitudes encontradas: " + solicitudes.length;
+    const pendientes =
+        solicitudes.filter(
+            solicitud =>
+                solicitud.status === "pending"
+        );
 
-    for (const solicitud of solicitudes) {
-        const tarjeta = document.createElement("div");
+    const aprobados =
+        solicitudes.filter(
+            solicitud =>
+                solicitud.status === "approved"
+        );
+
+    const negados =
+        solicitudes.filter(
+            solicitud =>
+                solicitud.status === "rejected"
+        );
+
+    mensajeAdmin.textContent =
+        "Por aprobar: " +
+        pendientes.length +
+        " | Aprobados: " +
+        aprobados.length +
+        " | Negados: " +
+        negados.length;
+
+    // MOSTRAR CADA SOLICITUD
+    async function mostrarSolicitud(
+        solicitud,
+        lista,
+        textoEstado
+    ) {
+        const tarjeta =
+            document.createElement("div");
+
         tarjeta.className = "solicitud";
 
-        const titulo = document.createElement("h3");
-        titulo.textContent = "Depósito: " + solicitud.amount_cup + " CUP";
+        const titulo =
+            document.createElement("h3");
 
-        const usuario = document.createElement("p");
-        usuario.textContent = "ID del usuario: " + solicitud.user_id;
+        titulo.textContent =
+            "Depósito: " +
+            solicitud.amount_cup +
+            " CUP";
 
-        const plan = document.createElement("p");
-        plan.textContent = "Plan: " + solicitud.plan;
+        const usuario =
+            document.createElement("p");
 
-        const estado = document.createElement("p");
-        estado.textContent = "Estado: " + solicitud.status;
+        usuario.textContent =
+            "Usuario: " +
+            solicitud.user_id;
 
-        const fecha = document.createElement("p");
-        fecha.textContent = "Fecha: " + new Date(solicitud.created_at).toLocaleString();
+        const plan =
+            document.createElement("p");
 
-        tarjeta.append(titulo, usuario, plan, estado, fecha);
+        plan.textContent =
+            "Plan: " +
+            (
+                solicitud.plan === "basic"
+                    ? "Básico"
+                    : solicitud.plan
+            );
+
+        const estado =
+            document.createElement("p");
+
+        estado.textContent =
+            "Estado: " +
+            textoEstado;
+
+        const fecha =
+            document.createElement("p");
+
+        fecha.textContent =
+            "Fecha: " +
+            new Date(
+                solicitud.created_at
+            ).toLocaleString("es-ES");
+
+        tarjeta.append(
+            titulo,
+            usuario,
+            plan,
+            estado,
+            fecha
+        );
 
         if (solicitud.receipt_url) {
-            const { data: enlace, error: errorEnlace } =
+            const {
+                data: enlace,
+                error: errorEnlace
+            } =
                 await supabaseClient.storage
                     .from("payment_receipts")
-                    .createSignedUrl(solicitud.receipt_url, 300);
+                    .createSignedUrl(
+                        solicitud.receipt_url,
+                        300
+                    );
 
-            if (!errorEnlace && enlace?.signedUrl) {
-                const link = document.createElement("a");
-                link.href = enlace.signedUrl;
-                link.target = "_blank";
-                link.rel = "noopener noreferrer";
-                link.className = "comprobante-link";
-                link.textContent = "Ver comprobante";
+            if (
+                !errorEnlace &&
+                enlace?.signedUrl
+            ) {
+                const link =
+                    document.createElement("a");
+
+                link.href =
+                    enlace.signedUrl;
+
+                link.target =
+                    "_blank";
+
+                link.rel =
+                    "noopener noreferrer";
+
+                link.className =
+                    "comprobante-link";
+
+                link.textContent =
+                    "Ver comprobante";
+
                 tarjeta.appendChild(link);
+
             } else {
-                const errorArchivo = document.createElement("p");
-                errorArchivo.textContent = "No se pudo abrir el comprobante.";
-                tarjeta.appendChild(errorArchivo);
+                const errorArchivo =
+                    document.createElement("p");
+
+                errorArchivo.textContent =
+                    "No se pudo abrir el comprobante.";
+
+                tarjeta.appendChild(
+                    errorArchivo
+                );
             }
         }
 
+        // BOTONES SOLO PARA LOS QUE ESTÁN POR APROBAR
         if (solicitud.status === "pending") {
-            const aprobar = document.createElement("button");
-            aprobar.className = "aprobar";
-            aprobar.textContent = "Aprobar";
-            aprobar.onclick = () => cambiarEstado(solicitud.id, "approved", aprobar);
+            const aprobar =
+                document.createElement("button");
 
-            const rechazar = document.createElement("button");
-            rechazar.className = "rechazar";
-            rechazar.textContent = "Rechazar";
-            rechazar.onclick = () => cambiarEstado(solicitud.id, "rejected", rechazar);
+            aprobar.className =
+                "aprobar";
 
-            tarjeta.append(aprobar, rechazar);
+            aprobar.textContent =
+                "Aprobar";
+
+            aprobar.onclick = () =>
+                cambiarEstado(
+                    solicitud.id,
+                    "approved",
+                    aprobar
+                );
+
+            const negar =
+                document.createElement("button");
+
+            negar.className =
+                "negar";
+
+            negar.textContent =
+                "Negar";
+
+            negar.onclick = () =>
+                cambiarEstado(
+                    solicitud.id,
+                    "rejected",
+                    negar
+                );
+
+            tarjeta.append(
+                aprobar,
+                negar
+            );
         }
 
         lista.appendChild(tarjeta);
     }
+
+    for (const solicitud of pendientes) {
+        await mostrarSolicitud(
+            solicitud,
+            listaPorAprobar,
+            "Por aprobar"
+        );
+    }
+
+    for (const solicitud of aprobados) {
+        await mostrarSolicitud(
+            solicitud,
+            listaAprobados,
+            "Aprobado"
+        );
+    }
+
+    for (const solicitud of negados) {
+        await mostrarSolicitud(
+            solicitud,
+            listaNegados,
+            "Negado"
+        );
+    }
 }
 
-// Aprobar o rechazar una solicitud
-async function cambiarEstado(id, nuevoEstado, boton) {
+
+// APROBAR O NEGAR SOLICITUD
+async function cambiarEstado(
+    id,
+    nuevoEstado,
+    boton
+) {
     const confirmado = confirm(
         nuevoEstado === "approved"
             ? "¿Confirmas que deseas aprobar este depósito?"
-            : "¿Confirmas que deseas rechazar este depósito?"
+            : "¿Confirmas que deseas negar este depósito?"
     );
 
-    if (!confirmado) return;
+    if (!confirmado) {
+        return;
+    }
 
     boton.disabled = true;
 
-    const { data: sesion, error: errorSesion } =
+    const {
+        data: sesion,
+        error: errorSesion
+    } =
         await supabaseClient.auth.getUser();
 
     if (errorSesion || !sesion.user) {
         alert("Debes iniciar sesión.");
+
         boton.disabled = false;
         return;
     }
 
-    const { data: perfil, error: errorPerfil } = await supabaseClient
-        .from("profiles")
-        .select("role")
-        .eq("id", sesion.user.id)
-        .maybeSingle();
+    const {
+        data: perfil,
+        error: errorPerfil
+    } =
+        await supabaseClient
+            .from("profiles")
+            .select("role")
+            .eq("id", sesion.user.id)
+            .maybeSingle();
 
-    if (errorPerfil || perfil?.role !== "admin") {
-        alert("No tienes permisos de administrador.");
+    if (
+        errorPerfil ||
+        perfil?.role !== "admin"
+    ) {
+        alert(
+            "No tienes permisos de administrador."
+        );
+
         boton.disabled = false;
         return;
     }
 
-    const { error } = await supabaseClient
-        .from("payment_requests")
-        .update({ status: nuevoEstado })
-        .eq("id", id)
-        .eq("status", "pending");
+    const { error } =
+        await supabaseClient
+            .from("payment_requests")
+            .update({
+                status: nuevoEstado
+            })
+            .eq("id", id)
+            .eq("status", "pending");
 
     if (error) {
-        alert("No se pudo actualizar el depósito: " + error.message);
+        alert(
+            "No se pudo actualizar el depósito: " +
+            error.message
+        );
+
         boton.disabled = false;
         return;
     }
 
-    alert(nuevoEstado === "approved"
-        ? "Depósito aprobado."
-        : "Depósito rechazado.");
+    alert(
+        nuevoEstado === "approved"
+            ? "Depósito aprobado correctamente."
+            : "Depósito negado."
+    );
 
     await cargarSolicitudes();
 }
 
-// Cerrar sesión
+
+// CERRAR SESIÓN
 async function salir() {
     try {
-        const { error } = await supabaseClient.auth.signOut();
+        const { error } =
+            await supabaseClient.auth.signOut();
 
         if (error) {
-            mensaje("No se pudo cerrar la sesión: " + error.message);
+            mensaje(
+                "No se pudo cerrar la sesión: " +
+                error.message
+            );
             return;
         }
 
         usuarioActual = null;
 
-        document.getElementById("datos").textContent = "";
-        document.getElementById("estadoDeposito").textContent = "";
-        document.getElementById("comprobante").value = "";
-        document.getElementById("listaSolicitudes").replaceChildren();
+        document.getElementById(
+            "datos"
+        ).textContent = "";
+
+        document.getElementById(
+            "estadoDeposito"
+        ).textContent = "";
+
+        document.getElementById(
+            "comprobante"
+        ).value = "";
+
+        document.getElementById(
+            "listaPorAprobar"
+        ).replaceChildren();
+
+        document.getElementById(
+            "listaAprobados"
+        ).replaceChildren();
+
+        document.getElementById(
+            "listaNegados"
+        ).replaceChildren();
 
         mostrar("inicio");
+
         mensaje("Has cerrado sesión.");
 
     } catch (error) {
         mensaje("Error al cerrar sesión.");
     }
 }
-</script>
-
-</body>
+</script></body>
 </html>
