@@ -463,7 +463,7 @@ async function subirComprobante() {
             .from("payment_requests")
             .insert({
                 user_id: usuario.id,
-                plan: "membresia",
+                plan: "basic",
                 amount_cup: 100,
                 receipt_url: ruta,
                 status: "pending"
