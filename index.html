@@ -15,19 +15,24 @@ body {
     color: white;
     text-align: center;
 }
+
 header {
     background: #19191f;
     padding: 25px;
     border-bottom: 2px solid gold;
 }
+
 h1 { color: gold; }
+
 .container {
     max-width: 420px;
     margin: 35px auto;
     padding: 25px;
     background: #202027;
     border-radius: 12px;
+    box-sizing: border-box;
 }
+
 input {
     width: 90%;
     padding: 13px;
@@ -36,7 +41,13 @@ input {
     border-radius: 7px;
     background: #303039;
     color: white;
+    box-sizing: border-box;
 }
+
+input[type="file"] {
+    max-width: 100%;
+}
+
 button {
     padding: 13px 20px;
     margin: 8px;
@@ -47,9 +58,25 @@ button {
     font-weight: bold;
     cursor: pointer;
 }
-button:hover { background: #e6b800; }
-.hidden { display: none; }
-#message { color: gold; }
+
+button:hover {
+    background: #e6b800;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.hidden {
+    display: none;
+}
+
+#message,
+#estadoDeposito {
+    color: gold;
+    overflow-wrap: anywhere;
+}
 </style>
 </head>
 
@@ -71,6 +98,7 @@ button:hover { background: #e6b800; }
 
     <input id="nombre" placeholder="Nombre completo">
     <input id="usuario" placeholder="Nombre de usuario">
+
     <button onclick="comprobarUsuario()">Comprobar usuario</button>
 
     <input id="correo" type="email" placeholder="Correo electrónico">
@@ -93,7 +121,35 @@ button:hover { background: #e6b800; }
 
 <div class="container hidden" id="cuenta">
     <h2>Mi cuenta</h2>
+
     <p id="datos"></p>
+
+    <hr>
+
+    <h3>Depósito de membresía</h3>
+
+    <p>Realiza tu transferencia a esta tarjeta:</p>
+
+    <h2>9224069998634642</h2>
+
+    <p>Titular: Cuenta del grupo de GoldRewards</p>
+
+    <p>Después de transferir, sube la captura del comprobante:</p>
+
+    <input
+        type="file"
+        id="comprobante"
+        accept="image/jpeg,image/png,image/webp"
+    >
+
+    <button id="botonComprobante" onclick="subirComprobante()">
+        Enviar comprobante
+    </button>
+
+    <p id="estadoDeposito"></p>
+
+    <hr>
+
     <button onclick="salir()">Cerrar sesión</button>
 </div>
 
@@ -109,25 +165,34 @@ const supabaseClient = window.supabase.createClient(
     SUPABASE_KEY
 );
 
+// Mostrar una sección
 function mostrar(id) {
-    document.querySelectorAll(".container").forEach(c => {
-        c.classList.add("hidden");
+    document.querySelectorAll(".container").forEach(contenedor => {
+        contenedor.classList.add("hidden");
     });
+
     document.getElementById(id).classList.remove("hidden");
+
     document.getElementById("message").textContent = "";
 }
 
+// Mostrar mensajes
 function mensaje(texto) {
     document.getElementById("message").textContent = texto;
 }
 
+// Comprobar nombre de usuario
 async function comprobarUsuario() {
-    const username = document.getElementById("usuario").value.trim().toLowerCase();
+    const username = document.getElementById("usuario").value
+        .trim()
+        .toLowerCase();
 
     if (!/^[a-z0-9_]{3,20}$/.test(username)) {
         mensaje("Usa entre 3 y 20 letras, números o guiones bajos.");
         return;
     }
+
+    mensaje("Comprobando usuario...");
 
     const { data, error } = await supabaseClient.rpc(
         "check_username_available",
@@ -143,13 +208,20 @@ async function comprobarUsuario() {
         mensaje("¡Ese nombre de usuario está disponible!");
     } else {
         const sugerencias = data?.[0]?.suggestions || [];
-        mensaje("Ese usuario está ocupado. Sugerencias: " + sugerencias.join(", "));
+
+        mensaje(
+            "Ese usuario está ocupado. Sugerencias: " +
+            sugerencias.join(", ")
+        );
     }
 }
 
+// Registrar usuario
 async function registrar() {
     const full_name = document.getElementById("nombre").value.trim();
-    const username = document.getElementById("usuario").value.trim().toLowerCase();
+    const username = document.getElementById("usuario").value
+        .trim()
+        .toLowerCase();
     const email = document.getElementById("correo").value.trim();
     const password = document.getElementById("clave").value;
     const referral_code = document.getElementById("invitacion").value.trim();
@@ -188,7 +260,7 @@ async function registrar() {
 
     mensaje("Creando tu cuenta...");
 
-    const { data, error } = await supabaseClient.auth.signUp({
+    const { error } = await supabaseClient.auth.signUp({
         email,
         password,
         options: {
@@ -207,12 +279,23 @@ async function registrar() {
     }
 
     mostrar("login");
-mensaje("¡Bienvenido a GoldRewards! Inicia sesión para acceder a tu cuenta.");
+
+    mensaje(
+        "¡Bienvenido a GoldRewards! Inicia sesión para acceder a tu cuenta."
+    );
 }
 
+// Iniciar sesión
 async function entrar() {
     const email = document.getElementById("correoLogin").value.trim();
     const password = document.getElementById("claveLogin").value;
+
+    if (!email || !password) {
+        mensaje("Escribe tu correo y contraseña.");
+        return;
+    }
+
+    mensaje("Iniciando sesión...");
 
     const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
@@ -225,28 +308,127 @@ async function entrar() {
     }
 
     mostrar("cuenta");
+
     mensaje("¡Bienvenido a GoldRewards!");
 
-    const { data: perfil } = await supabaseClient
+    const { data: perfil, error: errorPerfil } = await supabaseClient
         .from("profiles")
         .select("full_name, username, role, referral_code")
         .eq("id", data.user.id)
         .maybeSingle();
 
-    if (perfil) {
-        document.getElementById("datos").innerHTML =
-            "Nombre: " + perfil.full_name +
-            "<br>Usuario: @" + perfil.username +
-            "<br>Rol: " + perfil.role +
-            "<br>Código de invitación: " + (perfil.referral_code || "Pendiente");
-    } else {
+    if (errorPerfil || !perfil) {
         document.getElementById("datos").textContent =
             "Sesión iniciada. No se pudo cargar el perfil.";
+        return;
+    }
+
+    document.getElementById("datos").textContent =
+        "Nombre: " + (perfil.full_name || "") +
+        "\nUsuario: @" + (perfil.username || "") +
+        "\nRol: " + (perfil.role || "user") +
+        "\nCódigo de invitación: " + (perfil.referral_code || "Pendiente");
+
+    document.getElementById("datos").style.whiteSpace = "pre-line";
+}
+
+// Subir comprobante de depósito
+async function subirComprobante() {
+    const archivo = document.getElementById("comprobante").files[0];
+    const estado = document.getElementById("estadoDeposito");
+    const boton = document.getElementById("botonComprobante");
+
+    if (!archivo) {
+        estado.textContent = "Selecciona primero la captura de tu transferencia.";
+        return;
+    }
+
+    const { data: sesion, error: errorSesion } =
+        await supabaseClient.auth.getUser();
+
+    if (errorSesion || !sesion.user) {
+        estado.textContent = "Debes iniciar sesión.";
+        return;
+    }
+
+    const usuario = sesion.user;
+
+    const tiposPermitidos = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ];
+
+    if (!tiposPermitidos.includes(archivo.type) ||
+        archivo.size > 5 * 1024 * 1024) {
+        estado.textContent =
+            "La imagen debe ser JPG, PNG o WEBP y pesar máximo 5 MB.";
+        return;
+    }
+
+    boton.disabled = true;
+    estado.textContent = "Enviando comprobante...";
+
+    try {
+        const extension = archivo.type === "image/jpeg" ? "jpg" :
+            archivo.type === "image/png" ? "png" : "webp";
+
+        const ruta = usuario.id + "/" + crypto.randomUUID() + "." + extension;
+
+        const { error: subidaError } = await supabaseClient.storage
+            .from("payment_receipts")
+            .upload(ruta, archivo, {
+                contentType: archivo.type,
+                upsert: false
+            });
+
+        if (subidaError) {
+            estado.textContent =
+                "Error al subir el comprobante: " + subidaError.message;
+            return;
+        }
+
+        const { error: registroError } = await supabaseClient
+            .from("payment_requests")
+            .insert({
+                user_id: usuario.id,
+                plan: "membresia",
+                amount_cup: 100,
+                receipt_url: ruta,
+                status: "pending"
+            });
+
+        if (registroError) {
+            estado.textContent =
+                "La imagen se subió, pero no se pudo registrar la solicitud: " +
+                registroError.message;
+            return;
+        }
+
+        estado.textContent =
+            "¡Comprobante enviado! Tu depósito está pendiente de aprobación.";
+
+        document.getElementById("comprobante").value = "";
+
+    } catch (error) {
+        estado.textContent = "Ocurrió un error: " + error.message;
+    } finally {
+        boton.disabled = false;
     }
 }
 
+// Cerrar sesión
 async function salir() {
-    await supabaseClient.auth.signOut();
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) {
+        mensaje("No se pudo cerrar la sesión: " + error.message);
+        return;
+    }
+
+    document.getElementById("datos").textContent = "";
+    document.getElementById("estadoDeposito").textContent = "";
+
     mostrar("inicio");
     mensaje("Has cerrado sesión.");
 }
