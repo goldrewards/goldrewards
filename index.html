@@ -154,15 +154,13 @@ function mostrar(id){
 function mensaje(t){document.getElementById("message").textContent=t;}
 function dinero(v){return `${Number(v||0).toLocaleString("es-ES")} CUP`;}
 function fecha(v){return v?new Date(v).toLocaleString("es-ES"):"—";}
-function elemento(tag, texto, clase){
+function elemento(tag,texto,clase){
   const e=document.createElement(tag);
   if(texto!==undefined)e.textContent=texto;
   if(clase)e.className=clase;
   return e;
 }
-function tarjetaVacia(contenedor,texto){
-  contenedor.replaceChildren(elemento("p",texto,"muted"));
-}
+function tarjetaVacia(contenedor,texto){contenedor.replaceChildren(elemento("p",texto,"muted"));}
 function generarNombreArchivo(extension){
   const valores=new Uint8Array(16);crypto.getRandomValues(valores);
   return Array.from(valores).map(v=>v.toString(16).padStart(2,"0")).join("")+"."+extension;
@@ -200,9 +198,9 @@ async function registrar(){
     if(errorUsuario)throw errorUsuario;
     if(!disponibilidad?.[0]?.available){mensaje("Ese nombre de usuario ya está ocupado.");return;}
     if(referral_code){
-      const {data:ref,error:refError}=await supabaseClient.from("profiles").select("id").ilike("referral_code",referral_code).maybeSingle();
+      const {data:refVal,error:refError}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});
       if(refError)throw refError;
-      if(!ref){mensaje("El código de invitación no existe. Revísalo o déjalo vacío.");return;}
+      if(refVal!==true){mensaje("El código de invitación no existe. Revísalo o déjalo vacío.");return;}
     }
     mensaje("Creando tu cuenta...");
     const {error}=await supabaseClient.auth.signUp({
@@ -248,8 +246,7 @@ async function dirigirUsuario(){
   else{mostrar("cuenta");await cargarCuenta();}
 }
 async function cargarCuenta(){
-  document.getElementById("datos").textContent=
-    "Nombre: "+(perfilActual.full_name||"")+"\nUsuario: @"+(perfilActual.username||"")+"\nCódigo de invitación: "+(perfilActual.referral_code||"En preparación");
+  document.getElementById("datos").textContent="Nombre: "+(perfilActual.full_name||"")+"\nUsuario: @"+(perfilActual.username||"")+"\nCódigo de invitación: "+(perfilActual.referral_code||"En preparación");
   const {data,error}=await supabaseClient.from("payment_requests").select("status,created_at").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();
   const estado=document.getElementById("estadoDeposito");
   if(error){estado.textContent="No se pudo consultar tu depósito: "+errorTexto(error);return;}
@@ -266,23 +263,23 @@ async function subirComprobante(){
   const estado=document.getElementById("estadoDeposito");
   const boton=document.getElementById("botonComprobante");
   if(!archivo){estado.textContent="Selecciona primero la captura de tu transferencia.";return;}
-  const {data:sesion,error:errorSesion}=await supabaseClient.auth.getUser();
-  if(errorSesion||!sesion.user){estado.textContent="Debes iniciar sesión.";return;}
   if(!["image/jpeg","image/png","image/webp"].includes(archivo.type)){estado.textContent="Solo se permiten imágenes JPG, PNG o WEBP.";return;}
   if(archivo.size>5*1024*1024){estado.textContent="La imagen no puede pesar más de 5 MB.";return;}
   boton.disabled=true;estado.textContent="Enviando comprobante...";
   let ruta=null;
   try{
-    const ext=archivo.type==="image/jpeg"?"jpg":archivo.type==="image/png"?"png":"webp";
-    ruta=usuarioActual.id+"/"+generarNombreArchivo(ext);
+    const {data:sesion,error:errorSesion}=await supabaseClient.auth.getUser();
+    if(errorSesion)throw errorSesion;
+    if(!sesion.user)throw new Error("Debes iniciar sesión.");
+    ruta=sesion.user.id+"/"+generarNombreArchivo(archivo.type==="image/jpeg"?"jpg":archivo.type==="image/png"?"png":"webp");
     const {error:subidaError}=await supabaseClient.storage.from("payment_receipts").upload(ruta,archivo,{contentType:archivo.type,upsert:false});
     if(subidaError)throw subidaError;
-    const {error:registroError}=await supabaseClient.from("payment_requests").insert({user_id:usuarioActual.id,plan:"basic",amount_cup:100,receipt_url:ruta,status:"pending"});
+    const {error:registroError}=await supabaseClient.from("payment_requests").insert({user_id:sesion.user.id,plan:"basic",amount_cup:100,receipt_url:ruta,status:"pending"});
     if(registroError)throw registroError;
     estado.textContent="¡Comprobante enviado! Tu depósito está por aprobar.";
     document.getElementById("comprobante").value="";
-  }catch(e){estado.textContent="No se pudo registrar el comprobante: "+errorTexto(e)+(ruta?" La imagen quedó subida; contacta al administrador si no aparece la solicitud.":"");}
-  finally{boton.disabled=false;}
+    boton.disabled=true;
+  }catch(e){estado.textContent="No se pudo registrar el comprobante: "+errorTexto(e)+(ruta?" Si la imagen se subió pero no aparece la solicitud, contacta al administrador.":"");boton.disabled=false;}
 }
 
 async function cargarLobby(mem){
@@ -300,8 +297,7 @@ async function cargarLobby(mem){
   await Promise.all([cargarSaldoYGanancias(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos()]);
 }
 function actualizarTiempoMembresia(fin){
-  const destino=document.getElementById("tiempoMembresia");
-  const final=new Date(fin).getTime();
+  const destino=document.getElementById("tiempoMembresia"),final=new Date(fin).getTime();
   const actualizar=()=>{
     const restante=final-Date.now();
     if(restante<=0){destino.textContent="Membresía vencida. Cierra sesión e inicia nuevamente.";return;}
@@ -313,7 +309,8 @@ function actualizarTiempoMembresia(fin){
   window.relojMembresia=setInterval(actualizar,60000);
 }
 async function cargarSaldoYGanancias(){
-  const {data:ganancias,error}=await supabaseClient.from("referral_earnings").select("id,referred_user_id,amount_cup,referral_level,created_at").eq("earner_user_id",usuarioActual.id).order("created_at",{ascending:false});
+  // referral_earnings no tiene columna id en el esquema creado.
+  const {data:ganancias,error}=await supabaseClient.from("referral_earnings").select("referred_user_id,amount_cup,referral_level,created_at").eq("earner_user_id",usuarioActual.id).order("created_at",{ascending:false});
   if(error)throw error;
   const total=(ganancias||[]).reduce((s,x)=>s+Number(x.amount_cup||0),0);
   const {data:retiros,error:errorR}=await supabaseClient.from("withdrawal_requests").select("amount_cup,status").eq("user_id",usuarioActual.id);
@@ -323,8 +320,7 @@ async function cargarSaldoYGanancias(){
   document.getElementById("gananciasTotales").textContent=dinero(total);
   document.getElementById("saldoDisponible").textContent=dinero(saldo);
   document.getElementById("cantidadReferidos").textContent=String((ganancias||[]).filter(x=>x.referral_level===1).length);
-  const cont=document.getElementById("historialGanancias");
-  cont.replaceChildren();
+  const cont=document.getElementById("historialGanancias");cont.replaceChildren();
   if(!ganancias?.length){tarjetaVacia(cont,"Todavía no tienes ganancias.");return;}
   ganancias.forEach(g=>{
     const c=elemento("div",undefined,"solicitud");
@@ -335,11 +331,12 @@ async function cargarSaldoYGanancias(){
 async function cargarReferidos(){
   const cont=document.getElementById("listaReferidos");
   const {data,error}=await supabaseClient.rpc("get_my_referrals");
-  if(error){tarjetaVacia(cont,"No se pudo mostrar la lista de invitados. El saldo y las comisiones sí se consultan por separado.");return;}
+  if(error){tarjetaVacia(cont,"No se pudo mostrar la lista de invitados. El saldo y las comisiones se consultan por separado.");return;}
   if(!data?.length){tarjetaVacia(cont,"Todavía no tienes personas invitadas.");return;}
-  cont.replaceChildren();
   const {data:gan,error:eg}=await supabaseClient.from("referral_earnings").select("referred_user_id,amount_cup,created_at").eq("earner_user_id",usuarioActual.id).eq("referral_level",1);
+  if(eg){tarjetaVacia(cont,"No se pudo consultar el estado de las comisiones de tus invitados.");return;}
   const mapa=new Map((gan||[]).map(x=>[x.referred_user_id,x]));
+  cont.replaceChildren();
   data.forEach(p=>{
     const g=mapa.get(p.id),c=elemento("div",undefined,"solicitud");
     c.append(elemento("strong","@"+(p.username||"usuario")),elemento("p",p.full_name||""),elemento("p",g?"Depósito aprobado · "+dinero(g.amount_cup):"Invitación registrada · comisión pendiente de aprobación"));
@@ -374,8 +371,7 @@ async function cargarHistorialRetiros(){
 }
 async function solicitarRetiro(){
   const boton=document.getElementById("botonRetiro"),estado=document.getElementById("estadoRetiro");
-  const cantidad=Number(document.getElementById("montoRetiro").value);
-  const tarjeta=document.getElementById("tarjetaRetiro").value.trim();
+  const cantidad=Number(document.getElementById("montoRetiro").value),tarjeta=document.getElementById("tarjetaRetiro").value.trim();
   if(!Number.isInteger(cantidad)||cantidad<100||cantidad>250||cantidad%10!==0){estado.textContent="El retiro debe ser de 100 a 250 CUP, en múltiplos de 10 (ejemplo: 100, 120 o 250).";return;}
   if(tarjeta.length<8){estado.textContent="Introduce un número de tarjeta válido.";return;}
   boton.disabled=true;estado.textContent="Enviando solicitud...";
@@ -383,8 +379,7 @@ async function solicitarRetiro(){
     const {data,error}=await supabaseClient.rpc("request_withdrawal",{p_amount:cantidad,p_card_number:tarjeta});
     if(error)throw error;
     estado.textContent="Solicitud enviada correctamente. Está por aprobar. Número: "+data;
-    document.getElementById("montoRetiro").value="";
-    document.getElementById("tarjetaRetiro").value="";
+    document.getElementById("montoRetiro").value="";document.getElementById("tarjetaRetiro").value="";
     await Promise.all([cargarSaldoYGanancias(),cargarHistorialRetiros()]);
   }catch(e){estado.textContent="No se pudo solicitar el retiro: "+errorTexto(e);}
   finally{boton.disabled=false;}
@@ -400,8 +395,7 @@ function mostrarAdmin(id){
   ["depPendientes","depAprobados","depNegados","retirosPendientes","retirosProcesados"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id));
 }
 async function cargarAdmin(){
-  const msg=document.getElementById("mensajeAdmin");
-  msg.textContent="Cargando información...";
+  const msg=document.getElementById("mensajeAdmin");msg.textContent="Cargando información...";
   try{
     const {data:sesion,error:se}=await supabaseClient.auth.getUser();
     if(se||!sesion.user)throw new Error("Debes iniciar sesión.");
@@ -413,14 +407,13 @@ async function cargarAdmin(){
     ]);
     if(ep)throw ep;if(er)throw er;
     const ids=[...new Set([...(pagos||[]).map(x=>x.user_id),...(retiros||[]).map(x=>x.user_id)])];
-    let nombres={};
+    const nombres={};
     if(ids.length){
       const {data:perfiles,error:eper}=await supabaseClient.from("profiles").select("id,username,full_name").in("id",ids);
       if(eper)throw eper;
       (perfiles||[]).forEach(x=>nombres[x.id]=(x.full_name||"")+" (@"+(x.username||"sin usuario")+")");
     }
-    await renderizarDepositos(pagos||[],nombres);
-    renderizarRetiros(retiros||[],nombres);
+    await renderizarDepositos(pagos||[],nombres);renderizarRetiros(retiros||[],nombres);
     msg.textContent=`Depósitos por aprobar: ${(pagos||[]).filter(x=>x.status==="pending").length} · Retiros por aprobar: ${(retiros||[]).filter(x=>x.status==="pending").length}`;
   }catch(e){msg.textContent="Error: "+errorTexto(e);}
 }
@@ -439,8 +432,7 @@ async function renderizarDepositos(pagos,nombres){
     }
     if(x.status==="pending"){
       const a=elemento("button","Aprobar","aprobar");a.onclick=()=>procesarDeposito(x.id,"approved",a);
-      const n=elemento("button","Negar","negar");n.onclick=()=>procesarDeposito(x.id,"rejected",n);
-      c.append(a,n);
+      const n=elemento("button","Negar","negar");n.onclick=()=>procesarDeposito(x.id,"rejected",n);c.append(a,n);
     }
     cont.append(c);
   }
@@ -450,15 +442,13 @@ function renderizarRetiros(retiros,nombres){
   tarjetaVacia(pendientes,"No hay retiros por aprobar.");tarjetaVacia(procesados,"Todavía no hay retiros procesados.");
   for(const x of retiros){
     const cont=x.status==="pending"?pendientes:procesados;
-    if(cont.querySelector(".muted")&&(cont.querySelector(".muted").textContent==="No hay retiros por aprobar."||cont.querySelector(".muted").textContent==="Todavía no hay retiros procesados."))cont.replaceChildren();
+    const vacio=cont.querySelector(".muted");
+    if(vacio&&(vacio.textContent==="No hay retiros por aprobar."||vacio.textContent==="Todavía no hay retiros procesados."))cont.replaceChildren();
     const c=elemento("div",undefined,"solicitud");
     c.append(elemento("h3","Retiro: "+dinero(x.amount_cup)),elemento("p","Usuario: "+(nombres[x.user_id]||x.user_id)),elemento("p","Tarjeta: "+(x.card_number||"No indicada")),elemento("p","Solicitado: "+fecha(x.created_at)),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")),elemento("p","Procesado: "+fecha(x.processed_at)));
     if(x.status==="pending"){
-      const a=elemento("button","Marcar como pagado y aprobar","aprobar");
-      a.onclick=()=>procesarRetiro(x.id,"approved",a);
-      const n=elemento("button","Negar","negar");
-      n.onclick=()=>procesarRetiro(x.id,"rejected",n);
-      c.append(a,n);
+      const a=elemento("button","Marcar como pagado y aprobar","aprobar");a.onclick=()=>procesarRetiro(x.id,"approved",a);
+      const n=elemento("button","Negar","negar");n.onclick=()=>procesarRetiro(x.id,"rejected",n);c.append(a,n);
     }
     cont.append(c);
   }
@@ -470,8 +460,7 @@ async function procesarDeposito(id,estado,boton){
   try{
     const {error}=await supabaseClient.rpc(estado==="approved"?"approve_payment_request":"reject_payment_request",{p_request_id:id});
     if(error)throw error;
-    alert(estado==="approved"?"Depósito aprobado. Membresía y comisiones procesadas.":"Depósito negado.");
-    await cargarAdmin();
+    alert(estado==="approved"?"Depósito aprobado. Membresía y comisiones procesadas.":"Depósito negado.");await cargarAdmin();
   }catch(e){alert("No se pudo procesar: "+errorTexto(e));boton.disabled=false;}
 }
 async function procesarRetiro(id,estado,boton){
@@ -481,8 +470,7 @@ async function procesarRetiro(id,estado,boton){
   try{
     const {error}=await supabaseClient.rpc(estado==="approved"?"approve_withdrawal":"reject_withdrawal",{p_withdrawal_id:id});
     if(error)throw error;
-    alert(estado==="approved"?"Retiro marcado como aprobado y descontado del saldo.":"Retiro negado; el saldo reservado vuelve a estar disponible.");
-    await cargarAdmin();
+    alert(estado==="approved"?"Retiro marcado como aprobado y descontado del saldo.":"Retiro negado; el saldo reservado vuelve a estar disponible.");await cargarAdmin();
   }catch(e){alert("No se pudo procesar: "+errorTexto(e));boton.disabled=false;}
 }
 async function salir(){
