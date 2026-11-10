@@ -288,4 +288,517 @@ function generarNombreArchivo(extension){
 function errorTexto(e){return e?.message||"Ocurrió un error inesperado."}
 
 function abrirReglas(){document.getElementById("reglasModal").classList.remove("hidden");}
-function cerrarRe
+function cerrarReglas(){document.getElementById("reglasModal").classList.add("hidden");}
+let chatChannel=null;
+let chatIds=new Set();
+function cerrarChat(){document.getElementById("chatModal").classList.add("hidden");}
+async function abrirChat(){
+  const estado=document.getElementById("chatEstado");
+  if(!usuarioActual){estado.textContent="Inicia sesión para entrar al chat.";document.getElementById("chatModal").classList.remove("hidden");return;}
+  try{
+    if(perfilActual?.role!=="admin"){
+      const {data:mem,error}=await supabaseClient.from("memberships").select("id").eq("user_id",usuarioActual.id).eq("status","active").gt("ends_at",new Date().toISOString()).limit(1).maybeSingle();
+      if(error)throw error;
+      if(!mem)throw new Error("El chat es exclusivo para miembros con membresía activa.");
+    }
+    document.getElementById("chatModal").classList.remove("hidden");
+    await cargarMensajesChat();
+    if(!chatChannel){
+      chatChannel=supabaseClient.channel("goldrewards-chat-grupal")
+        .on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_messages"},payload=>{
+          pintarMensajeChat(payload.new);
+        })
+        .subscribe(status=>{
+          estado.textContent=status==="SUBSCRIBED"?"Conectado en tiempo real.":status==="CHANNEL_ERROR"?"No se pudo conectar al chat en tiempo real. Revisa la configuración de Supabase.":"Conectando al chat...";
+        });
+    }
+    setTimeout(()=>{const box=document.getElementById("chatMensajes");box.scrollTop=box.scrollHeight;},100);
+  }catch(e){
+    estado.textContent="No se pudo abrir el chat: "+errorTexto(e);
+    document.getElementById("chatModal").classList.remove("hidden");
+  }
+}
+async function cargarMensajesChat(){
+  const box=document.getElementById("chatMensajes");
+  box.replaceChildren(elemento("p","Cargando mensajes...","muted"));
+  chatIds.clear();
+  const {data,error}=await supabaseClient.from("chat_messages").select("id,user_id,username,message,created_at").order("created_at",{ascending:false}).limit(100);
+  if(error)throw error;
+  box.replaceChildren();
+  if(!data?.length){box.append(elemento("p","Todavía no hay mensajes. ¡Saluda a la comunidad!","muted"));return;}
+  data.reverse().forEach(pintarMensajeChat);
+}
+function pintarMensajeChat(m){
+  if(!m||chatIds.has(String(m.id)))return;
+  const box=document.getElementById("chatMensajes");
+  if(box.querySelector(".muted")?.textContent==="Todavía no hay mensajes. ¡Saluda a la comunidad!")box.replaceChildren();
+  chatIds.add(String(m.id));
+  const item=elemento("div",undefined,"chat-message"+(m.user_id===usuarioActual?.id?" own":""));
+  const meta=elemento("div",undefined,"chat-meta");
+  meta.append(elemento("strong",m.username||"Miembro"),elemento("span",fecha(m.created_at)));
+  item.append(meta,elemento("div",m.message||"","chat-body"));
+  box.append(item);
+  box.scrollTop=box.scrollHeight;
+}
+async function enviarMensajeChat(event){
+  event.preventDefault();
+  const input=document.getElementById("chatTexto"),boton=document.getElementById("chatEnviar");
+  const message=input.value.trim();
+  if(!message)return;
+  if(message.length>1000){document.getElementById("chatEstado").textContent="El mensaje no puede superar 1000 caracteres.";return;}
+  boton.disabled=true;
+  try{
+    const {data:sesion,error:sesionError}=await supabaseClient.auth.getUser();
+    if(sesionError||!sesion.user)throw new Error("Tu sesión venció. Inicia sesión nuevamente.");
+    const {error}=await supabaseClient.from("chat_messages").insert({user_id:sesion.user.id,message});
+    if(error)throw error;
+    input.value="";
+    document.getElementById("chatEstado").textContent="Mensaje enviado.";
+  }catch(e){document.getElementById("chatEstado").textContent="No se pudo enviar: "+errorTexto(e);}
+  finally{boton.disabled=false;input.focus();}
+}
+
+async function comprobarUsuario(){
+  const boton=document.getElementById("botonComprobar");
+  const username=document.getElementById("usuario").value.trim().toLowerCase();
+  if(!/^[a-z0-9_]{3,20}$/.test(username)){mensaje("Usa entre 3 y 20 letras, números o guiones bajos.");return;}
+  boton.disabled=true;mensaje("Comprobando usuario...");
+  try{
+    const {data,error}=await supabaseClient.rpc("check_username_available",{p_username:username});
+    if(error)throw error;
+    if(data?.[0]?.available)mensaje("¡Ese nombre de usuario está disponible!");
+    else mensaje("Ese usuario está ocupado. Sugerencias: "+(data?.[0]?.suggestions||[]).join(", "));
+  }catch(e){mensaje("No se pudo comprobar el usuario: "+errorTexto(e));}
+  finally{boton.disabled=false;}
+}
+
+const municipiosPorProvincia={
+  "Pinar del Río":["Pinar del Río","Consolación del Sur","Guane","La Palma","Los Palacios","Mantua","Minas de Matahambre","San Juan y Martínez","San Luis","Sandino","Viñales"],
+  "Artemisa":["Artemisa","Alquízar","Bauta","Caimito","Candelaria","Guanajay","Güira de Melena","Mariel","San Antonio de los Baños","San Cristóbal","Bahía Honda"],
+  "La Habana":["Playa","Plaza de la Revolución","Centro Habana","La Habana Vieja","Regla","La Habana del Este","Guanabacoa","San Miguel del Padrón","Diez de Octubre","Cerro","Marianao","La Lisa","Boyeros","Arroyo Naranjo","Cotorro"],
+  "Mayabeque":["San José de las Lajas","Bejucal","Jaruco","Madruga","Nueva Paz","Santa Cruz del Norte","San Nicolás","Güines","Melena del Sur","Batabanó","Quivicán"],
+  "Matanzas":["Matanzas","Cárdenas","Martí","Colón","Perico","Jovellanos","Pedro Betancourt","Limonar","Unión de Reyes","Ciénaga de Zapata","Jagüey Grande","Calimete","Los Arabos"],
+  "Cienfuegos":["Cienfuegos","Abreus","Aguada de Pasajeros","Cruces","Cumanayagua","Lajas","Palmira","Rodas"],
+  "Villa Clara":["Santa Clara","Caibarién","Camajuaní","Cifuentes","Corralillo","Encrucijada","Manicaragua","Placetas","Quemado de Güines","Ranchuelo","Remedios","Sagua la Grande","Santo Domingo"],
+  "Sancti Spíritus":["Sancti Spíritus","Trinidad","Cabaiguán","Fomento","Jatibonico","La Sierpe","Taguasco","Yaguajay"],
+  "Ciego de Ávila":["Ciego de Ávila","Morón","Bolivia","Chambas","Ciro Redondo","Florencia","Majagua","Primero de Enero","Venezuela","Baraguá"],
+  "Camagüey":["Camagüey","Florida","Nuevitas","Guáimaro","Santa Cruz del Sur","Vertientes","Jimaguayú","Sibanicú","Esmeralda","Sierra de Cubitas","Minas","Najasa","Carlos Manuel de Céspedes"],
+  "Las Tunas":["Las Tunas","Puerto Padre","Jesús Menéndez","Majibacoa","Jobabo","Colombia","Amancio","Manatí"],
+  "Granma":["Bayamo","Manzanillo","Jiguaní","Guisa","Buey Arriba","Campechuela","Media Luna","Niquero","Pilón","Bartolomé Masó","Cauto Cristo","Yara","Río Cauto"],
+  "Holguín":["Holguín","Banes","Antilla","Báguanos","Cacocum","Calixto García","Cueto","Frank País","Gibara","Mayarí","Moa","Rafael Freyre","Sagua de Tánamo","Urbano Noris"],
+  "Santiago de Cuba":["Santiago de Cuba","Contramaestre","Mella","San Luis","Segundo Frente","Songo-La Maya","Tercer Frente","Palma Soriano","Guamá"],
+  "Guantánamo":["Guantánamo","Baracoa","Yateras","San Antonio del Sur","Imías","Maisí","Manuel Tames","Niceto Pérez","Caimanera","El Salvador"],
+  "Isla de la Juventud":["Isla de la Juventud"]
+};
+
+function cargarMunicipios(){
+  const provincia=document.getElementById("provincia").value;
+  const selector=document.getElementById("municipio");
+  selector.innerHTML='<option value="">Selecciona tu municipio</option>';
+  const municipios=municipiosPorProvincia[provincia]||[];
+  municipios.forEach(nombre=>{
+    const opcion=document.createElement("option");
+    opcion.value=nombre;
+    opcion.textContent=nombre;
+    selector.appendChild(opcion);
+  });
+  selector.disabled=municipios.length===0;
+}
+
+async function registrar(){
+  const boton=document.getElementById("botonRegistro");
+  const full_name=document.getElementById("nombre").value.trim();
+  const province=document.getElementById("provincia").value;
+  const municipality=document.getElementById("municipio").value;
+  const username=document.getElementById("usuario").value.trim().toLowerCase();
+  const email=document.getElementById("correo").value.trim();
+  const password=document.getElementById("clave").value;
+  const referral_code=document.getElementById("invitacion").value.trim().toUpperCase();
+
+  if(!full_name||!province||!municipality||!username||!email||!password||!referral_code){
+    mensaje("Todos los campos son obligatorios. Debes introducir el código de referencia de quien te invitó.");
+    return;
+  }
+  if(!/^[a-z0-9_]{3,20}$/.test(username)){mensaje("El nombre de usuario no es válido.");return;}
+  if(password.length<6){mensaje("La contraseña debe tener al menos 6 caracteres.");return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){mensaje("Introduce un correo válido.");return;}
+
+  boton.disabled=true;mensaje("Comprobando disponibilidad...");
+  try{
+    const {data:disponibilidad,error:errorUsuario}=await supabaseClient.rpc("check_username_available",{p_username:username});
+    if(errorUsuario)throw errorUsuario;
+    if(!disponibilidad?.[0]?.available){mensaje("Ese nombre de usuario ya está ocupado.");return;}
+
+    const {data:refVal,error:refError}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});
+    if(refError)throw refError;
+    if(refVal!==true){mensaje("El código de referencia no existe. Pídele a quien te invitó que te lo confirme.");return;}
+
+    mensaje("Creando tu cuenta...");
+    const {error}=await supabaseClient.auth.signUp({
+      email,
+      password,
+      options:{
+        emailRedirectTo:"https://goldrewards.github.io/goldrewards/",
+        data:{full_name,username,province,municipality,referral_code}
+      }
+    });
+    if(error)throw error;
+
+    ["nombre","provincia","usuario","correo","clave","invitacion"].forEach(id=>{
+      document.getElementById(id).value="";
+    });
+    cargarMunicipios();
+    mostrar("login");
+    mensaje("Cuenta creada. Si Supabase solicita confirmar el correo, revisa tu bandeja antes de iniciar sesión.");
+  }catch(e){
+    mensaje("No se pudo crear la cuenta: "+errorTexto(e));
+  }finally{
+    boton.disabled=false;
+  }
+}
+
+async function cargarPerfil(user){
+  const {data,error}=await supabaseClient.from("profiles").select("id,full_name,username,role,referral_code").eq("id",user.id).maybeSingle();
+  if(error)throw error;if(!data)throw new Error("No se encontró tu perfil.");
+  return data;
+}
+async function entrar(){
+  const boton=document.getElementById("botonLogin");
+  const email=document.getElementById("correoLogin").value.trim();
+  const password=document.getElementById("claveLogin").value;
+  if(!email||!password){mensaje("Escribe tu correo y contraseña.");return;}
+  boton.disabled=true;mensaje("Iniciando sesión...");
+  try{
+    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    usuarioActual=data.user;perfilActual=await cargarPerfil(data.user);
+    await dirigirUsuario();
+  }catch(e){mensaje("No se pudo iniciar sesión: "+errorTexto(e));}
+  finally{boton.disabled=false;}
+}
+async function dirigirUsuario(){
+  if(!usuarioActual||!perfilActual)return;
+  if(perfilActual.role==="admin"){
+    mostrar("panelAdmin");document.getElementById("mensajeAdmin").textContent="Bienvenido al panel de administración.";
+    await cargarAdmin();return;
+  }
+  const {data:mem,error}=await supabaseClient.from("memberships").select("id,plan,starts_at,ends_at,status").eq("user_id",usuarioActual.id).eq("status","active").gt("ends_at",new Date().toISOString()).order("ends_at",{ascending:false}).limit(1).maybeSingle();
+  if(error)throw error;
+  if(mem){mostrar("lobby");await cargarLobby(mem);}
+  else{mostrar("cuenta");await cargarCuenta();}
+}
+async function cargarCuenta(){
+  document.getElementById("datos").textContent="Nombre: "+(perfilActual.full_name||"")+"\nUsuario: @"+(perfilActual.username||"")+"\nCódigo de invitación: "+(perfilActual.referral_code||"En preparación");
+  const {data,error}=await supabaseClient.from("payment_requests").select("status,created_at,plan,amount_cup").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();
+  const estado=document.getElementById("estadoDeposito");
+  if(error){estado.textContent="No se pudo consultar tu depósito: "+errorTexto(error);return;}
+  if(data){
+    estado.textContent="Tu comprobante de "+dinero(data.amount_cup)+" está por aprobar desde "+fecha(data.created_at)+". No necesitas enviarlo otra vez.";
+    document.getElementById("botonComprobante").disabled=true;
+    document.getElementById("planMembresia").disabled=true;
+  }else{
+    estado.textContent="Todavía no tienes un depósito por aprobar.";
+    document.getElementById("botonComprobante").disabled=false;
+    document.getElementById("planMembresia").disabled=false;
+  }
+}
+async function subirComprobante(){
+  const archivo=document.getElementById("comprobante").files[0];
+  const estado=document.getElementById("estadoDeposito");
+  const boton=document.getElementById("botonComprobante");
+  const plan=document.getElementById("planMembresia").value;
+  const planes={
+    basic:{plan:"basic",amount_cup:100},
+    premium:{plan:"premium",amount_cup:200}
+  };
+  const seleccionado=planes[plan];
+
+  if(!seleccionado){estado.textContent="Selecciona un plan válido.";return;}
+  if(!archivo){estado.textContent="Selecciona primero la captura de tu transferencia.";return;}
+  if(!["image/jpeg","image/png","image/webp"].includes(archivo.type)){estado.textContent="Solo se permiten imágenes JPG, PNG o WEBP.";return;}
+  if(archivo.size>5*1024*1024){estado.textContent="La imagen no puede pesar más de 5 MB.";return;}
+
+  boton.disabled=true;estado.textContent="Enviando comprobante...";
+  let ruta=null;
+  try{
+    const {data:sesion,error:errorSesion}=await supabaseClient.auth.getUser();
+    if(errorSesion)throw errorSesion;
+    if(!sesion.user)throw new Error("Debes iniciar sesión.");
+
+    ruta=sesion.user.id+"/"+generarNombreArchivo(archivo.type==="image/jpeg"?"jpg":archivo.type==="image/png"?"png":"webp");
+    const {error:subidaError}=await supabaseClient.storage.from("payment_receipts").upload(ruta,archivo,{contentType:archivo.type,upsert:false});
+    if(subidaError)throw subidaError;
+
+    const {error:registroError}=await supabaseClient.from("payment_requests").insert({
+      user_id:sesion.user.id,
+      plan:seleccionado.plan,
+      amount_cup:seleccionado.amount_cup,
+      receipt_url:ruta,
+      status:"pending"
+    });
+    if(registroError)throw registroError;
+
+    estado.textContent="¡Comprobante enviado! Tu depósito de "+seleccionado.amount_cup+" CUP está por aprobar.";
+    document.getElementById("comprobante").value="";
+    boton.disabled=true;
+    document.getElementById("planMembresia").disabled=true;
+  }catch(e){
+    estado.textContent="No se pudo registrar el comprobante: "+errorTexto(e)+(ruta?" Si la imagen se subió pero no aparece la solicitud, contacta al administrador.":"");
+    boton.disabled=false;
+  }
+}
+
+async function cargarLobby(mem){
+  document.getElementById("bienvenidaLobby").textContent="¡Bienvenido, "+(perfilActual.full_name||perfilActual.username||"usuario")+"!";
+  actualizarTiempoMembresia(mem.ends_at);
+  if(perfilActual.referral_code){
+    document.getElementById("miCodigo").textContent=perfilActual.referral_code;
+    const link=new URL("https://goldrewards.github.io/goldrewards/");
+    link.searchParams.set("ref",perfilActual.referral_code);
+    document.getElementById("enlaceInvitacion").value=link.toString();
+  }else{
+    document.getElementById("miCodigo").textContent="Pendiente de asignación";
+    document.getElementById("enlaceInvitacion").value="";
+  }
+  await Promise.all([cargarSaldoYGanancias(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos()]);
+}
+function actualizarTiempoMembresia(fin){
+  const destino=document.getElementById("tiempoMembresia"),final=new Date(fin).getTime();
+  const actualizar=()=>{
+    const restante=final-Date.now();
+    if(restante<=0){destino.textContent="Membresía vencida. Cierra sesión e inicia nuevamente.";return;}
+    const dias=Math.floor(restante/86400000),horas=Math.floor((restante%86400000)/3600000),min=Math.floor((restante%3600000)/60000);
+    destino.textContent=`Vence en ${dias} días, ${horas} horas y ${min} minutos`;
+  };
+  actualizar();
+  if(window.relojMembresia)clearInterval(window.relojMembresia);
+  window.relojMembresia=setInterval(actualizar,60000);
+}
+async function cargarSaldoYGanancias(){
+  const {data:ganancias,error}=await supabaseClient
+    .from("referral_earnings")
+    .select("referred_user_id,amount_cup,referral_level,created_at")
+    .eq("earner_user_id",usuarioActual.id)
+    .order("created_at",{ascending:false});
+  if(error)throw error;
+
+  const {data:resumen,error:errorResumen}=await supabaseClient.rpc("get_my_withdrawal_summary");
+  if(errorResumen)throw errorResumen;
+  const r=Array.isArray(resumen)?resumen[0]:resumen;
+  if(!r)throw new Error("No se pudo obtener el resumen de retiros.");
+
+  const total=(ganancias||[]).reduce((s,x)=>s+Number(x.amount_cup||0),0);
+  document.getElementById("gananciasTotales").textContent=dinero(total);
+  document.getElementById("saldoDisponible").textContent=dinero(r.commission_balance);
+  document.getElementById("cantidadReferidos").textContent=String(r.approved_direct_referrals);
+  document.getElementById("referidosAprobados").textContent=String(r.approved_direct_referrals);
+  document.getElementById("limiteAcumulado").textContent=dinero(r.cumulative_limit);
+  document.getElementById("limiteRestante").textContent=dinero(r.entitlement_remaining);
+  document.getElementById("limiteDiario").textContent=dinero(r.daily_remaining);
+
+  const cont=document.getElementById("historialGanancias");
+  cont.replaceChildren();
+  if(!ganancias?.length){tarjetaVacia(cont,"Todavía no tienes ganancias.");return;}
+  ganancias.forEach(g=>{
+    const c=elemento("div",undefined,"solicitud");
+    const tipo=g.referral_level===1?"Comisión directa":"Comisión de segundo nivel";
+    c.append(
+      elemento("strong",dinero(g.amount_cup)),
+      elemento("p",tipo),
+      elemento("p","Fecha: "+fecha(g.created_at))
+    );
+    cont.append(c);
+  });
+}
+async function cargarReferidos(){
+  const cont=document.getElementById("listaReferidos");
+  const {data,error}=await supabaseClient.rpc("get_my_referrals");
+  if(error){tarjetaVacia(cont,"No se pudo mostrar la lista de invitados.");return;}
+  if(!data?.length){tarjetaVacia(cont,"Todavía no tienes personas invitadas.");return;}
+
+  const {data:gan,error:eg}=await supabaseClient
+    .from("referral_earnings")
+    .select("referred_user_id,amount_cup")
+    .eq("earner_user_id",usuarioActual.id)
+    .eq("referral_level",1);
+  if(eg){tarjetaVacia(cont,"No se pudo consultar el estado de las comisiones.");return;}
+
+  const mapa=new Map();
+  (gan||[]).forEach(x=>{
+    const anterior=mapa.get(x.referred_user_id)||0;
+    mapa.set(x.referred_user_id,anterior+Number(x.amount_cup||0));
+  });
+
+  cont.replaceChildren();
+  data.forEach(p=>{
+    const total=mapa.get(p.id);
+    const c=elemento("div",undefined,"solicitud");
+    c.append(
+      elemento("strong","@"+(p.username||"usuario")),
+      elemento("p",p.full_name||""),
+      elemento("p",total!==undefined
+        ?"Depósito aprobado · Comisiones generadas: "+dinero(total)
+        :"Invitación registrada · comisión pendiente de aprobación")
+    );
+    cont.append(c);
+  });
+}
+async function cargarHistorialPagos(){
+  const cont=document.getElementById("historialPagos");
+  const {data,error}=await supabaseClient.from("payment_requests").select("id,plan,amount_cup,status,created_at").eq("user_id",usuarioActual.id).order("created_at",{ascending:false});
+  if(error){tarjetaVacia(cont,"No se pudo cargar el historial de depósitos.");return;}
+  if(!data?.length){tarjetaVacia(cont,"No hay depósitos registrados.");return;}
+  cont.replaceChildren();
+  data.forEach(x=>{
+    const estado=x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado";
+    const nombrePlan=x.plan==="basic"?"Básico (100 CUP)":x.plan==="premium"?"Premium (200 CUP)":x.plan;
+    const c=elemento("div",undefined,"solicitud");
+    c.append(elemento("strong",dinero(x.amount_cup)),elemento("p","Plan: "+nombrePlan),elemento("p","Estado: "+estado),elemento("p","Fecha: "+fecha(x.created_at)));
+    cont.append(c);
+  });
+}
+async function cargarHistorialRetiros(){
+  const cont=document.getElementById("historialRetiros");
+  const {data,error}=await supabaseClient.from("withdrawal_requests").select("amount_cup,status,created_at,processed_at").eq("user_id",usuarioActual.id).order("created_at",{ascending:false});
+  if(error){tarjetaVacia(cont,"No se pudo cargar el historial de retiros.");return;}
+  if(!data?.length){tarjetaVacia(cont,"Todavía no has solicitado retiros.");return;}
+  cont.replaceChildren();
+  data.forEach(x=>{
+    const estado=x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado";
+    const c=elemento("div",undefined,"solicitud");
+    c.append(elemento("strong",dinero(x.amount_cup)),elemento("p","Estado: "+estado),elemento("p","Solicitado: "+fecha(x.created_at)),elemento("p","Procesado: "+fecha(x.processed_at)));
+    cont.append(c);
+  });
+}
+async function solicitarRetiro(){
+  const boton=document.getElementById("botonRetiro"),estado=document.getElementById("estadoRetiro");
+  const cantidad=Number(document.getElementById("montoRetiro").value),tarjeta=document.getElementById("tarjetaRetiro").value.trim();
+  if(!Number.isInteger(cantidad)||cantidad<100||cantidad>250||cantidad%10!==0){estado.textContent="El retiro debe ser de 100 a 250 CUP, en múltiplos de 10 (ejemplo: 100, 120 o 250).";return;}
+  if(tarjeta.length<8){estado.textContent="Introduce un número de tarjeta válido.";return;}
+  boton.disabled=true;estado.textContent="Enviando solicitud...";
+  try{
+    const {data,error}=await supabaseClient.rpc("request_withdrawal",{p_amount:cantidad,p_card_number:tarjeta});
+    if(error)throw error;
+    estado.textContent="Solicitud enviada correctamente. Está por aprobar. Número: "+data;
+    document.getElementById("montoRetiro").value="";
+    document.getElementById("tarjetaRetiro").value="";
+    await Promise.all([cargarSaldoYGanancias(),cargarHistorialRetiros()]);
+  }catch(e){estado.textContent="No se pudo solicitar el retiro: "+errorTexto(e);}
+  finally{boton.disabled=false;}
+}
+async function copiarEnlace(){
+  const valor=document.getElementById("enlaceInvitacion").value;
+  if(!valor){mensaje("Tu código de invitación todavía no está disponible.");return;}
+  try{await navigator.clipboard.writeText(valor);mensaje("Enlace copiado.");}
+  catch(e){const input=document.getElementById("enlaceInvitacion");input.select();mensaje("Selecciona y copia el enlace.");}
+}
+
+function mostrarAdmin(id){
+  ["depPendientes","depAprobados","depNegados","retirosPendientes","retirosProcesados"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id));
+}
+async function cargarAdmin(){
+  const msg=document.getElementById("mensajeAdmin");msg.textContent="Cargando información...";
+  try{
+    const {data:sesion,error:se}=await supabaseClient.auth.getUser();
+    if(se||!sesion.user)throw new Error("Debes iniciar sesión.");
+    const p=await cargarPerfil(sesion.user);
+    if(p.role!=="admin"){mostrar("inicio");throw new Error("Acceso denegado.");}
+    const [{data:pagos,error:ep},{data:retiros,error:er}]=await Promise.all([
+      supabaseClient.from("payment_requests").select("id,user_id,plan,amount_cup,receipt_url,status,created_at").order("created_at",{ascending:false}),
+      supabaseClient.from("withdrawal_requests").select("id,user_id,amount_cup,card_number,status,created_at,processed_at").order("created_at",{ascending:false})
+    ]);
+    if(ep)throw ep;if(er)throw er;
+    const ids=[...new Set([...(pagos||[]).map(x=>x.user_id),...(retiros||[]).map(x=>x.user_id)])];
+    const nombres={};
+    if(ids.length){
+      const {data:perfiles,error:eper}=await supabaseClient.from("profiles").select("id,username,full_name").in("id",ids);
+      if(eper)throw eper;
+      (perfiles||[]).forEach(x=>nombres[x.id]=(x.full_name||"")+" (@"+(x.username||"sin usuario")+")");
+    }
+    await renderizarDepositos(pagos||[],nombres);renderizarRetiros(retiros||[],nombres);
+    msg.textContent=`Depósitos por aprobar: ${(pagos||[]).filter(x=>x.status==="pending").length} · Retiros por aprobar: ${(retiros||[]).filter(x=>x.status==="pending").length}`;
+  }catch(e){msg.textContent="Error: "+errorTexto(e);}
+}
+async function renderizarDepositos(pagos,nombres){
+  const grupos={pending:"listaDepPendientes",approved:"listaDepAprobados",rejected:"listaDepNegados"};
+  Object.values(grupos).forEach(id=>tarjetaVacia(document.getElementById(id),"No hay solicitudes en esta sección."));
+  for(const x of pagos){
+    const cont=document.getElementById(grupos[x.status]);if(!cont)continue;
+    if(cont.querySelector(".muted")?.textContent==="No hay solicitudes en esta sección.")cont.replaceChildren();
+    const c=elemento("div",undefined,"solicitud");
+    const nombrePlan=x.plan==="basic"?"Básico (100 CUP)":x.plan==="premium"?"Premium (200 CUP)":x.plan;
+    c.append(elemento("h3","Depósito: "+dinero(x.amount_cup)),elemento("p","Usuario: "+(nombres[x.user_id]||x.user_id)),elemento("p","Plan: "+nombrePlan),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")),elemento("p","Fecha: "+fecha(x.created_at)));
+    if(x.receipt_url){
+      const {data,error}=await supabaseClient.storage.from("payment_receipts").createSignedUrl(x.receipt_url,300);
+      if(!error&&data?.signedUrl){const a=elemento("a","Ver comprobante","comprobante-link");a.href=data.signedUrl;a.target="_blank";a.rel="noopener noreferrer";c.append(a);}
+      else c.append(elemento("p","No se pudo abrir el comprobante."));
+    }
+    if(x.status==="pending"){
+      const a=elemento("button","Aprobar","aprobar");a.onclick=()=>procesarDeposito(x.id,"approved",a);
+      const n=elemento("button","Negar","negar");n.onclick=()=>procesarDeposito(x.id,"rejected",n);c.append(a,n);
+    }
+    cont.append(c);
+  }
+}
+function renderizarRetiros(retiros,nombres){
+  const pendientes=document.getElementById("listaRetirosPendientes"),procesados=document.getElementById("listaRetirosProcesados");
+  tarjetaVacia(pendientes,"No hay retiros por aprobar.");tarjetaVacia(procesados,"Todavía no hay retiros procesados.");
+  for(const x of retiros){
+    const cont=x.status==="pending"?pendientes:procesados;
+    const vacio=cont.querySelector(".muted");
+    if(vacio&&(vacio.textContent==="No hay retiros por aprobar."||vacio.textContent==="Todavía no hay retiros procesados."))cont.replaceChildren();
+    const c=elemento("div",undefined,"solicitud");
+    c.append(elemento("h3","Retiro: "+dinero(x.amount_cup)),elemento("p","Usuario: "+(nombres[x.user_id]||x.user_id)),elemento("p","Tarjeta: "+(x.card_number||"No indicada")),elemento("p","Solicitado: "+fecha(x.created_at)),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")),elemento("p","Procesado: "+fecha(x.processed_at)));
+    if(x.status==="pending"){
+      const a=elemento("button","Marcar como pagado y aprobar","aprobar");a.onclick=()=>procesarRetiro(x.id,"approved",a);
+      const n=elemento("button","Negar","negar");n.onclick=()=>procesarRetiro(x.id,"rejected",n);c.append(a,n);
+    }
+    cont.append(c);
+  }
+}
+async function procesarDeposito(id,estado,boton){
+  const texto=estado==="approved"?"¿Confirmas que el depósito fue recibido y deseas activar la membresía por 30 días?":"¿Confirmas que deseas negar este depósito?";
+  if(!confirm(texto))return;
+  boton.disabled=true;
+  try{
+    const {error}=await supabaseClient.rpc(estado==="approved"?"approve_payment_request":"reject_payment_request",{p_request_id:id});
+    if(error)throw error;
+    alert(estado==="approved"?"Depósito aprobado. Membresía y comisiones procesadas.":"Depósito negado.");await cargarAdmin();
+  }catch(e){alert("No se pudo procesar: "+errorTexto(e));boton.disabled=false;}
+}
+async function procesarRetiro(id,estado,boton){
+  const texto=estado==="approved"?"IMPORTANTE: confirma solo después de transferir el dinero a la tarjeta indicada. ¿Ya realizaste el pago?":"¿Confirmas que deseas negar este retiro?";
+  if(!confirm(texto))return;
+  boton.disabled=true;
+  try{
+    const {error}=await supabaseClient.rpc(estado==="approved"?"approve_withdrawal":"reject_withdrawal",{p_withdrawal_id:id});
+    if(error)throw error;
+    alert(estado==="approved"?"Retiro marcado como aprobado y descontado del saldo.":"Retiro negado; el saldo reservado vuelve a estar disponible.");await cargarAdmin();
+  }catch(e){alert("No se pudo procesar: "+errorTexto(e));boton.disabled=false;}
+}
+async function salir(){
+  try{
+    if(window.relojMembresia)clearInterval(window.relojMembresia);
+    if(chatChannel){await supabaseClient.removeChannel(chatChannel);chatChannel=null;}
+    chatIds.clear();cerrarChat();
+    const {error}=await supabaseClient.auth.signOut();if(error)throw error;
+    usuarioActual=null;perfilActual=null;
+    ["datos","estadoDeposito","estadoRetiro","bienvenidaLobby","tiempoMembresia"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent="";});
+    ["listaDepPendientes","listaDepAprobados","listaDepNegados","listaRetirosPendientes","listaRetirosProcesados","listaReferidos","historialGanancias","historialPagos","historialRetiros"].forEach(id=>{const e=document.getElementById(id);if(e)e.replaceChildren();});
+    mostrar("inicio");mensaje("Has cerrado sesión.");
+  }catch(e){mensaje("No se pudo cerrar sesión: "+errorTexto(e));}
+}
+async function restaurarSesion(){
+  try{
+    const {data,error}=await supabaseClient.auth.getSession();if(error)throw error;
+    if(data.session?.user){usuarioActual=data.session.user;perfilActual=await cargarPerfil(usuarioActual);await dirigirUsuario();}
+  }catch(e){mensaje("No se pudo restaurar la sesión: "+errorTexto(e));}
+}
+window.addEventListener("DOMContentLoaded",()=>{
+  const ref=new URLSearchParams(location.search).get("ref");
+  if(ref){document.getElementById("invitacion").value=ref.toUpperCase();mostrar("registro");}
+  restaurarSesion();
+});
+</script>
+</body>
+</html>
