@@ -219,7 +219,7 @@ a{color:var(--oro)}hr{border:0;border-top:1px solid var(--borde);margin:20px 0}.
 const SUPABASE_URL="https://yygykfyfpeetdzycirfs.supabase.co";
 const SUPABASE_KEY="sb_publishable_TAB8Yp-12ROav3Z4aoYoQQ_PH2Tet6L";
 let supabaseClient=null,usuarioActual=null,perfilActual=null,chatChannel=null,chatIds=new Set();
-let cacheAdminCuentas=[],cacheAdminMembresias=[],cacheAvatares=new Map();
+let cacheAdminCuentas=[],cacheAdminMembresias=[],cacheAvatares=new Map(),cacheAdminEmails=new Map();
 function mostrar(id){document.querySelectorAll(".container").forEach(x=>x.classList.add("hidden"));const el=document.getElementById(id);if(el)el.classList.remove("hidden");document.getElementById("message").textContent="";}
 function mensaje(t){document.getElementById("message").textContent=t;}
 function dinero(v){return `${Number(v||0).toLocaleString("es-ES")} CUP`;}
@@ -379,6 +379,9 @@ async function cargarAdmin(){
   ]);
   if(ep)throw ep;if(er)throw er;if(eper)throw eper;if(em)throw em;
   cacheAdminCuentas=perfiles||[];cacheAdminMembresias=membresias||[];
+     const {data:correos,error:errorCorreos}=await db.rpc("admin_list_user_emails");
+if(errorCorreos)throw errorCorreos;
+cacheAdminEmails=new Map((correos||[]).map(x=>[x.user_id,x.email]));
   const ids=[...new Set([...(pagos||[]).map(x=>x.user_id),...(retiros||[]).map(x=>x.user_id)])],nombres={};
   cacheAdminCuentas.forEach(x=>nombres[x.id]=(x.full_name||"")+" (@"+(x.username||"sin usuario")+")");
   const faltantes=ids.filter(id=>!nombres[id]);
@@ -396,7 +399,11 @@ function renderizarListaCuentas(perfiles,membresias){
  const listas={listaTodasCuentas:perfiles,listaCuentasActivas:perfiles.filter(p=>idsActivas.has(p.id)),listaCuentasInactivas:perfiles.filter(p=>!idsActivas.has(p.id)),listaCuentasBasic:perfiles.filter(p=>membresiaVigente(p.id,membresias)?.plan==="basic"),listaCuentasPremium:perfiles.filter(p=>membresiaVigente(p.id,membresias)?.plan==="premium")};
  for(const [id,lista] of Object.entries(listas)){const cont=document.getElementById(id);cont.replaceChildren();if(!lista.length){tarjetaVacia(cont,"No hay cuentas en esta sección.");continue;}
   lista.forEach(p=>{const mem=membresiaVigente(p.id,membresias),card=elemento("div",undefined,"admin-user"),cabecera=elemento("div",undefined,"admin-user-head"),foto=p.avatar_url?document.createElement("img"):elemento("div","👤","admin-user-avatar admin-user-placeholder"),nombre=elemento("strong",(p.full_name||"Sin nombre")+" · @"+(p.username||"sin usuario")),info=elemento("p","ID: "+p.id),estado=elemento("p",mem?"Membresía activa · Plan "+(mem.plan==="basic"?"Básico (100 CUP)":"Premium (200 CUP)")+" · Vence: "+fecha(mem.ends_at):"Sin membresía vigente","muted"),acciones=elemento("div",undefined,"acciones");
-   if(p.avatar_url){foto.src=p.avatar_url;foto.alt="Foto de "+(p.username||"usuario");foto.className="admin-user-avatar";}cabecera.append(foto,nombre);card.append(cabecera,info,estado);
+   if(p.avatar_url){foto.src=p.avatar_url;foto.alt="Foto de "+(p.username||"usuario");foto.className="admin-user-avatar";}const correo=elemento("p","Correo: "+(cacheAdminEmails.get(p.id)||"No disponible"));
+const codigo=elemento("p","Código de referencia: "+(p.referral_code||"Sin asignar"),"code");
+
+cabecera.append(foto,nombre);
+card.append(cabecera,info,correo,codigo,estado);
    if(p.role==="admin")acciones.append(elemento("span","Cuenta administradora (protegida)","muted"));
    else{const del=elemento("button","Eliminar cuenta","admin-danger");del.onclick=()=>eliminarCuentaAdmin(p,del);acciones.append(del);}
    card.append(acciones);cont.append(card);
