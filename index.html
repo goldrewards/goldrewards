@@ -7,17 +7,17 @@
 <title>GoldRewards</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--fondo:#101014;--panel:#202027;--panel2:#303039;--oro:#ffd700;--texto:#fff;--muted:#c4c4cc;--verde:#38d878;--rojo:#ff6464;--borde:#555}
+:root{--fondo:#09090c;--panel:rgba(25,23,19,.94);--panel2:rgba(38,35,28,.96);--oro:#f6cf55;--oro2:#fff0a6;--texto:#fffdf5;--muted:#c8c1ae;--verde:#38d878;--rojo:#ff6464;--borde:rgba(246,207,85,.28)}
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:var(--fondo);color:var(--texto);text-align:center}
-header{background:#19191f;padding:22px 15px;border-bottom:2px solid var(--oro)}
-h1{color:var(--oro);margin:0 0 8px}
+body{margin:0;font-family:Arial,sans-serif;background:radial-gradient(ellipse at 50% -15%,#493816 0%,#17130b 34%,#09090c 72%);background-attachment:fixed;color:var(--texto);text-align:center;min-height:100vh;position:relative} body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(circle at 8% 22%,rgba(246,207,85,.12),transparent 18%),radial-gradient(circle at 92% 68%,rgba(246,207,85,.10),transparent 20%),repeating-linear-gradient(135deg,transparent 0 38px,rgba(255,220,120,.018) 39px 40px)}
+header{background:linear-gradient(135deg,rgba(12,12,14,.97),rgba(48,36,13,.96),rgba(12,12,14,.97));padding:28px 15px 24px;border-bottom:1px solid var(--oro);box-shadow:0 10px 38px rgba(0,0,0,.45)}
+h1{background:linear-gradient(100deg,#fff2b0,#e2ad25,#fff4bd);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 4px 25px rgba(246,207,85,.14);margin:0 0 8px;letter-spacing:1.5px}
 h2,h3{line-height:1.25}
 p{line-height:1.45}
-.container{max-width:720px;width:calc(100% - 24px);margin:22px auto;padding:20px;background:var(--panel);border-radius:12px}
-input,select{width:100%;max-width:520px;padding:13px;margin:7px 0;border:1px solid var(--borde);border-radius:7px;background:var(--panel2);color:white;font-size:16px}
+.container{max-width:760px;width:calc(100% - 24px);margin:22px auto;padding:22px;background:linear-gradient(145deg,rgba(35,31,23,.96),rgba(18,18,21,.97));border:1px solid rgba(246,207,85,.22);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.42),inset 0 1px rgba(255,239,180,.06);backdrop-filter:blur(12px)}
+input,select{width:100%;max-width:520px;padding:14px;margin:7px 0;border:1px solid var(--borde);border-radius:10px;background:rgba(12,12,14,.88);color:white;font-size:16px}
 input[type=file]{max-width:100%}
-button{padding:12px 17px;margin:6px;border:0;border-radius:7px;background:var(--oro);color:#111;font-weight:bold;cursor:pointer}
+button{padding:12px 18px;margin:6px;border:1px solid rgba(255,240,166,.42);border-radius:10px;background:linear-gradient(135deg,#fff0a6,#dcae35 55%,#a97819);color:#17120a;font-weight:bold;cursor:pointer;box-shadow:0 5px 18px rgba(218,169,48,.16);transition:transform .18s,filter .18s}button:hover{filter:brightness(1.08);transform:translateY(-1px)}
 button:disabled{opacity:.55;cursor:not-allowed}
 button.secundario{background:#444;color:white}
 button.aprobar{background:var(--verde)}
@@ -25,10 +25,10 @@ button.negar{background:var(--rojo);color:#111}
 .hidden{display:none!important}
 #message,.estado{color:var(--oro);overflow-wrap:anywhere}
 .muted{color:var(--muted);font-size:.93rem}
-.card,.solicitud{background:var(--panel2);border:1px solid var(--borde);border-radius:10px;padding:14px;margin:12px 0;text-align:left;overflow-wrap:anywhere}
+.card,.solicitud{background:linear-gradient(145deg,rgba(49,43,29,.92),rgba(25,25,27,.96));border:1px solid var(--borde);border-radius:14px;padding:15px;margin:12px 0;text-align:left;overflow-wrap:anywhere;box-shadow:0 8px 22px rgba(0,0,0,.18)}
 .card{text-align:center}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:15px 0}
-.stat{background:#292930;border:1px solid #4b4530;border-radius:9px;padding:13px}
+.stat{background:linear-gradient(145deg,rgba(64,53,28,.72),rgba(28,27,27,.95));border:1px solid rgba(246,207,85,.32);border-radius:13px;padding:15px;box-shadow:inset 0 1px rgba(255,240,166,.07)}
 .stat strong{display:block;color:var(--oro);font-size:1.35rem;margin-top:5px}
 .tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin:12px 0}
 .tabs button{font-size:.9rem}
@@ -36,19 +36,62 @@ button.negar{background:var(--rojo);color:#111}
 .comprobante-link{display:inline-block;color:var(--oro);margin:8px 0}
 a{color:var(--oro)}
 hr{border:0;border-top:1px solid var(--borde);margin:20px 0}
-.code{font-weight:bold;color:var(--oro);overflow-wrap:anywhere}
+.code{font-weight:bold;color:var(--oro2);overflow-wrap:anywhere;text-shadow:0 0 18px rgba(246,207,85,.18)}
 .small{font-size:.85rem}
 label{display:block;margin-top:8px;color:var(--muted)}
+
+.hero{position:relative;overflow:hidden;padding:30px 22px 25px;background:radial-gradient(ellipse at 50% 0%,rgba(180,132,31,.22),transparent 56%),linear-gradient(145deg,rgba(43,34,18,.97),rgba(15,15,18,.98));}
+.hero:after{content:"";position:absolute;width:220px;height:220px;border:1px solid rgba(246,207,85,.10);border-radius:50%;top:-135px;right:-75px;box-shadow:0 0 0 18px rgba(246,207,85,.025),0 0 0 38px rgba(246,207,85,.02);pointer-events:none}
+.hero-emblem{width:78px;height:78px;display:grid;place-items:center;margin:0 auto 12px;border-radius:50%;font-size:40px;background:radial-gradient(circle at 35% 30%,#fff0a6,#d5a32e 58%,#75500e);box-shadow:0 0 0 6px rgba(246,207,85,.08),0 0 35px rgba(246,207,85,.2)}
+.eyebrow{font-size:.72rem;letter-spacing:3px;color:var(--oro);font-weight:bold}
+.hero-title{font-size:clamp(1.6rem,5vw,2.35rem);color:#fff0b2;margin:10px 0}
+.hero-copy{font-size:1.12rem;color:var(--oro);letter-spacing:1px}
+.gold-divider{display:flex;align-items:center;gap:12px;max-width:230px;margin:18px auto;color:var(--oro)}
+.gold-divider:before,.gold-divider:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--oro))}
+.gold-divider:after{transform:scaleX(-1)}
+.boton-principal{min-width:180px}
+.boton-reglas{display:block;margin:12px auto 0;background:transparent;color:var(--oro2);border:1px solid rgba(246,207,85,.45);box-shadow:none}
+.decoracion-oro{margin-top:18px;color:rgba(246,207,85,.68);letter-spacing:5px}
+.chat-launch{background:linear-gradient(135deg,#33270f,#171512);color:var(--oro2);border:1px solid rgba(246,207,85,.55);box-shadow:0 0 22px rgba(246,207,85,.08)}
+.modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(8px)}
+.modal.hidden{display:none!important}
+.modal-panel{position:relative;width:min(650px,100%);max-height:88vh;overflow:auto;text-align:left;padding:25px 20px 22px;border:1px solid rgba(246,207,85,.55);border-radius:18px;background:linear-gradient(145deg,#282116,#111114 72%);box-shadow:0 25px 80px rgba(0,0,0,.7),0 0 35px rgba(246,207,85,.10)}
+.modal-panel h2{text-align:center;color:var(--oro2)}
+.modal-panel>.muted{text-align:center}
+.modal-close{position:absolute;right:9px;top:8px;margin:0;padding:8px 12px;background:rgba(255,255,255,.08);color:white;border:1px solid rgba(255,255,255,.16);box-shadow:none}
+.modal-icon{text-align:center;font-size:30px}
+.reglas-lista{padding-left:23px;line-height:1.55}
+.reglas-lista li{padding:8px 0;border-bottom:1px solid rgba(246,207,85,.13)}
+.reglas-lista strong{color:var(--oro2)}
+.modal-panel>button:last-child{display:block;margin:18px auto 0}
+.chat-panel{display:flex;flex-direction:column;height:min(720px,88vh);max-height:88vh}
+.chat-messages{flex:1;min-height:180px;overflow-y:auto;padding:12px;margin:12px 0;background:rgba(0,0,0,.32);border:1px solid rgba(246,207,85,.18);border-radius:12px}
+.chat-message{max-width:88%;margin:9px 0;padding:10px 12px;border-radius:12px;background:rgba(246,207,85,.10);border:1px solid rgba(246,207,85,.16);text-align:left;overflow-wrap:anywhere}
+.chat-message.own{margin-left:auto;background:rgba(246,207,85,.19)}
+.chat-meta{display:flex;justify-content:space-between;gap:10px;color:var(--oro2);font-size:.76rem;margin-bottom:5px}
+.chat-body{white-space:pre-wrap;line-height:1.4}
+.chat-compose{display:flex;align-items:center;gap:7px}
+.chat-compose input{flex:1;min-width:0;margin:0}
+.chat-compose button{margin:0;white-space:nowrap}
+@media(max-width:420px){.modal-panel{padding:24px 14px 18px}.chat-compose{gap:4px}.chat-compose button{padding:12px}.chat-message{max-width:95%}}
+
 @media(max-width:420px){.container{padding:15px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}button{max-width:100%}}
 </style>
 </head>
 <body>
 <header><h1>GoldRewards</h1><p>Gana, comparte y crece</p></header>
 
-<div class="container" id="inicio">
-  <h2>Bienvenido</h2>
-  <button onclick="mostrar('registro')">Registrarse</button>
-  <button onclick="mostrar('login')">Iniciar sesión</button>
+<div class="container hero" id="inicio">
+  <div class="hero-emblem">🪙</div>
+  <p class="eyebrow">COMUNIDAD EXCLUSIVA</p>
+  <h2 class="hero-title">Bienvenido a GoldRewards</h2>
+  <p class="hero-copy">Gana, comparte y crece</p>
+  <div class="gold-divider"><span>✦</span></div>
+  <p class="muted">Una comunidad para compartir invitaciones y obtener recompensas.</p>
+  <button class="boton-principal" onclick="mostrar('registro')">Crear mi cuenta</button>
+  <button class="secundario" onclick="mostrar('login')">Iniciar sesión</button>
+  <button class="boton-reglas" onclick="abrirReglas()">📜 Leer reglas</button>
+  <div class="decoracion-oro">◆　🪙　◆</div>
 </div>
 
 <div class="container hidden" id="registro">
@@ -90,6 +133,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
 <div class="container hidden" id="lobby">
   <h2>🏆 Lobby GoldRewards</h2>
   <p id="bienvenidaLobby"></p>
+  <button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button>
   <div class="card"><h3>Membresía activa</h3><p id="tiempoMembresia" class="code"></p></div>
   <div class="grid">
     <div class="stat">Saldo disponible<strong id="saldoDisponible">0 CUP</strong></div>
@@ -121,6 +165,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
   <h2>👑 Panel de administración</h2>
   <p>Gestión de GoldRewards</p>
   <button onclick="cargarAdmin()">Actualizar panel</button>
+  <button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button>
   <p id="mensajeAdmin" class="estado"></p>
   <div class="tabs">
     <button onclick="mostrarAdmin('depPendientes')">Depósitos por aprobar</button>
@@ -135,6 +180,41 @@ label{display:block;margin-top:8px;color:var(--muted)}
   <div class="seccion-admin hidden" id="retirosPendientes"><h3>🟡 Retiros por aprobar</h3><div id="listaRetirosPendientes"></div></div>
   <div class="seccion-admin hidden" id="retirosProcesados"><h3>Historial de retiros</h3><div id="listaRetirosProcesados"></div></div>
   <hr><button onclick="salir()">Cerrar sesión</button>
+</div>
+
+<div id="reglasModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="tituloReglas">
+  <div class="modal-panel">
+    <button class="modal-close" onclick="cerrarReglas()" aria-label="Cerrar">✕</button>
+    <div class="modal-icon">📜</div>
+    <h2 id="tituloReglas">Reglas de GoldRewards</h2>
+    <p class="muted">Lee estas condiciones antes de participar.</p>
+    <ol class="reglas-lista">
+      <li><strong>Membresía:</strong> el plan Básico cuesta 100 CUP y dura 30 días desde que el administrador aprueba el depósito.</li>
+      <li><strong>Comisión directa:</strong> recibes 10 CUP cuando se aprueba el depósito de una persona invitada directamente por ti.</li>
+      <li><strong>Segundo nivel:</strong> recibes 2 CUP cuando se aprueba el depósito de una persona invitada por alguien de tu primer nivel.</li>
+      <li><strong>Retiros:</strong> el mínimo es 100 CUP y el máximo 250 CUP por solicitud.</li>
+      <li><strong>Cantidades permitidas:</strong> los retiros deben ser múltiplos de 10 CUP (100, 110, 120… hasta 250 CUP).</li>
+      <li><strong>Saldo:</strong> solo puedes solicitar un retiro con ganancias disponibles. Una solicitud pendiente reserva ese importe hasta que sea aprobada o negada.</li>
+      <li><strong>Revisión:</strong> todas las solicitudes de depósito y retiro son revisadas por el administrador. Un retiro se marca como aprobado después de realizar el pago.</li>
+      <li><strong>Cuenta activa:</strong> el lobby y el chat grupal están disponibles mientras la membresía esté vigente.</li>
+    </ol>
+    <button onclick="cerrarReglas()">Entendido</button>
+  </div>
+</div>
+
+<div id="chatModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="tituloChat">
+  <div class="modal-panel chat-panel">
+    <button class="modal-close" onclick="cerrarChat()" aria-label="Cerrar">✕</button>
+    <div class="modal-icon">💬</div>
+    <h2 id="tituloChat">Chat GoldRewards</h2>
+    <p class="muted">Un espacio grupal para miembros activos y administración.</p>
+    <div id="chatEstado" class="estado small">Conectando...</div>
+    <div id="chatMensajes" class="chat-messages"><p class="muted">Cargando mensajes...</p></div>
+    <form class="chat-compose" onsubmit="enviarMensajeChat(event)">
+      <input id="chatTexto" maxlength="1000" placeholder="Escribe un mensaje..." autocomplete="off" aria-label="Mensaje">
+      <button id="chatEnviar" type="submit">Enviar</button>
+    </form>
+  </div>
 </div>
 
 <p id="message" class="estado"></p>
@@ -166,6 +246,79 @@ function generarNombreArchivo(extension){
   return Array.from(valores).map(v=>v.toString(16).padStart(2,"0")).join("")+"."+extension;
 }
 function errorTexto(e){return e?.message||"Ocurrió un error inesperado."}
+
+function abrirReglas(){document.getElementById("reglasModal").classList.remove("hidden");}
+function cerrarReglas(){document.getElementById("reglasModal").classList.add("hidden");}
+let chatChannel=null;
+let chatIds=new Set();
+function cerrarChat(){document.getElementById("chatModal").classList.add("hidden");}
+async function abrirChat(){
+  const estado=document.getElementById("chatEstado");
+  if(!usuarioActual){estado.textContent="Inicia sesión para entrar al chat.";document.getElementById("chatModal").classList.remove("hidden");return;}
+  try{
+    if(perfilActual?.role!=="admin"){
+      const {data:mem,error}=await supabaseClient.from("memberships").select("id").eq("user_id",usuarioActual.id).eq("status","active").gt("ends_at",new Date().toISOString()).limit(1).maybeSingle();
+      if(error)throw error;
+      if(!mem)throw new Error("El chat es exclusivo para miembros con membresía activa.");
+    }
+    document.getElementById("chatModal").classList.remove("hidden");
+    await cargarMensajesChat();
+    if(!chatChannel){
+      chatChannel=supabaseClient.channel("goldrewards-chat-grupal")
+        .on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_messages"},payload=>{
+          pintarMensajeChat(payload.new);
+        })
+        .subscribe(status=>{
+          estado.textContent=status==="SUBSCRIBED"?"Conectado en tiempo real.":status==="CHANNEL_ERROR"?"No se pudo conectar al chat en tiempo real. Revisa la configuración de Supabase.":"Conectando al chat...";
+        });
+    }
+    setTimeout(()=>{const box=document.getElementById("chatMensajes");box.scrollTop=box.scrollHeight;},100);
+  }catch(e){
+    estado.textContent="No se pudo abrir el chat: "+errorTexto(e);
+    document.getElementById("chatModal").classList.remove("hidden");
+  }
+}
+async function cargarMensajesChat(){
+  const box=document.getElementById("chatMensajes");
+  box.replaceChildren(elemento("p","Cargando mensajes...","muted"));
+  chatIds.clear();
+  const {data,error}=await supabaseClient.from("chat_messages").select("id,user_id,username,message,created_at").order("created_at",{ascending:false}).limit(100);
+  if(error)throw error;
+  box.replaceChildren();
+  if(!data?.length){box.append(elemento("p","Todavía no hay mensajes. ¡Saluda a la comunidad!","muted"));return;}
+  data.reverse().forEach(pintarMensajeChat);
+  box.scrollTop=box.scrollHeight;
+}
+function pintarMensajeChat(m){
+  if(!m||chatIds.has(String(m.id)))return;
+  const box=document.getElementById("chatMensajes");
+  if(box.querySelector(".muted")?.textContent==="Todavía no hay mensajes. ¡Saluda a la comunidad!")box.replaceChildren();
+  chatIds.add(String(m.id));
+  const item=elemento("div",undefined,"chat-message"+(m.user_id===usuarioActual?.id?" own":""));
+  const meta=elemento("div",undefined,"chat-meta");
+  meta.append(elemento("strong",m.username||"Miembro"),elemento("span",fecha(m.created_at)));
+  item.append(meta,elemento("div",m.message||"","chat-body"));
+  box.append(item);
+  box.scrollTop=box.scrollHeight;
+}
+async function enviarMensajeChat(event){
+  event.preventDefault();
+  const input=document.getElementById("chatTexto"),boton=document.getElementById("chatEnviar");
+  const message=input.value.trim();
+  if(!message)return;
+  if(message.length>1000){document.getElementById("chatEstado").textContent="El mensaje no puede superar 1000 caracteres.";return;}
+  boton.disabled=true;
+  try{
+    const {data:sesion,error:sesionError}=await supabaseClient.auth.getUser();
+    if(sesionError||!sesion.user)throw new Error("Tu sesión venció. Inicia sesión nuevamente.");
+    const {error}=await supabaseClient.from("chat_messages").insert({user_id:sesion.user.id,message});
+    if(error)throw error;
+    input.value="";
+    document.getElementById("chatEstado").textContent="Mensaje enviado.";
+  }catch(e){document.getElementById("chatEstado").textContent="No se pudo enviar: "+errorTexto(e);}
+  finally{boton.disabled=false;input.focus();}
+}
+
 
 async function comprobarUsuario(){
   const boton=document.getElementById("botonComprobar");
@@ -476,6 +629,8 @@ async function procesarRetiro(id,estado,boton){
 async function salir(){
   try{
     if(window.relojMembresia)clearInterval(window.relojMembresia);
+    if(chatChannel){await supabaseClient.removeChannel(chatChannel);chatChannel=null;}
+    chatIds.clear();cerrarChat();
     const {error}=await supabaseClient.auth.signOut();if(error)throw error;
     usuarioActual=null;perfilActual=null;
     ["datos","estadoDeposito","estadoRetiro","bienvenidaLobby","tiempoMembresia"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent="";});
