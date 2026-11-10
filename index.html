@@ -104,6 +104,22 @@ a{color:var(--oro)}hr{border:0;border-top:1px solid var(--borde);margin:20px 0}.
 <div class="container hidden" id="lobby">
   <h2>🏆 Lobby GoldRewards</h2><p id="bienvenidaLobby"></p><button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button>
   <div class="card"><h3>Membresía activa</h3><p id="tiempoMembresia" class="code"></p></div>
+  <div class="card" id="renovarMembresia">
+    <h3>🪙 Activar / Renovar membresía</h3>
+    <p class="muted">Tu membresía dura 30 días desde que el administrador apruebe el pago. Puedes renovar antes de que venza.</p>
+    <label for="planMembresiaLobby">Selecciona el plan:</label>
+    <select id="planMembresiaLobby">
+      <option value="basic">Plan Básico — 100 CUP</option>
+      <option value="premium">Plan Premium — 200 CUP</option>
+    </select>
+    <p>Transfiere el importe correspondiente a esta tarjeta:</p>
+    <h2 class="code">9224069998634642</h2>
+    <p>Titular: Cuenta del grupo de GoldRewards</p>
+    <p>Después de realizar la transferencia, adjunta el comprobante:</p>
+    <input type="file" id="comprobanteLobby" accept="image/jpeg,image/png,image/webp">
+    <button id="botonComprobanteLobby" onclick="subirComprobanteLobby()">Enviar comprobante</button>
+    <p id="estadoDepositoLobby" class="estado" aria-live="polite"></p>
+  </div>
   <div class="grid"><div class="stat">Saldo disponible<strong id="saldoDisponible">0 CUP</strong></div><div class="stat">Ganancias totales<strong id="gananciasTotales">0 CUP</strong></div><div class="stat">Referidos aprobados<strong id="cantidadReferidos">0</strong></div></div>
   <hr><h3>Tu invitación</h3><p>Código: <span id="miCodigo" class="code">—</span></p><p class="small muted">Comparte tu enlace. La comisión se genera cuando el depósito de la persona invitada es aprobado.</p>
   <input id="enlaceInvitacion" readonly><button onclick="copiarEnlace()">Copiar enlace</button><hr><h3>Solicitar retiro</h3>
@@ -266,10 +282,39 @@ async function subirComprobante(){
  try{const {data:sesion,error:errorSesion}=await db.auth.getUser();if(errorSesion)throw errorSesion;if(!sesion.user)throw new Error("Debes iniciar sesión.");ruta=sesion.user.id+"/"+generarNombreArchivo(archivo.type==="image/jpeg"?"jpg":archivo.type==="image/png"?"png":"webp");const {error:subidaError}=await db.storage.from("payment_receipts").upload(ruta,archivo,{contentType:archivo.type,upsert:false});if(subidaError)throw subidaError;const {error:registroError}=await db.from("payment_requests").insert({user_id:sesion.user.id,plan:seleccionado.plan,amount_cup:seleccionado.amount_cup,receipt_url:ruta,status:"pending"});if(registroError)throw registroError;estado.textContent="¡Comprobante enviado! Tu depósito de "+seleccionado.amount_cup+" CUP está por aprobar.";document.getElementById("comprobante").value="";boton.disabled=true;
  }catch(e){estado.textContent="No se pudo registrar el comprobante: "+errorTexto(e)+(ruta?" Si la imagen se subió pero no aparece la solicitud, contacta al administrador.":"");boton.disabled=false;}
 }
+async function subirComprobanteLobby(){
+ const db=clienteListo(),archivo=document.getElementById("comprobanteLobby").files[0],estado=document.getElementById("estadoDepositoLobby"),boton=document.getElementById("botonComprobanteLobby"),plan=document.getElementById("planMembresiaLobby").value;
+ const planes={basic:{plan:"basic",amount_cup:100},premium:{plan:"premium",amount_cup:200}},seleccionado=planes[plan];
+ if(!seleccionado){estado.textContent="Selecciona un plan válido.";return;}
+ if(!archivo){estado.textContent="Selecciona primero la captura de tu transferencia.";return;}
+ if(!["image/jpeg","image/png","image/webp"].includes(archivo.type)){estado.textContent="Solo se permiten imágenes JPG, PNG o WEBP.";return;}
+ if(archivo.size>5*1024*1024){estado.textContent="La imagen no puede pesar más de 5 MB.";return;}
+ boton.disabled=true;estado.textContent="Comprobando solicitudes pendientes...";let ruta=null;
+ try{
+  const {data:sesion,error:errorSesion}=await db.auth.getUser();if(errorSesion)throw errorSesion;if(!sesion.user)throw new Error("Debes iniciar sesión.");
+  const {data:pendiente,error:errorPendiente}=await db.from("payment_requests").select("id,created_at").eq("user_id",sesion.user.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();
+  if(errorPendiente)throw errorPendiente;
+  if(pendiente){estado.textContent="Ya tienes un comprobante pendiente de aprobación. No envíes otro.";document.getElementById("comprobanteLobby").value="";return;}
+  estado.textContent="Enviando comprobante...";
+  ruta=sesion.user.id+"/"+generarNombreArchivo(archivo.type==="image/jpeg"?"jpg":archivo.type==="image/png"?"png":"webp");
+  const {error:subidaError}=await db.storage.from("payment_receipts").upload(ruta,archivo,{contentType:archivo.type,upsert:false});if(subidaError)throw subidaError;
+  const {error:registroError}=await db.from("payment_requests").insert({user_id:sesion.user.id,plan:seleccionado.plan,amount_cup:seleccionado.amount_cup,receipt_url:ruta,status:"pending"});if(registroError)throw registroError;
+  estado.textContent="¡Comprobante enviado! Tu pago de "+seleccionado.amount_cup+" CUP está pendiente de aprobación. No necesitas enviarlo otra vez.";
+  document.getElementById("comprobanteLobby").value="";
+ }catch(e){estado.textContent="No se pudo registrar el comprobante: "+errorTexto(e)+(ruta?" Si la imagen se subió pero no aparece la solicitud, contacta al administrador.":"");boton.disabled=false;}
+}
+async function cargarEstadoDepositoLobby(){
+ const db=clienteListo(),estado=document.getElementById("estadoDepositoLobby"),boton=document.getElementById("botonComprobanteLobby");
+ boton.disabled=true;estado.textContent="Consultando depósitos pendientes...";
+ try{const {data,error}=await db.from("payment_requests").select("created_at,plan,amount_cup").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();if(error)throw error;
+  if(data){estado.textContent="Tienes un comprobante pendiente de aprobación desde "+fecha(data.created_at)+" ("+dinero(data.amount_cup)+"). No envíes otro.";boton.disabled=true;}
+  else{estado.textContent="Puedes activar o renovar tu membresía cuando quieras.";boton.disabled=false;}
+ }catch(e){estado.textContent="No se pudo consultar el estado del depósito: "+errorTexto(e);boton.disabled=true;}
+}
 async function cargarLobby(mem){
- const db=clienteListo();document.getElementById("bienvenidaLobby").textContent="¡Bienvenido, "+(perfilActual.full_name||perfilActual.username||"usuario")+"!";actualizarTiempoMembresia(mem.ends_at);
+ document.getElementById("bienvenidaLobby").textContent="¡Bienvenido, "+(perfilActual.full_name||perfilActual.username||"usuario")+"!";actualizarTiempoMembresia(mem.ends_at);
  if(perfilActual.referral_code){document.getElementById("miCodigo").textContent=perfilActual.referral_code;const link=new URL("https://goldrewards.github.io/goldrewards/");link.searchParams.set("ref",perfilActual.referral_code);document.getElementById("enlaceInvitacion").value=link.toString();}else{document.getElementById("miCodigo").textContent="Pendiente de asignación";document.getElementById("enlaceInvitacion").value="";}
- await Promise.all([cargarSaldoYGanancias(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos()]);
+ await Promise.all([cargarSaldoYGanancias(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos(),cargarEstadoDepositoLobby()]);
 }
 function actualizarTiempoMembresia(fin){const destino=document.getElementById("tiempoMembresia"),final=new Date(fin).getTime(),actualizar=()=>{const restante=final-Date.now();if(restante<=0){destino.textContent="Membresía vencida. Cierra sesión e inicia nuevamente.";return;}const dias=Math.floor(restante/86400000),horas=Math.floor((restante%86400000)/3600000),min=Math.floor((restante%3600000)/60000);destino.textContent=`Vence en ${dias} días, ${horas} horas y ${min} minutos`;};actualizar();if(window.relojMembresia)clearInterval(window.relojMembresia);window.relojMembresia=setInterval(actualizar,60000);}
 async function cargarSaldoYGanancias(){const db=clienteListo(),{data:ganancias,error}=await db.from("referral_earnings").select("referred_user_id,amount_cup,referral_level,created_at").eq("earner_user_id",usuarioActual.id).order("created_at",{ascending:false});if(error)throw error;const {data:resumen,error:errorResumen}=await db.rpc("get_my_withdrawal_summary");if(errorResumen)throw errorResumen;const r=Array.isArray(resumen)?resumen[0]:resumen;if(!r)throw new Error("No se pudo obtener el resumen de retiros.");const total=(ganancias||[]).reduce((s,x)=>s+Number(x.amount_cup||0),0);document.getElementById("gananciasTotales").textContent=dinero(total);document.getElementById("saldoDisponible").textContent=dinero(r.commission_balance);document.getElementById("cantidadReferidos").textContent=String(r.approved_direct_referrals);document.getElementById("referidosAprobados").textContent=String(r.approved_direct_referrals);document.getElementById("limiteAcumulado").textContent=dinero(r.cumulative_limit);document.getElementById("limiteRestante").textContent=dinero(r.entitlement_remaining);document.getElementById("limiteDiario").textContent=dinero(r.daily_remaining);const cont=document.getElementById("historialGanancias");cont.replaceChildren();if(!ganancias?.length){tarjetaVacia(cont,"Todavía no tienes ganancias.");return;}ganancias.forEach(g=>{const c=elemento("div",undefined,"solicitud"),tipo=g.referral_level===1?"Comisión directa":"Comisión de segundo nivel";c.append(elemento("strong",dinero(g.amount_cup)),elemento("p",tipo),elemento("p","Fecha: "+fecha(g.created_at)));cont.append(c);});}
