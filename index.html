@@ -47,6 +47,29 @@ label{display:block;margin-top:8px;color:var(--muted)}
 .planes{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:14px 0}.plan-opcion{border:1px solid var(--borde);border-radius:14px;padding:14px;background:rgba(0,0,0,.2);text-align:left}.plan-opcion strong{display:block;color:var(--oro2);font-size:1.1rem}.plan-precio{font-size:1.45rem;color:var(--oro);font-weight:bold;margin:8px 0}.plan-opcion p{margin:5px 0}
 .virtual-box{margin-top:18px;padding:16px;border:1px solid rgba(246,207,85,.42);border-radius:16px;background:linear-gradient(145deg,rgba(52,42,20,.72),rgba(18,18,21,.96));text-align:left}.virtual-box h3{color:var(--oro2);text-align:center}.virtual-steps{font-size:.9rem;color:var(--muted);line-height:1.55}.virtual-address{font-size:.92rem;word-break:break-all;text-align:center;padding:12px;border-radius:10px;background:#09090c;border:1px dashed var(--borde);color:var(--oro2)}.virtual-status{margin-top:10px;color:var(--oro);text-align:center;word-break:break-word}
 @media(max-width:420px){.modal-panel{padding:24px 14px 18px}.chat-compose{gap:4px}.chat-compose button{padding:12px}.chat-message{max-width:95%}.container{padding:15px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}button{max-width:100%}.logout-top{top:10px;right:10px;padding:8px 10px}}
+
+/* Menú lateral del administrador */
+.admin-menu-btn{position:absolute;top:12px;right:14px;z-index:1201;width:48px;height:44px;padding:8px;margin:0;font-size:25px;line-height:1;background:rgba(246,207,85,.13);color:var(--oro2);border:1px solid var(--borde);box-shadow:none}
+.admin-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1200;opacity:0;pointer-events:none;transition:opacity .2s}
+.admin-menu-overlay.open{opacity:1;pointer-events:auto}
+.admin-drawer{position:fixed;top:0;right:0;width:min(340px,88vw);height:100dvh;overflow-y:auto;z-index:1202;padding:22px 16px 30px;background:linear-gradient(160deg,#2a2316,#111114 72%);border-left:1px solid var(--oro);box-shadow:-18px 0 55px rgba(0,0,0,.55);transform:translateX(105%);transition:transform .24s;text-align:left}
+.admin-drawer.open{transform:translateX(0)}
+.admin-drawer-head{display:flex;align-items:center;justify-content:space-between;margin:24px 0 18px;color:var(--oro2)}
+.admin-drawer-head h3{margin:0}
+.admin-drawer .drawer-group{padding:12px 0;border-top:1px solid var(--borde)}
+.admin-drawer .drawer-label{display:block;color:var(--oro);font-size:.78rem;letter-spacing:1px;font-weight:bold;margin:4px 8px 8px}
+.admin-drawer button.drawer-link{display:block;width:100%;margin:5px 0;text-align:left;background:rgba(255,255,255,.045);border:1px solid rgba(246,207,85,.15);color:var(--texto);box-shadow:none}
+.admin-drawer button.drawer-link:hover{background:rgba(246,207,85,.13)}
+.admin-account-card{background:linear-gradient(145deg,rgba(49,43,29,.92),rgba(25,25,27,.96));border:1px solid var(--borde);border-radius:14px;padding:15px;margin:12px 0;text-align:left;overflow-wrap:anywhere}
+.admin-account-card h4{color:var(--oro2);margin:0 0 8px}
+.admin-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.admin-detail-field{padding:9px;background:rgba(255,255,255,.045);border:1px solid rgba(246,207,85,.12);border-radius:9px;overflow-wrap:anywhere}
+.admin-detail-field b{display:block;color:var(--oro);font-size:.78rem;margin-bottom:4px}
+.admin-receipt-img{display:block;max-width:100%;max-height:420px;object-fit:contain;margin:10px auto;border:1px solid var(--borde);border-radius:10px}
+.admin-subheading{color:var(--oro2);margin:20px 0 8px}
+#adminDetalleModal .modal-panel{width:min(780px,100%)}
+@media(max-width:420px){.admin-menu-btn{top:9px;right:9px}.admin-account-card{padding:12px}}
+
 </style>
 </head>
 <body>
@@ -76,12 +99,44 @@ label{display:block;margin-top:8px;color:var(--muted)}
 </div>
 
 <div class="container hidden" id="panelAdmin">
-  <button class="logout-top secundario" onclick="salir()">Cerrar sesión</button><h2>👑 Panel de administración</h2><p>Gestión de GoldRewards</p><button onclick="cargarAdmin()">Actualizar panel</button><button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button><p id="mensajeAdmin" class="estado"></p>
-  <div class="tabs"><button onclick="mostrarAdmin('depPendientes')">Depósitos por aprobar</button><button onclick="mostrarAdmin('depAprobados')">Depósitos aprobados</button><button onclick="mostrarAdmin('depNegados')">Depósitos negados</button><button onclick="mostrarAdmin('virtualPendientes')">🪙 Pagos virtuales por aprobar</button><button onclick="mostrarAdmin('virtualAprobados')">🟢 Virtuales aprobados</button><button onclick="mostrarAdmin('virtualRechazados')">🔴 Virtuales rechazados</button><button onclick="mostrarAdmin('retirosPendientes')">Retiros por aprobar</button><button onclick="mostrarAdmin('retirosProcesados')">Retiros procesados</button></div>
-  <div class="seccion-admin" id="depPendientes"><h3>🟡 Depósitos por aprobar</h3><div id="listaDepPendientes"></div></div><div class="seccion-admin hidden" id="depAprobados"><h3>🟢 Depósitos aprobados</h3><div id="listaDepAprobados"></div></div><div class="seccion-admin hidden" id="depNegados"><h3>🔴 Depósitos negados</h3><div id="listaDepNegados"></div></div>
-  <div class="seccion-admin hidden" id="virtualPendientes"><h3>🪙 Pagos virtuales por aprobar</h3><p class="muted">Revisa la captura antes de aprobar. La aprobación activa la membresía.</p><div id="listaVirtualPendientes"></div></div><div class="seccion-admin hidden" id="virtualAprobados"><h3>🟢 Pagos virtuales aprobados</h3><div id="listaVirtualAprobados"></div></div><div class="seccion-admin hidden" id="virtualRechazados"><h3>🔴 Pagos virtuales rechazados</h3><div id="listaVirtualRechazados"></div></div>
-  <div class="seccion-admin hidden" id="retirosPendientes"><h3>🟡 Retiros por aprobar</h3><div id="listaRetirosPendientes"></div></div><div class="seccion-admin hidden" id="retirosProcesados"><h3>Historial de retiros</h3><div id="listaRetirosProcesados"></div></div>
+  <button class="logout-top secundario" onclick="salir()" style="left:14px;right:auto">Cerrar sesión</button>
+  <button class="admin-menu-btn" type="button" onclick="toggleAdminMenu()" aria-label="Abrir menú de administración" aria-expanded="false">☰</button>
+  <h2>👑 Panel de administración</h2><p>Gestión de GoldRewards</p>
+  <button onclick="cargarAdmin()">Actualizar panel</button><button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button><p id="mensajeAdmin" class="estado"></p>
+  <div class="seccion-admin" id="depPendientes"><h3>🟡 Pagos CUP pendientes</h3><div id="listaDepPendientes"></div></div>
+  <div class="seccion-admin hidden" id="depAprobados"><h3>🟢 Pagos CUP aprobados</h3><div id="listaDepAprobados"></div></div>
+  <div class="seccion-admin hidden" id="depNegados"><h3>🔴 Pagos CUP rechazados</h3><div id="listaDepNegados"></div></div>
+  <div class="seccion-admin hidden" id="virtualPendientes"><h3>🪙 Pagos virtuales pendientes</h3><p class="muted">Revisa la captura antes de aprobar. La aprobación activa la membresía.</p><div id="listaVirtualPendientes"></div></div>
+  <div class="seccion-admin hidden" id="virtualAprobados"><h3>🟢 Pagos virtuales aprobados</h3><div id="listaVirtualAprobados"></div></div>
+  <div class="seccion-admin hidden" id="virtualRechazados"><h3>🔴 Pagos virtuales rechazados</h3><div id="listaVirtualRechazados"></div></div>
+  <div class="seccion-admin hidden" id="retirosPendientes"><h3>🟡 Retiros pendientes</h3><div id="listaRetirosPendientes"></div></div>
+  <div class="seccion-admin hidden" id="retirosProcesados"><h3>Historial de retiros</h3><div id="listaRetirosProcesados"></div></div>
+  <div class="seccion-admin hidden" id="cuentasActivas"><h3>🟢 Cuentas con membresía activa</h3><p class="muted">Usuarios con membresía vigente en este momento.</p><div id="listaCuentasActivas"></div></div>
+  <div class="seccion-admin hidden" id="cuentasAprobadas"><h3>✅ Cuentas con pagos aprobados</h3><p class="muted">Usuarios que tienen al menos un pago CUP aprobado o un pago virtual confirmado.</p><div id="listaCuentasAprobadas"></div></div>
 </div>
+<div id="adminMenuOverlay" class="admin-menu-overlay" onclick="cerrarAdminMenu()"></div>
+<aside id="adminDrawer" class="admin-drawer" aria-label="Menú de administración" aria-hidden="true">
+  <div class="admin-drawer-head"><h3>☰ Administración</h3><button class="secundario" onclick="cerrarAdminMenu()" aria-label="Cerrar menú">✕</button></div>
+  <div class="drawer-group"><span class="drawer-label">PAGOS EN CUP</span>
+    <button class="drawer-link" onclick="mostrarAdmin('depPendientes')">🟡 Pendientes por aprobar</button>
+    <button class="drawer-link" onclick="mostrarAdmin('depAprobados')">🟢 Pagos aprobados</button>
+    <button class="drawer-link" onclick="mostrarAdmin('depNegados')">🔴 Pagos rechazados</button>
+  </div>
+  <div class="drawer-group"><span class="drawer-label">PAGOS VIRTUALES · USDT</span>
+    <button class="drawer-link" onclick="mostrarAdmin('virtualPendientes')">🟡 Pendientes por aprobar</button>
+    <button class="drawer-link" onclick="mostrarAdmin('virtualAprobados')">🟢 Pagos aprobados</button>
+    <button class="drawer-link" onclick="mostrarAdmin('virtualRechazados')">🔴 Pagos rechazados</button>
+  </div>
+  <div class="drawer-group"><span class="drawer-label">CUENTAS</span>
+    <button class="drawer-link" onclick="mostrarAdmin('cuentasActivas')">👥 Cuentas activas</button>
+    <button class="drawer-link" onclick="mostrarAdmin('cuentasAprobadas')">✅ Cuentas aprobadas</button>
+  </div>
+  <div class="drawer-group"><span class="drawer-label">RETIROS</span>
+    <button class="drawer-link" onclick="mostrarAdmin('retirosPendientes')">🟡 Retiros pendientes</button>
+    <button class="drawer-link" onclick="mostrarAdmin('retirosProcesados')">📋 Historial de retiros</button>
+  </div>
+</aside>
+<div id="adminDetalleModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="adminDetalleTitulo"><div class="modal-panel"><button class="modal-close" onclick="cerrarDetalleCuenta()" aria-label="Cerrar">✕</button><h2 id="adminDetalleTitulo">Información de la cuenta</h2><div id="adminDetalleContenido"><p class="muted">Cargando información...</p></div></div></div>
 
 <div id="reglasModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel"><button class="modal-close" onclick="cerrarReglas()" aria-label="Cerrar">✕</button><div class="modal-icon">📜</div><h2>Reglas de GoldRewards</h2><p class="muted">Lee estas condiciones antes de participar.</p><ol class="reglas-lista"><li><strong>Registro:</strong> todos los datos solicitados son obligatorios, incluido el código válido de quien te invitó.</li><li><strong>Membresía Básica:</strong> cuesta 100 CUP y dura 30 días desde que el administrador aprueba el depósito.</li><li><strong>Membresía Premium:</strong> cuesta 200 CUP y dura 30 días desde que el administrador aprueba el depósito.</li><li><strong>Comisiones Básica:</strong> recibes 10 CUP por una invitación directa y 2 CUP por una invitación de segundo nivel, cuando el depósito correspondiente sea aprobado.</li><li><strong>Comisiones Premium:</strong> recibes 15 CUP por una invitación directa y 5 CUP por una invitación de segundo nivel, cuando el depósito correspondiente sea aprobado.</li><li><strong>Retiros:</strong> el mínimo es 100 CUP y el máximo 250 CUP por solicitud.</li><li><strong>Cantidades permitidas:</strong> los retiros deben ser múltiplos de 10 CUP.</li><li><strong>Saldo:</strong> solo puedes solicitar un retiro con ganancias disponibles.</li><li><strong>Revisión:</strong> todas las solicitudes de depósito y retiro son revisadas por el administrador.</li><li><strong>Cuenta activa:</strong> el lobby y el chat grupal están disponibles mientras la membresía esté vigente.</li><li><strong>Uso responsable:</strong> no se permite crear cuentas duplicadas ni manipular el sistema.</li></ol><button onclick="cerrarReglas()">Entendido</button></div></div>
 <div id="chatModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel chat-panel"><button class="modal-close" onclick="cerrarChat()" aria-label="Cerrar">✕</button><div class="modal-icon">💬</div><h2>Chat GoldRewards</h2><p class="muted">Un espacio grupal para miembros activos y administración.</p><div id="chatEstado" class="estado small">Conectando...</div><div id="chatMensajes" class="chat-messages"><p class="muted">Cargando mensajes...</p></div><form class="chat-compose" onsubmit="enviarMensajeChat(event)"><input id="chatTexto" maxlength="1000" placeholder="Escribe un mensaje..." autocomplete="off"><button id="chatEnviar" type="submit">Enviar</button></form></div></div><p id="message" class="estado"></p>
@@ -132,8 +187,10 @@ async function cargarHistorialRetiros(){const c=document.getElementById("histori
 async function solicitarRetiro(){const b=document.getElementById("botonRetiro"),e=document.getElementById("estadoRetiro"),cantidad=Number(document.getElementById("montoRetiro").value),tarjeta=document.getElementById("tarjetaRetiro").value.trim();if(!Number.isInteger(cantidad)||cantidad<100||cantidad>250||cantidad%10!==0){e.textContent="El retiro debe ser de 100 a 250 CUP, en múltiplos de 10.";return;}if(tarjeta.length<8){e.textContent="Introduce un número de tarjeta válido.";return;}b.disabled=true;try{const {data,error}=await supabaseClient.rpc("request_withdrawal",{p_amount:cantidad,p_card_number:tarjeta});if(error)throw error;e.textContent="Solicitud enviada correctamente. Número: "+data;document.getElementById("montoRetiro").value="";document.getElementById("tarjetaRetiro").value="";await Promise.all([cargarSaldoYGanancias(),cargarHistorialRetiros()]);}catch(x){e.textContent="No se pudo solicitar: "+errorTexto(x);}finally{b.disabled=false;}}
 async function copiarEnlace(){const v=document.getElementById("enlaceInvitacion").value;if(!v){mensaje("Tu código todavía no está disponible.");return;}try{await navigator.clipboard.writeText(v);mensaje("Enlace copiado.");}catch(e){document.getElementById("enlaceInvitacion").select();mensaje("Selecciona y copia el enlace.");}}
 
-const ADMIN_SECCIONES=["depPendientes","depAprobados","depNegados","virtualPendientes","virtualAprobados","virtualRechazados","retirosPendientes","retirosProcesados"];
-function mostrarAdmin(id){ADMIN_SECCIONES.forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id));}
+const ADMIN_SECCIONES=["depPendientes","depAprobados","depNegados","virtualPendientes","virtualAprobados","virtualRechazados","retirosPendientes","retirosProcesados","cuentasActivas","cuentasAprobadas"];
+function toggleAdminMenu(){const d=document.getElementById("adminDrawer"),o=document.getElementById("adminMenuOverlay"),b=document.querySelector(".admin-menu-btn"),abierto=!d.classList.contains("open");d.classList.toggle("open",abierto);o.classList.toggle("open",abierto);d.setAttribute("aria-hidden",String(!abierto));b?.setAttribute("aria-expanded",String(abierto));}
+function cerrarAdminMenu(){const d=document.getElementById("adminDrawer"),o=document.getElementById("adminMenuOverlay");d?.classList.remove("open");o?.classList.remove("open");d?.setAttribute("aria-hidden","true");document.querySelector(".admin-menu-btn")?.setAttribute("aria-expanded","false");}
+function mostrarAdmin(id){ADMIN_SECCIONES.forEach(x=>document.getElementById(x)?.classList.toggle("hidden",x!==id));cerrarAdminMenu();}
 async function cargarAdmin(){
  const msg=document.getElementById("mensajeAdmin");
  try{
@@ -148,10 +205,55 @@ async function cargarAdmin(){
   if(ep)throw ep;if(er)throw er;if(ev)throw ev;
   const ids=[...new Set([...(pagos||[]).map(x=>x.user_id),...(retiros||[]).map(x=>x.user_id),...(virtuales||[]).map(x=>x.user_id)])],n={};
   if(ids.length){const {data:ps,error}=await supabaseClient.from("profiles").select("id,username,full_name").in("id",ids);if(error)throw error;(ps||[]).forEach(x=>n[x.id]=(x.full_name||"")+" (@"+(x.username||"sin usuario")+")");}
-  await renderizarDepositos(pagos||[],n);renderizarRetiros(retiros||[],n);await renderizarPagosVirtuales(virtuales||[],n);
-  msg.textContent=`Depósitos por aprobar: ${(pagos||[]).filter(x=>x.status==="pending").length} · Pagos virtuales por aprobar: ${(virtuales||[]).filter(x=>x.status==="pending").length} · Retiros por aprobar: ${(retiros||[]).filter(x=>x.status==="pending").length}`;
+  await renderizarDepositos(pagos||[],n);renderizarRetiros(retiros||[],n);await renderizarPagosVirtuales(virtuales||[],n);await cargarListasCuentasAdmin();
+  msg.textContent=`Pagos CUP pendientes: ${(pagos||[]).filter(x=>x.status==="pending").length} · Virtuales pendientes: ${(virtuales||[]).filter(x=>x.status==="pending").length} · Retiros pendientes: ${(retiros||[]).filter(x=>x.status==="pending").length}`;
  }catch(e){msg.textContent="Error: "+errorTexto(e);}
 }
+async function cargarListasCuentasAdmin(){
+ const activos=document.getElementById("listaCuentasActivas"),aprobadas=document.getElementById("listaCuentasAprobadas");
+ tarjetaVacia(activos,"Cargando cuentas activas...");tarjetaVacia(aprobadas,"Cargando cuentas aprobadas...");
+ const {data,error}=await supabaseClient.rpc("admin_list_accounts");
+ if(error)throw error;
+ const filas=Array.isArray(data)?data:[];
+ const vigentes=filas.filter(x=>x.has_active_membership===true);
+ const conPago=filas.filter(x=>x.has_approved_payment===true);
+ renderizarListaCuentasAdmin(activos,vigentes,"No hay cuentas con membresía activa.");
+ renderizarListaCuentasAdmin(aprobadas,conPago,"Todavía no hay cuentas con pagos aprobados.");
+}
+function renderizarListaCuentasAdmin(contenedor,cuentas,vacio){
+ contenedor.replaceChildren();if(!cuentas.length){tarjetaVacia(contenedor,vacio);return;}
+ cuentas.forEach(x=>{
+  const c=elemento("article",undefined,"admin-account-card");
+  c.append(elemento("h4",(x.full_name||"Sin nombre")+" · @"+(x.username||"sin usuario")));
+  c.append(elemento("p","Correo: "+(x.email||"No disponible")),elemento("p","Provincia: "+(x.province||"—")+" · Municipio: "+(x.municipality||"—")),elemento("p","Código de referencia: "+(x.referral_code||"—")),elemento("p","Registro: "+fecha(x.created_at)));
+  const estados=[];if(x.has_active_membership)estados.push("Membresía activa");if(x.has_approved_payment)estados.push("Pago aprobado");
+  c.append(elemento("p",estados.join(" · "),"estado"));
+  const b=elemento("button","Ver toda la información y las fotos");b.onclick=()=>verDetalleCuentaAdmin(x.user_id);c.append(b);contenedor.append(c);
+ });
+}
+function campoDetalle(etiqueta,valor){const d=elemento("div",undefined,"admin-detail-field");d.append(elemento("b",etiqueta),elemento("span",valor===null||valor===undefined||valor===""?"—":String(valor)));return d;}
+function agregarSeccionDetalle(contenedor,titulo){contenedor.append(elemento("h3",titulo,"admin-subheading"));const g=elemento("div",undefined,"admin-detail-grid");contenedor.append(g);return g;}
+async function agregarComprobanteDetalle(contenedor,ruta,titulo){
+ if(!ruta){contenedor.append(elemento("p","No hay foto de comprobante guardada.","muted"));return;}
+ const {data,error}=await supabaseClient.storage.from("payment_receipts").createSignedUrl(ruta,600);
+ if(error||!data?.signedUrl){contenedor.append(elemento("p","No se pudo abrir la foto: "+(error?.message||"sin URL disponible"),"muted"));return;}
+ const bloque=elemento("div",undefined,"card");bloque.append(elemento("h4",titulo));const img=document.createElement("img");img.className="admin-receipt-img";img.src=data.signedUrl;img.alt=titulo;img.loading="lazy";bloque.append(img);const a=elemento("a","Abrir imagen en otra pestaña","comprobante-link");a.href=data.signedUrl;a.target="_blank";a.rel="noopener noreferrer";bloque.append(a);contenedor.append(bloque);
+}
+async function verDetalleCuentaAdmin(userId){
+ const modal=document.getElementById("adminDetalleModal"),c=document.getElementById("adminDetalleContenido");modal.classList.remove("hidden");c.replaceChildren(elemento("p","Cargando información completa...","muted"));
+ try{
+  const {data,error}=await supabaseClient.rpc("admin_get_account_details",{p_user_id:userId});if(error)throw error;if(!data)throw new Error("No se encontró la cuenta.");
+  c.replaceChildren();const p=data.profile||{};
+  let g=agregarSeccionDetalle(c,"Datos de registro");
+  [["ID de usuario",userId],["Nombre completo",p.full_name],["Nombre de usuario",p.username],["Correo electrónico",data.email],["Rol",p.role],["Provincia",p.province],["Municipio",p.municipality],["Código de referencia",p.referral_code],["Referido por (ID)",p.referred_by],["Etiqueta administrativa",p.admin_label],["Fecha de registro",fecha(p.created_at)]].forEach(([k,v])=>g.append(campoDetalle(k,v)));
+  if(p.avatar_url){const av=elemento("div",undefined,"card");av.append(elemento("h4","Foto de perfil"));const im=document.createElement("img");im.className="admin-receipt-img";im.src=p.avatar_url;im.alt="Foto de perfil";av.append(im);c.append(av);}
+  const membresias=Array.isArray(data.memberships)?data.memberships:[];g=agregarSeccionDetalle(c,"Membresías");if(!membresias.length)g.append(campoDetalle("Información","No hay membresías registradas."));membresias.forEach((m,i)=>{g.append(campoDetalle("Membresía "+(i+1),m.plan),campoDetalle("Estado",m.status),campoDetalle("Inicio",fecha(m.starts_at)),campoDetalle("Vencimiento",fecha(m.ends_at)));});
+  const cups=Array.isArray(data.cup_payments)?data.cup_payments:[];c.append(elemento("h3","Historial de pagos CUP ("+cups.length+")","admin-subheading"));if(!cups.length)c.append(elemento("p","No hay pagos CUP registrados.","muted"));for(const x of cups){g=agregarSeccionDetalle(c,"Pago CUP · "+dinero(x.amount_cup));g.append(campoDetalle("Plan",nombrePlan(x.plan)),campoDetalle("Estado",x.status),campoDetalle("Fecha",fecha(x.created_at)),campoDetalle("ID de solicitud",x.id));await agregarComprobanteDetalle(c,x.receipt_url,"Comprobante CUP");}
+  const virtuales=Array.isArray(data.virtual_payments)?data.virtual_payments:[];c.append(elemento("h3","Historial de pagos virtuales ("+virtuales.length+")","admin-subheading"));if(!virtuales.length)c.append(elemento("p","No hay pagos virtuales registrados.","muted"));for(const x of virtuales){g=agregarSeccionDetalle(c,"Pago virtual · "+Number(x.amount||0)+" USDT");g.append(campoDetalle("Plan",nombrePlanVirtual(x.plan_id)),campoDetalle("Estado",x.status),campoDetalle("Fecha",fecha(x.created_at)),campoDetalle("Fecha de aprobación",fecha(x.confirmed_at)),campoDetalle("ID de solicitud",x.id));await agregarComprobanteDetalle(c,x.receipt_url,"Comprobante virtual USDT");}
+ }catch(e){c.replaceChildren(elemento("p","No se pudo cargar la información: "+errorTexto(e),"estado"));}
+}
+function cerrarDetalleCuenta(){document.getElementById("adminDetalleModal").classList.add("hidden");}
+
 async function renderizarDepositos(pagos,n){const g={pending:"listaDepPendientes",approved:"listaDepAprobados",rejected:"listaDepNegados"};Object.values(g).forEach(id=>tarjetaVacia(document.getElementById(id),"No hay solicitudes en esta sección."));for(const x of pagos){const ctn=document.getElementById(g[x.status]);if(!ctn)continue;if(ctn.querySelector(".muted"))ctn.replaceChildren();const q=elemento("div",undefined,"solicitud");q.append(elemento("h3","Depósito: "+dinero(x.amount_cup)),elemento("p","Usuario: "+(n[x.user_id]||x.user_id)),elemento("p","Plan: "+nombrePlan(x.plan)),elemento("p","Fecha: "+fecha(x.created_at)));if(x.receipt_url){const {data}=await supabaseClient.storage.from("payment_receipts").createSignedUrl(x.receipt_url,300);if(data?.signedUrl){const a=elemento("a","Ver comprobante","comprobante-link");a.href=data.signedUrl;a.target="_blank";a.rel="noopener noreferrer";q.append(a);}}if(x.status==="pending"){const a=elemento("button","Aprobar","aprobar"),r=elemento("button","Negar","negar");a.onclick=()=>procesarDeposito(x.id,"approved",a);r.onclick=()=>procesarDeposito(x.id,"rejected",r);q.append(a,r);}ctn.append(q);}}
 function renderizarRetiros(rs,n){const p=document.getElementById("listaRetirosPendientes"),h=document.getElementById("listaRetirosProcesados");tarjetaVacia(p,"No hay retiros por aprobar.");tarjetaVacia(h,"Todavía no hay retiros procesados.");rs.forEach(x=>{const c=x.status==="pending"?p:h;if(c.querySelector(".muted"))c.replaceChildren();const q=elemento("div",undefined,"solicitud");q.append(elemento("h3","Retiro: "+dinero(x.amount_cup)),elemento("p","Usuario: "+(n[x.user_id]||x.user_id)),elemento("p","Tarjeta: "+(x.card_number||"No indicada")),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")));if(x.status==="pending"){const a=elemento("button","Marcar como pagado y aprobar","aprobar"),r=elemento("button","Negar","negar");a.onclick=()=>procesarRetiro(x.id,"approved",a);r.onclick=()=>procesarRetiro(x.id,"rejected",r);q.append(a,r);}c.append(q);});}
 function importeVirtualAdmin(x){return Number(x.amount||0).toLocaleString("es-ES")+" USDT";}
