@@ -53,7 +53,7 @@ a{color:var(--oro)}hr{border:0;border-top:1px solid var(--borde);margin:20px 0}.
 .admin-menu button{display:block;width:100%;margin:5px 0;text-align:left;background:rgba(246,207,85,.10);color:var(--oro2);box-shadow:none;border:1px solid rgba(246,207,85,.18)}
 .admin-menu button.activo{background:linear-gradient(135deg,#fff0a6,#dcae35);color:#17120a}
 .admin-content{min-width:0}.admin-view{display:none}.admin-view.activo{display:block}
-.admin-user{border:1px solid var(--borde);background:rgba(0,0,0,.2);border-radius:12px;padding:13px;margin:10px 0;overflow-wrap:anywhere}
+.admin-user{border:1px solid var(--borde);background:rgba(0,0,0,.2);border-radius:12px;padding:13px;margin:10px 0;overflow-wrap:anywhere}.admin-user-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}.admin-user-avatar{width:58px;height:58px;flex:0 0 58px;border-radius:50%;object-fit:cover;border:2px solid var(--oro);background:#29251b}.admin-user-placeholder{display:flex;align-items:center;justify-content:center;font-size:25px;color:var(--oro)}
 .admin-user .acciones{display:flex;flex-wrap:wrap;gap:5px}.admin-user .acciones button{margin:3px}
 .admin-danger{background:linear-gradient(135deg,#ffb0a8,#d94b43);color:#210b09}
 @media(max-width:650px){.admin-layout{grid-template-columns:1fr}.admin-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.admin-menu button{font-size:.82rem;padding:10px 7px;text-align:center}}
@@ -137,7 +137,7 @@ a{color:var(--oro)}hr{border:0;border-top:1px solid var(--borde);margin:20px 0}.
 
 <div class="container hidden" id="panelAdmin">
   <div class="logout-topbar"><button onclick="salir()">Cerrar sesión</button></div>
-  <h2>👑 Panel de administración</h2><p>Gestión de GoldRewards</p>
+  <h2>👑 Panel de administración</h2><div class="profile-box"><img id="fotoPerfilAdmin" class="avatar" alt="Foto de administrador"><div><strong>Foto de la cuenta administradora</strong><label for="fotoPerfilAdminInput">Seleccionar foto</label><input id="fotoPerfilAdminInput" type="file" accept="image/jpeg,image/png,image/webp"><button onclick="guardarFotoPerfil('fotoPerfilAdminInput','estadoFotoAdmin')">Guardar foto</button><p id="estadoFotoAdmin" class="estado small"></p></div></div><p>Gestión de GoldRewards</p>
   <button onclick="cargarAdmin()">Actualizar panel</button><button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button>
   <p id="mensajeAdmin" class="estado"></p>
   <div class="admin-layout">
@@ -278,7 +278,7 @@ async function registrar(){
  }catch(e){mensaje("No se pudo crear la cuenta: "+errorTexto(e));}finally{boton.disabled=false;}
 }
 async function cargarPerfil(user){const db=clienteListo(),{data,error}=await db.from("profiles").select("id,full_name,username,role,referral_code,avatar_url").eq("id",user.id).maybeSingle();if(error)throw error;if(!data)throw new Error("No se encontró tu perfil.");cacheAvatares.set(user.id,data.avatar_url||"");actualizarFotosPerfil();return data;}
-function actualizarFotosPerfil(){["fotoPerfilCuenta","fotoPerfilLobby"].forEach(id=>{const img=document.getElementById(id);if(img){img.src=perfilActual?.avatar_url||"";img.style.display=perfilActual?.avatar_url?"block":"none";}});}
+function actualizarFotosPerfil(){["fotoPerfilCuenta","fotoPerfilLobby","fotoPerfilAdmin"].forEach(id=>{const img=document.getElementById(id);if(img){img.src=perfilActual?.avatar_url||"";img.style.display=perfilActual?.avatar_url?"block":"none";}});}
 async function subirFotoPerfil(archivo,userId){const db=clienteListo();if(!["image/jpeg","image/png","image/webp"].includes(archivo.type))throw new Error("Solo se permiten fotos JPG, PNG o WEBP.");if(archivo.size>5*1024*1024)throw new Error("La foto no puede pesar más de 5 MB.");const ext=archivo.type==="image/jpeg"?"jpg":archivo.type==="image/png"?"png":"webp",ruta=userId+"/"+generarNombreArchivo(ext);const {error:subida}=await db.storage.from("profile_photos").upload(ruta,archivo,{contentType:archivo.type,upsert:false});if(subida)throw subida;const {data}=db.storage.from("profile_photos").getPublicUrl(ruta);const {error:actualizacion}=await db.from("profiles").update({avatar_url:data.publicUrl}).eq("id",userId);if(actualizacion)throw actualizacion;if(perfilActual&&usuarioActual?.id===userId){perfilActual.avatar_url=data.publicUrl;cacheAvatares.set(userId,data.publicUrl);actualizarFotosPerfil();}return data.publicUrl;}
 async function guardarFotoPerfil(inputId,estadoId){const archivo=document.getElementById(inputId).files[0],estado=document.getElementById(estadoId);if(!archivo){estado.textContent="Selecciona primero una foto.";return;}try{estado.textContent="Subiendo foto...";await subirFotoPerfil(archivo,usuarioActual.id);document.getElementById(inputId).value="";estado.textContent="¡Foto de perfil actualizada!";}catch(e){estado.textContent="No se pudo guardar la foto: "+errorTexto(e);}}
 async function entrar(){const db=clienteListo(),boton=document.getElementById("botonLogin"),email=document.getElementById("correoLogin").value.trim(),password=document.getElementById("claveLogin").value;if(!email||!password){mensaje("Escribe tu correo y contraseña.");return;}boton.disabled=true;mensaje("Iniciando sesión...");try{const {data,error}=await db.auth.signInWithPassword({email,password});if(error)throw error;usuarioActual=data.user;perfilActual=await cargarPerfil(data.user);await dirigirUsuario();}catch(e){mensaje("No se pudo iniciar sesión: "+errorTexto(e));}finally{boton.disabled=false;}}
@@ -346,7 +346,7 @@ async function cargarAdmin(){
   const [{data:pagos,error:ep},{data:retiros,error:er},{data:perfiles,error:eper},{data:membresias,error:em}]=await Promise.all([
    db.from("payment_requests").select("id,user_id,plan,amount_cup,receipt_url,status,created_at").order("created_at",{ascending:false}),
    db.from("withdrawal_requests").select("id,user_id,amount_cup,card_number,status,created_at,processed_at").order("created_at",{ascending:false}),
-   db.from("profiles").select("id,username,full_name,role,referral_code"),
+   db.from("profiles").select("id,username,full_name,role,referral_code,avatar_url"),
    db.from("memberships").select("id,user_id,plan,status,starts_at,ends_at").order("ends_at",{ascending:false})
   ]);
   if(ep)throw ep;if(er)throw er;if(eper)throw eper;if(em)throw em;
@@ -367,8 +367,8 @@ function renderizarListaCuentas(perfiles,membresias){
  const activas=obtenerCuentasActivas(perfiles,membresias),idsActivas=new Set(activas.map(p=>p.id));
  const listas={listaTodasCuentas:perfiles,listaCuentasActivas:perfiles.filter(p=>idsActivas.has(p.id)),listaCuentasInactivas:perfiles.filter(p=>!idsActivas.has(p.id)),listaCuentasBasic:perfiles.filter(p=>membresiaVigente(p.id,membresias)?.plan==="basic"),listaCuentasPremium:perfiles.filter(p=>membresiaVigente(p.id,membresias)?.plan==="premium")};
  for(const [id,lista] of Object.entries(listas)){const cont=document.getElementById(id);cont.replaceChildren();if(!lista.length){tarjetaVacia(cont,"No hay cuentas en esta sección.");continue;}
-  lista.forEach(p=>{const mem=membresiaVigente(p.id,membresias),card=elemento("div",undefined,"admin-user"),nombre=elemento("strong",(p.full_name||"Sin nombre")+" · @"+(p.username||"sin usuario")),info=elemento("p","ID: "+p.id),estado=elemento("p",mem?"Membresía activa · Plan "+(mem.plan==="basic"?"Básico (100 CUP)":"Premium (200 CUP)")+" · Vence: "+fecha(mem.ends_at):"Sin membresía vigente","muted"),acciones=elemento("div",undefined,"acciones");
-   card.append(nombre,info,estado);
+  lista.forEach(p=>{const mem=membresiaVigente(p.id,membresias),card=elemento("div",undefined,"admin-user"),cabecera=elemento("div",undefined,"admin-user-head"),foto=p.avatar_url?document.createElement("img"):elemento("div","👤","admin-user-avatar admin-user-placeholder"),nombre=elemento("strong",(p.full_name||"Sin nombre")+" · @"+(p.username||"sin usuario")),info=elemento("p","ID: "+p.id),estado=elemento("p",mem?"Membresía activa · Plan "+(mem.plan==="basic"?"Básico (100 CUP)":"Premium (200 CUP)")+" · Vence: "+fecha(mem.ends_at):"Sin membresía vigente","muted"),acciones=elemento("div",undefined,"acciones");
+   if(p.avatar_url){foto.src=p.avatar_url;foto.alt="Foto de "+(p.username||"usuario");foto.className="admin-user-avatar";}cabecera.append(foto,nombre);card.append(cabecera,info,estado);
    if(p.role==="admin")acciones.append(elemento("span","Cuenta administradora (protegida)","muted"));
    else{const del=elemento("button","Eliminar cuenta","admin-danger");del.onclick=()=>eliminarCuentaAdmin(p,del);acciones.append(del);}
    card.append(acciones);cont.append(card);
