@@ -59,7 +59,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
   <div class="gold-divider"><span>✦</span></div>
   <p class="muted">Una comunidad para compartir invitaciones y obtener recompensas.</p>
   <div class="contador-usuarios" title="Usuarios de la comunidad"><span class="ojo">👁️</span><span id="contadorUsuarios">Cargando...</span></div>
-  <p class="small muted">Miembros en la comunidad</p>
+  <p class="small muted">Miembros en la comunidad · Se actualiza cada 30 segundos</p>
   <button class="boton-principal" onclick="mostrar('registro')">Crear mi cuenta</button>
   <button class="secundario" onclick="mostrar('login')">Iniciar sesión</button>
   <button class="boton-reglas" onclick="abrirReglas()">📜 Leer reglas</button>
@@ -159,6 +159,17 @@ function errorTexto(e){return e?.message||"Ocurrió un error inesperado."}
 function nombrePlan(p){return p==="premium"?"Premium":p==="basic"?"Básica":String(p||"Sin plan");}
 function generarNombreArchivo(ext){const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a).map(v=>v.toString(16).padStart(2,"0")).join("")+"."+ext;}
 
+/* CONTADOR PÚBLICO: se actualiza cada 30 segundos.
+   Si existe 1 cuenta, puede mostrar 2 o 3; con más cuentas,
+   varía de forma natural entre el total real y aproximadamente el doble. */
+function calcularUsuariosMostrados(total){
+ total=Math.max(1,Math.floor(Number(total)||1));
+ if(total===1)return Math.random()<0.5?2:3;
+ const minimo=total;
+ const maximo=total*2;
+ return Math.floor(Math.random()*(maximo-minimo+1))+minimo;
+}
+
 async function actualizarContadorUsuarios(){
  const c=document.getElementById("contadorUsuarios");if(!c)return;
  try{
@@ -167,10 +178,10 @@ async function actualizarContadorUsuarios(){
   if(Array.isArray(data)){const f=data[0]||{};total=Number(f.total_cuentas??f.total??f.count??0);}
   else if(typeof data==="object"&&data!==null)total=Number(data.total_cuentas??data.total??data.count??0);
   else total=Number(data||0);
-  c.textContent=(total*2).toLocaleString("es-ES");
+  c.textContent=calcularUsuariosMostrados(total).toLocaleString("es-ES");
  }catch(e){
   console.error("Error del contador:",e);
-  c.textContent="2";
+  c.textContent=Math.random()<0.5?"2":"3";
  }
 }
 
@@ -229,7 +240,7 @@ function iniciarGoldRewards(){
   actualizarDatosPlan();
   actualizarContadorUsuarios();
   if(window.intervaloContadorUsuarios) clearInterval(window.intervaloContadorUsuarios);
-  window.intervaloContadorUsuarios=setInterval(actualizarContadorUsuarios,60000);
+  window.intervaloContadorUsuarios=setInterval(actualizarContadorUsuarios,30000);
   restaurarSesion();
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",iniciarGoldRewards,{once:true});
