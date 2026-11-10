@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#101014">
 <title>GoldRewards</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2';"></script>
 <style>
 :root{--fondo:#09090c;--panel:rgba(25,23,19,.94);--panel2:rgba(38,35,28,.96);--oro:#f6cf55;--oro2:#fff0a6;--texto:#fffdf5;--muted:#c8c1ae;--verde:#38d878;--rojo:#ff6464;--borde:rgba(246,207,85,.28)}
 *{box-sizing:border-box}
@@ -176,7 +176,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
   <button onclick="copiarEnlace()">Copiar enlace</button>
   <hr>
   <h3>Solicitar retiro</h3>
-  <p class="muted">Mínimo 100 CUP · Máximo acumulado de 250 CUP por día. Los límites no utilizados se conservan. Los retiros deben ser múltiplos de 10 CUP.</p>
+  <p class="muted">Mínimo 100 CUP · Máximo acumulado de 250 CUP por día. El límite no utilizado se conserva.</p>
   <div class="grid">
     <div class="stat">Referidos directos aprobados<strong id="referidosAprobados">0</strong></div>
     <div class="stat">Límite acumulado<strong id="limiteAcumulado">0 CUP</strong></div>
@@ -223,14 +223,17 @@ label{display:block;margin-top:8px;color:var(--muted)}
     <h2 id="tituloReglas">Reglas de GoldRewards</h2>
     <p class="muted">Lee estas condiciones antes de participar.</p>
     <ol class="reglas-lista">
-      <li><strong>Planes de membresía:</strong> el plan Básico cuesta 100 CUP y el plan Premium cuesta 200 CUP. Ambos duran 30 días desde que el administrador aprueba el depósito.</li>
-      <li><strong>Comisiones del primer depósito:</strong> con el plan Básico recibes 10 CUP por invitación directa y 2 CUP por segundo nivel. Con el plan Premium recibes 15 CUP por invitación directa y 5 CUP por segundo nivel.</li>
-      <li><strong>Comisiones de renovación:</strong> cada renovación aprobada genera 5 CUP para el patrocinador directo y 2 CUP para el patrocinador de segundo nivel, independientemente del plan elegido. Una renovación no cuenta como un nuevo referido.</li>
-      <li><strong>Requisito para retirar:</strong> debes tener al menos 10 referidos directos distintos, con cuentas verificadas y membresías pagadas y aprobadas.</li>
-      <li><strong>Límite acumulado:</strong> cada referido directo que cumpla los requisitos aporta 10 CUP a tu límite acumulado de retiros. Los referidos se cuentan una sola vez; sus renovaciones no aumentan ese límite. El límite no utilizado se conserva.</li>
-      <li><strong>Importes de retiro:</strong> el mínimo por solicitud es 100 CUP. El máximo acumulado es 250 CUP por día, y se reinicia a la medianoche de Cuba. Los retiros deben ser múltiplos de 10 CUP.</li>
-      <li><strong>Saldo y reservas:</strong> además del límite acumulado, debes tener saldo real de comisiones suficiente. Las solicitudes pendientes reservan el saldo y el límite correspondiente; si son negadas, ambos quedan disponibles nuevamente.</li>
-      <li><strong>Revisión y pago:</strong> todas las solicitudes de depósito y retiro son revisadas por el administrador. Un retiro solo se marca como aprobado después de realizar la transferencia.</li>
+      <li><strong>Membresías:</strong> existen dos planes: Básico de 100 CUP y Premium de 200 CUP. Ambos duran 30 días desde la aprobación del depósito.</li>
+      <li><strong>Primera membresía de 100 CUP:</strong> genera 10 CUP para el patrocinador directo y 2 CUP para el patrocinador de segundo nivel.</li>
+      <li><strong>Primera membresía de 200 CUP:</strong> genera 15 CUP para el patrocinador directo y 5 CUP para el patrocinador de segundo nivel.</li>
+      <li><strong>Renovaciones:</strong> cada renovación aprobada genera 5 CUP para el patrocinador directo y 2 CUP para el segundo nivel, independientemente del plan.</li>
+      <li><strong>Requisitos para retirar:</strong> necesitas al menos 10 referidos directos distintos con cuentas verificadas y membresías pagadas y aprobadas.</li>
+      <li><strong>Límite acumulado:</strong> cada referido directo aprobado aporta 10 CUP al límite acumulado de retiro. Las renovaciones no cuentan como nuevos referidos.</li>
+      <li><strong>Retiros:</strong> mínimo 100 CUP y máximo acumulado de 250 CUP por día. El límite diario se reinicia a medianoche, hora de Cuba.</li>
+      <li><strong>Cantidades permitidas:</strong> los retiros deben ser múltiplos de 10 CUP.</li>
+      <li><strong>Saldo:</strong> las ganancias disponibles deben cubrir el retiro. Las solicitudes pendientes reservan el saldo y el límite correspondiente.</li>
+      <li><strong>Límite acumulado restante:</strong> el límite que no se utiliza no se pierde; permanece disponible para futuros retiros.</li>
+      <li><strong>Revisión:</strong> las solicitudes de depósitos y retiros son revisadas por el administrador. Un retiro se marca como aprobado después de realizar el pago.</li>
       <li><strong>Cuenta activa:</strong> el lobby y el chat grupal están disponibles mientras la membresía esté vigente.</li>
     </ol>
     <button onclick="cerrarReglas()">Entendido</button>
@@ -257,7 +260,9 @@ label{display:block;margin-top:8px;color:var(--muted)}
 <script>
 const SUPABASE_URL = "https://yygykfyfpeetdzycirfs.supabase.co";
 const SUPABASE_KEY = "sb_publishable_TAB8Yp-12ROav3Z4aoYoQQ_PH2Tet6L";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase?.createClient
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null;
 let usuarioActual = null;
 let perfilActual = null;
 
@@ -283,4 +288,4 @@ function generarNombreArchivo(extension){
 function errorTexto(e){return e?.message||"Ocurrió un error inesperado."}
 
 function abrirReglas(){document.getElementById("reglasModal").classList.remove("hidden");}
-function cerrarReglas(){document.g
+function cerrarRe
