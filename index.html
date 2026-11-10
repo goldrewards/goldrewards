@@ -58,6 +58,9 @@ a{color:var(--oro)}hr{border:0;border-top:1px solid var(--borde);margin:20px 0}.
 .admin-danger{background:linear-gradient(135deg,#ffb0a8,#d94b43);color:#210b09}
 @media(max-width:650px){.admin-layout{grid-template-columns:1fr}.admin-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.admin-menu button{font-size:.82rem;padding:10px 7px;text-align:center}}
 @media(max-width:420px){.modal-panel{padding:24px 14px 18px}.chat-compose{gap:4px}.chat-compose button{padding:12px}.chat-message{max-width:95%}.container{padding:15px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}button{max-width:100%}}
+
+.contador-comunidad{max-width:430px;margin:18px auto 20px;padding:16px 18px;border:1px solid rgba(246,207,85,.48);border-radius:16px;background:linear-gradient(145deg,rgba(70,54,22,.72),rgba(14,14,16,.94));box-shadow:0 8px 26px rgba(0,0,0,.3),inset 0 1px rgba(255,240,166,.08)}
+.contador-etiqueta{margin:0;color:var(--oro2);font-size:.82rem;letter-spacing:1.4px;text-transform:uppercase}.contador-numero{display:block;margin:5px 0;color:var(--oro);font-size:clamp(2.3rem,9vw,3.3rem);font-weight:800;text-shadow:0 0 20px rgba(246,207,85,.2)}.contador-reloj{margin:0;color:var(--texto);font-size:.9rem}.contador-aviso{margin:7px 0 0;color:var(--muted);font-size:.72rem}
 </style>
 </head>
 <body>
@@ -68,6 +71,12 @@ a{color:var(--oro)}hr{border:0;border-top:1px solid var(--borde);margin:20px 0}.
   <h2 class="hero-title">Bienvenido a GoldRewards</h2><p class="hero-copy">Gana, comparte y crece</p>
   <div class="gold-divider"><span>✦</span></div>
   <p class="muted">Una comunidad para compartir invitaciones y obtener recompensas.</p>
+  <section class="contador-comunidad" aria-label="Contador simulado de comunidad">
+    <p class="contador-etiqueta">✨ Actividad de la comunidad</p>
+    <strong class="contador-numero" id="contadorComunidad">250</strong>
+    <p class="contador-reloj" id="relojContador">Próxima actualización: calculando…</p>
+    <p class="contador-aviso">Contador simulado · aumenta entre 10 y 15 periódicamente</p>
+  </section>
   <button class="boton-principal" onclick="mostrar('registro')">Crear mi cuenta</button>
   <button class="secundario" onclick="mostrar('login')">Iniciar sesión</button>
   <button class="boton-reglas" onclick="abrirReglas()">📜 Leer reglas</button>
@@ -400,7 +409,29 @@ async function procesarDeposito(id,estado,boton){const texto=estado==="approved"
 async function procesarRetiro(id,estado,boton){const texto=estado==="approved"?"IMPORTANTE: confirma solo después de transferir el dinero a la tarjeta indicada. ¿Ya realizaste el pago?":"¿Confirmas que deseas negar este retiro?";if(!confirm(texto))return;boton.disabled=true;try{const {error}=await clienteListo().rpc(estado==="approved"?"approve_withdrawal":"reject_withdrawal",{p_withdrawal_id:id});if(error)throw error;alert(estado==="approved"?"Retiro marcado como aprobado y descontado del saldo.":"Retiro negado; el saldo reservado vuelve a estar disponible.");await cargarAdmin();}catch(e){alert("No se pudo procesar: "+errorTexto(e));boton.disabled=false;}}
 async function salir(){try{if(window.relojMembresia)clearInterval(window.relojMembresia);if(chatChannel){await clienteListo().removeChannel(chatChannel);chatChannel=null;}chatIds.clear();cerrarChat();const {error}=await clienteListo().auth.signOut();if(error)throw error;usuarioActual=null;perfilActual=null;["datos","estadoDeposito","estadoRetiro","bienvenidaLobby","tiempoMembresia"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent="";});["listaDepPendientes","listaDepAprobados","listaDepNegados","listaRetirosPendientes","listaRetirosProcesados","listaReferidos","historialGanancias","historialPagos","historialRetiros","listaTodasCuentas","listaCuentasActivas","listaCuentasInactivas","listaCuentasBasic","listaCuentasPremium"].forEach(id=>{const e=document.getElementById(id);if(e)e.replaceChildren();});mostrar("inicio");mensaje("Has cerrado sesión.");}catch(e){mensaje("No se pudo cerrar sesión: "+errorTexto(e));}}
 async function restaurarSesion(){try{const {data,error}=await clienteListo().auth.getSession();if(error)throw error;if(data.session?.user){usuarioActual=data.session.user;perfilActual=await cargarPerfil(usuarioActual);await dirigirUsuario();}}catch(e){mensaje("No se pudo restaurar la sesión: "+errorTexto(e));}}
+
+function iniciarContadorComunidad(){
+ const clave="goldrewards_contador_simulado_v1";
+ const numero=document.getElementById("contadorComunidad"),reloj=document.getElementById("relojContador");
+ if(!numero||!reloj)return;
+ let estado;
+ try{estado=JSON.parse(localStorage.getItem(clave)||"null");}catch(_){estado=null;}
+ const ahora=Date.now();
+ if(!estado||!Number.isFinite(estado.total)||!Number.isFinite(estado.proxima)){estado={total:250,proxima:ahora+intervaloActual()};guardar();}
+ function intervaloActual(){const h=new Date().getHours();return (h>=6&&h<18?60:120)*60*1000;}
+ function guardar(){try{localStorage.setItem(clave,JSON.stringify(estado));}catch(_){}}
+ function actualizar(){
+  const ahora=Date.now();
+  if(ahora>=estado.proxima){estado.total+=Math.floor(Math.random()*6)+10;estado.proxima=ahora+intervaloActual();guardar();}
+  numero.textContent=estado.total.toLocaleString("es-ES");
+  const restante=Math.max(0,estado.proxima-ahora),min=Math.floor(restante/60000),seg=Math.floor((restante%60000)/1000);
+  reloj.textContent="Próximo aumento en "+String(min).padStart(2,"0")+":"+String(seg).padStart(2,"0")+" · "+(new Date().getHours()>=6&&new Date().getHours()<18?"cada 1 hora":"cada 2 horas");
+ }
+ actualizar();if(window.relojContadorComunidad)clearInterval(window.relojContadorComunidad);window.relojContadorComunidad=setInterval(actualizar,1000);
+}
+
 window.addEventListener("DOMContentLoaded",async()=>{
+ iniciarContadorComunidad();
  const ref=new URLSearchParams(location.search).get("ref");if(ref){document.getElementById("invitacion").value=ref.toUpperCase();mostrar("registro");}
  if(!window.supabase||typeof window.supabase.createClient!=="function"){mensaje("No se pudo cargar Supabase. Comprueba tu conexión e inténtalo de nuevo.");return;}
  try{supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);await restaurarSesion();}catch(e){mensaje("No se pudo iniciar la conexión: "+errorTexto(e));}
