@@ -62,6 +62,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
 .admin-drawer button.drawer-link:hover{background:rgba(246,207,85,.13)}
 .admin-account-card{background:linear-gradient(145deg,rgba(49,43,29,.92),rgba(25,25,27,.96));border:1px solid var(--borde);border-radius:14px;padding:15px;margin:12px 0;text-align:left;overflow-wrap:anywhere}
 .admin-account-card h4{color:var(--oro2);margin:0 0 8px}
+.admin-account-heading{display:flex;align-items:center;gap:12px;margin:0 0 10px}.admin-account-avatar{width:48px;height:48px;min-width:48px;border-radius:50%;object-fit:cover;border:2px solid var(--oro);background:#29251b;display:grid;place-items:center;color:var(--oro2);font-weight:800;font-size:18px}.admin-account-heading h4{margin:0}
 .admin-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
 .admin-detail-field{padding:9px;background:rgba(255,255,255,.045);border:1px solid rgba(246,207,85,.12);border-radius:9px;overflow-wrap:anywhere}
 .admin-detail-field b{display:block;color:var(--oro);font-size:.78rem;margin-bottom:4px}
@@ -224,7 +225,16 @@ function renderizarListaCuentasAdmin(contenedor,cuentas,vacio){
  contenedor.replaceChildren();if(!cuentas.length){tarjetaVacia(contenedor,vacio);return;}
  cuentas.forEach(x=>{
   const c=elemento("article",undefined,"admin-account-card");
-  c.append(elemento("h4",(x.full_name||"Sin nombre")+" · @"+(x.username||"sin usuario")));
+  const encabezado=elemento("div",undefined,"admin-account-heading");
+  if(x.avatar_url){
+   const foto=document.createElement("img");foto.className="admin-account-avatar";foto.src=x.avatar_url;foto.alt="Foto de " +(x.full_name||x.username||"la cuenta");foto.loading="lazy";
+   foto.onerror=()=>{const inicial=elemento("div",(x.full_name||x.username||"?").trim().charAt(0).toUpperCase(),"admin-account-avatar");foto.replaceWith(inicial);};
+   encabezado.append(foto);
+  }else{
+   encabezado.append(elemento("div",(x.full_name||x.username||"?").trim().charAt(0).toUpperCase(),"admin-account-avatar"));
+  }
+  encabezado.append(elemento("h4",(x.full_name||"Sin nombre")+" · @"+(x.username||"sin usuario")));
+  c.append(encabezado);
   c.append(elemento("p","Correo: "+(x.email||"No disponible")),elemento("p","Provincia: "+(x.province||"—")+" · Municipio: "+(x.municipality||"—")),elemento("p","Código de referencia: "+(x.referral_code||"—")),elemento("p","Registro: "+fecha(x.created_at)));
   const estados=[];if(x.has_active_membership)estados.push("Membresía activa");if(x.has_approved_payment)estados.push("Pago aprobado");
   c.append(elemento("p",estados.join(" · "),"estado"));
