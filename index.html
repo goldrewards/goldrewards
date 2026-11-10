@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#101014">
+    <link id="faviconGoldRewards" rel="icon" type="image/png" href="">
 <title>GoldRewards</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2';"></script>
 <style>
@@ -228,6 +229,20 @@ function tarjetaVacia(contenedor,texto){contenedor.replaceChildren(elemento("p",
 function generarNombreArchivo(extension){const valores=new Uint8Array(16);crypto.getRandomValues(valores);return Array.from(valores).map(v=>v.toString(16).padStart(2,"0")).join("")+"."+extension;}
 function errorTexto(e){return e?.message||"Ocurrió un error inesperado."}
 function clienteListo(){if(!supabaseClient)throw new Error("No se pudo conectar con Supabase. Recarga la página o comprueba tu conexión.");return supabaseClient;}
+    async function cargarFaviconAdmin(){
+ try{
+  const {data,error}=await clienteListo().rpc("obtener_foto_admin");
+  if(error)throw error;
+  if(!data)return;
+
+  const favicon=document.getElementById("faviconGoldRewards");
+  if(favicon){
+   favicon.href=data+(data.includes("?")?"&":"?")+"v="+Date.now();
+  }
+ }catch(e){
+  console.error("No se pudo cargar el favicon del administrador:",e);
+ }
+}
 function abrirReglas(){document.getElementById("reglasModal").classList.remove("hidden");}
 function cerrarReglas(){document.getElementById("reglasModal").classList.add("hidden");}
 function cerrarChat(){document.getElementById("chatModal").classList.add("hidden");}
@@ -436,9 +451,25 @@ function iniciarContadorComunidad(){
 
 window.addEventListener("DOMContentLoaded",async()=>{
  iniciarContadorComunidad();
- const ref=new URLSearchParams(location.search).get("ref");if(ref){document.getElementById("invitacion").value=ref.toUpperCase();mostrar("registro");}
- if(!window.supabase||typeof window.supabase.createClient!=="function"){mensaje("No se pudo cargar Supabase. Comprueba tu conexión e inténtalo de nuevo.");return;}
- try{supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);await restaurarSesion();}catch(e){mensaje("No se pudo iniciar la conexión: "+errorTexto(e));}
+
+ const ref=new URLSearchParams(location.search).get("ref");
+ if(ref){
+  document.getElementById("invitacion").value=ref.toUpperCase();
+  mostrar("registro");
+ }
+
+ if(!window.supabase||typeof window.supabase.createClient!=="function"){
+  mensaje("No se pudo cargar Supabase. Comprueba tu conexión e inténtalo de nuevo.");
+  return;
+ }
+
+ try{
+  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  cargarFaviconAdmin();
+  await restaurarSesion();
+ }catch(e){
+  mensaje("No se pudo iniciar la conexión: "+errorTexto(e));
+ }
 });
 </script>
 </body>
