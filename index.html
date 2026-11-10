@@ -39,7 +39,6 @@ hr{border:0;border-top:1px solid var(--borde);margin:20px 0}
 .code{font-weight:bold;color:var(--oro2);overflow-wrap:anywhere;text-shadow:0 0 18px rgba(246,207,85,.18)}
 .small{font-size:.85rem}
 label{display:block;margin-top:8px;color:var(--muted)}
-
 .hero{position:relative;overflow:hidden;padding:30px 22px 25px;background:radial-gradient(ellipse at 50% 0%,rgba(180,132,31,.22),transparent 56%),linear-gradient(145deg,rgba(43,34,18,.97),rgba(15,15,18,.98));}
 .hero:after{content:"";position:absolute;width:220px;height:220px;border:1px solid rgba(246,207,85,.10);border-radius:50%;top:-135px;right:-75px;box-shadow:0 0 0 18px rgba(246,207,85,.025),0 0 0 38px rgba(246,207,85,.02);pointer-events:none}
 .hero-emblem{width:78px;height:78px;display:grid;place-items:center;margin:0 auto 12px;border-radius:50%;font-size:40px;background:radial-gradient(circle at 35% 30%,#fff0a6,#d5a32e 58%,#75500e);box-shadow:0 0 0 6px rgba(246,207,85,.08),0 0 35px rgba(246,207,85,.2)}
@@ -74,7 +73,6 @@ label{display:block;margin-top:8px;color:var(--muted)}
 .chat-compose input{flex:1;min-width:0;margin:0}
 .chat-compose button{margin:0;white-space:nowrap}
 @media(max-width:420px){.modal-panel{padding:24px 14px 18px}.chat-compose{gap:4px}.chat-compose button{padding:12px}.chat-message{max-width:95%}}
-
 @media(max-width:420px){.container{padding:15px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}button{max-width:100%}}
 </style>
 </head>
@@ -96,11 +94,32 @@ label{display:block;margin-top:8px;color:var(--muted)}
 
 <div class="container hidden" id="registro">
   <h2>Crear cuenta</h2>
-  <input id="nombre" placeholder="Nombre completo" autocomplete="name">
-  <input id="usuario" placeholder="Nombre de usuario" autocomplete="username">
+  <input id="nombre" placeholder="Nombre completo" autocomplete="name" required>
+  <label for="provincia">Provincia</label>
+  <select id="provincia" required>
+    <option value="">Selecciona tu provincia</option>
+    <option value="Pinar del Río">Pinar del Río</option>
+    <option value="Artemisa">Artemisa</option>
+    <option value="La Habana">La Habana</option>
+    <option value="Mayabeque">Mayabeque</option>
+    <option value="Matanzas">Matanzas</option>
+    <option value="Cienfuegos">Cienfuegos</option>
+    <option value="Villa Clara">Villa Clara</option>
+    <option value="Sancti Spíritus">Sancti Spíritus</option>
+    <option value="Ciego de Ávila">Ciego de Ávila</option>
+    <option value="Camagüey">Camagüey</option>
+    <option value="Las Tunas">Las Tunas</option>
+    <option value="Granma">Granma</option>
+    <option value="Holguín">Holguín</option>
+    <option value="Santiago de Cuba">Santiago de Cuba</option>
+    <option value="Guantánamo">Guantánamo</option>
+    <option value="Isla de la Juventud">Isla de la Juventud</option>
+  </select>
+  <input id="municipio" placeholder="Escribe tu municipio" autocomplete="address-level2" required>
+  <input id="usuario" placeholder="Nombre de usuario" autocomplete="username" required>
   <button id="botonComprobar" onclick="comprobarUsuario()">Comprobar usuario</button>
-  <input id="correo" type="email" placeholder="Correo electrónico" autocomplete="email">
-  <input id="clave" type="password" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password">
+  <input id="correo" type="email" placeholder="Correo electrónico" autocomplete="email" required>
+  <input id="clave" type="password" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password" required>
   <input id="invitacion" placeholder="Código de invitación (opcional)">
   <button id="botonRegistro" onclick="registrar()">Crear cuenta</button>
   <button class="secundario" onclick="mostrar('inicio')">Volver</button>
@@ -287,7 +306,6 @@ async function cargarMensajesChat(){
   box.replaceChildren();
   if(!data?.length){box.append(elemento("p","Todavía no hay mensajes. ¡Saluda a la comunidad!","muted"));return;}
   data.reverse().forEach(pintarMensajeChat);
-  box.scrollTop=box.scrollHeight;
 }
 function pintarMensajeChat(m){
   if(!m||chatIds.has(String(m.id)))return;
@@ -319,7 +337,6 @@ async function enviarMensajeChat(event){
   finally{boton.disabled=false;input.focus();}
 }
 
-
 async function comprobarUsuario(){
   const boton=document.getElementById("botonComprobar");
   const username=document.getElementById("usuario").value.trim().toLowerCase();
@@ -337,35 +354,54 @@ async function comprobarUsuario(){
 async function registrar(){
   const boton=document.getElementById("botonRegistro");
   const full_name=document.getElementById("nombre").value.trim();
+  const province=document.getElementById("provincia").value;
+  const municipality=document.getElementById("municipio").value.trim();
   const username=document.getElementById("usuario").value.trim().toLowerCase();
   const email=document.getElementById("correo").value.trim();
   const password=document.getElementById("clave").value;
   const referral_code=document.getElementById("invitacion").value.trim().toUpperCase();
-  if(!full_name||!username||!email||!password){mensaje("Completa todos los campos obligatorios.");return;}
+
+  if(!full_name||!province||!municipality||!username||!email||!password){
+    mensaje("Completa todos los campos obligatorios, incluida la provincia y el municipio.");
+    return;
+  }
   if(!/^[a-z0-9_]{3,20}$/.test(username)){mensaje("El nombre de usuario no es válido.");return;}
   if(password.length<6){mensaje("La contraseña debe tener al menos 6 caracteres.");return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){mensaje("Introduce un correo válido.");return;}
+
   boton.disabled=true;mensaje("Comprobando disponibilidad...");
   try{
     const {data:disponibilidad,error:errorUsuario}=await supabaseClient.rpc("check_username_available",{p_username:username});
     if(errorUsuario)throw errorUsuario;
     if(!disponibilidad?.[0]?.available){mensaje("Ese nombre de usuario ya está ocupado.");return;}
+
     if(referral_code){
       const {data:refVal,error:refError}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});
       if(refError)throw refError;
       if(refVal!==true){mensaje("El código de invitación no existe. Revísalo o déjalo vacío.");return;}
     }
+
     mensaje("Creando tu cuenta...");
     const {error}=await supabaseClient.auth.signUp({
-      email,password,
-      options:{emailRedirectTo:"https://goldrewards.github.io/goldrewards/",data:{full_name,username,referral_code}}
+      email,
+      password,
+      options:{
+        emailRedirectTo:"https://goldrewards.github.io/goldrewards/",
+        data:{full_name,username,province,municipality,referral_code}
+      }
     });
     if(error)throw error;
-    ["nombre","usuario","correo","clave","invitacion"].forEach(id=>document.getElementById(id).value="");
+
+    ["nombre","provincia","municipio","usuario","correo","clave","invitacion"].forEach(id=>{
+      document.getElementById(id).value="";
+    });
     mostrar("login");
     mensaje("Cuenta creada. Si Supabase solicita confirmar el correo, revisa tu bandeja antes de iniciar sesión.");
-  }catch(e){mensaje("No se pudo crear la cuenta: "+errorTexto(e));}
-  finally{boton.disabled=false;}
+  }catch(e){
+    mensaje("No se pudo crear la cuenta: "+errorTexto(e));
+  }finally{
+    boton.disabled=false;
+  }
 }
 
 async function cargarPerfil(user){
