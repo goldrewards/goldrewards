@@ -55,6 +55,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
 .modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(8px)}
 .modal.hidden{display:none!important}
 .modal-panel{position:relative;width:min(650px,100%);max-height:88vh;overflow:auto;text-align:left;padding:25px 20px 22px;border:1px solid rgba(246,207,85,.55);border-radius:18px;background:linear-gradient(145deg,#282116,#111114 72%);box-shadow:0 25px 80px rgba(0,0,0,.7),0 0 35px rgba(246,207,85,.10)}
+#reglasModal .modal-panel{width:min(650px,100%);height:auto;max-height:88vh;overflow-y:auto;}
 .modal-panel h2{text-align:center;color:var(--oro2)}
 .modal-panel>.muted{text-align:center}
 .modal-close{position:absolute;right:9px;top:8px;margin:0;padding:8px 12px;background:rgba(255,255,255,.08);color:white;border:1px solid rgba(255,255,255,.16);box-shadow:none}
@@ -257,7 +258,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
 <script>
 const SUPABASE_URL = "https://yygykfyfpeetdzycirfs.supabase.co";
 const SUPABASE_KEY = "sb_publishable_TAB8Yp-12ROav3Z4aoYoQQ_PH2Tet6L";
-let supabaseClient = null;
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let usuarioActual = null;
 let perfilActual = null;
 
@@ -745,30 +746,8 @@ async function restaurarSesion(){
 window.addEventListener("DOMContentLoaded",()=>{
   const ref=new URLSearchParams(location.search).get("ref");
   if(ref){document.getElementById("invitacion").value=ref.toUpperCase();mostrar("registro");}
-});
-window.addEventListener("load",()=>{
-  if(window.supabase && typeof window.supabase.createClient === "function"){
-    try{
-      supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-      restaurarSesion();
-    }catch(e){mensaje("No se pudo iniciar la conexión con la base de datos: "+errorTexto(e));}
-  }else{
-    mensaje("La página está abierta, pero no se pudo cargar el servicio de conexión. Los botones de navegación y las reglas siguen disponibles; comprueba tu conexión e inténtalo de nuevo.");
-  }
+  restaurarSesion();
 });
 </script>
 </body>
-</html>seClient.auth.getSession();if(error)throw error;
-    if(data.session?.user){usuarioActual=data.session.user;perfilActual=await cargarPerfil(usuarioActual);await dirigirUsuario();}
-  }catch(e){mensaje("No se pudo restaurar la sesión: "+errorTexto(e));}
-}
-window.addEventListener("DOMContentLoaded",()=>{
-  const ref=new URLSearchParams(location.search).get("ref");
-  if(ref){document.getElementById("invitacion").value=ref.toUpperCase();mostrar("registro");}
-});
-window.addEventListener("load",()=>{
-  if(window.supabase && typeof window.supabase.createClient === "function"){
-    try{
-      supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-      restaurarSesion();
-    }catch(e
+</html>
