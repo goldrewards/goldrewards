@@ -15,6 +15,7 @@ header{background:linear-gradient(135deg,rgba(12,12,14,.97),rgba(48,36,13,.96),r
 h1{background:linear-gradient(100deg,#fff2b0,#e2ad25,#fff4bd);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 4px 25px rgba(246,207,85,.14);margin:0 0 8px;letter-spacing:1.5px}
 h2,h3{line-height:1.25}p{line-height:1.45}
 .container{max-width:760px;width:calc(100% - 24px);margin:22px auto;padding:22px;background:linear-gradient(145deg,rgba(35,31,23,.96),rgba(18,18,21,.97));border:1px solid rgba(246,207,85,.22);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.42),inset 0 1px rgba(255,239,180,.06);backdrop-filter:blur(12px)}
+.logout-topbar{display:flex;justify-content:flex-end;align-items:center;margin:-10px -10px 10px}.logout-topbar button{margin:0;padding:9px 14px;background:linear-gradient(135deg,#4a1717,#8d2929);color:#fff;border:1px solid rgba(255,130,130,.5);box-shadow:0 4px 14px rgba(0,0,0,.25)}
 input,select{width:100%;max-width:520px;padding:14px;margin:7px 0;border:1px solid var(--borde);border-radius:10px;background:rgba(12,12,14,.88);color:white;font-size:16px}
 input[type=file]{max-width:100%}
 button{padding:12px 18px;margin:6px;border:1px solid rgba(255,240,166,.42);border-radius:10px;background:linear-gradient(135deg,#fff0a6,#dcae35 55%,#a97819);color:#17120a;font-weight:bold;cursor:pointer;box-shadow:0 5px 18px rgba(218,169,48,.16);transition:transform .18s,filter .18s}
@@ -94,14 +95,16 @@ a{color:var(--oro)}hr{border:0;border-top:1px solid var(--borde);margin:20px 0}.
 </div>
 
 <div class="container hidden" id="cuenta">
+  <div class="logout-topbar"><button onclick="salir()">Cerrar sesión</button></div>
   <h2>Mi cuenta</h2><p id="datos"></p><hr><h3>Depósito de membresía</h3><p>Selecciona el plan que deseas pagar:</p>
   <select id="planMembresia"><option value="basic">Plan Básico — 100 CUP</option><option value="premium">Plan Premium — 200 CUP</option></select>
   <p>Realiza tu transferencia a esta tarjeta:</p><h2 class="code">9224069998634642</h2><p>Titular: Cuenta del grupo de GoldRewards</p>
   <p>Después de transferir, sube la captura del comprobante:</p><input type="file" id="comprobante" accept="image/jpeg,image/png,image/webp">
-  <button id="botonComprobante" onclick="subirComprobante()">Enviar comprobante</button><p id="estadoDeposito" class="estado"></p><hr><button onclick="salir()">Cerrar sesión</button>
+  <button id="botonComprobante" onclick="subirComprobante()">Enviar comprobante</button><p id="estadoDeposito" class="estado"></p>
 </div>
 
 <div class="container hidden" id="lobby">
+  <div class="logout-topbar"><button onclick="salir()">Cerrar sesión</button></div>
   <h2>🏆 Lobby GoldRewards</h2><p id="bienvenidaLobby"></p><button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button>
   <div class="card"><h3>Membresía activa</h3><p id="tiempoMembresia" class="code"></p></div>
   <div class="card" id="renovarMembresia">
@@ -128,10 +131,11 @@ a{color:var(--oro)}hr{border:0;border-top:1px solid var(--borde);margin:20px 0}.
   <input id="montoRetiro" type="number" min="100" max="250" step="10" placeholder="Cantidad (ej. 100, 120, 250)"><input id="tarjetaRetiro" type="text" inputmode="numeric" maxlength="40" placeholder="Número de tarjeta para recibir el pago">
   <button id="botonRetiro" onclick="solicitarRetiro()">Enviar solicitud de retiro</button><p id="estadoRetiro" class="estado"></p>
   <hr><h3>Mis referidos</h3><div id="listaReferidos"><p class="muted">Cargando...</p></div><h3>Historial de ganancias</h3><div id="historialGanancias"></div>
-  <h3>Historial de membresías y depósitos</h3><div id="historialPagos"></div><h3>Historial de retiros</h3><div id="historialRetiros"></div><button onclick="salir()">Cerrar sesión</button>
+  <h3>Historial de membresías y depósitos</h3><div id="historialPagos"></div><h3>Historial de retiros</h3><div id="historialRetiros"></div>
 </div>
 
 <div class="container hidden" id="panelAdmin">
+  <div class="logout-topbar"><button onclick="salir()">Cerrar sesión</button></div>
   <h2>👑 Panel de administración</h2><p>Gestión de GoldRewards</p>
   <button onclick="cargarAdmin()">Actualizar panel</button><button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button>
   <p id="mensajeAdmin" class="estado"></p>
@@ -168,7 +172,6 @@ a{color:var(--oro)}hr{border:0;border-top:1px solid var(--borde);margin:20px 0}.
       <section class="admin-view" id="retirosProcesados"><h3>📁 Historial de retiros</h3><div id="listaRetirosProcesados"></div></section>
     </div>
   </div>
-  <hr><button onclick="salir()">Cerrar sesión</button>
 </div>
 
 <div id="reglasModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="tituloReglas">
