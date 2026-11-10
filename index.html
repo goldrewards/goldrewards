@@ -96,7 +96,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
   <h2>Crear cuenta</h2>
   <input id="nombre" placeholder="Nombre completo" autocomplete="name" required>
   <label for="provincia">Provincia</label>
-  <select id="provincia" required>
+  <select id="provincia" onchange="cargarMunicipios()" required>
     <option value="">Selecciona tu provincia</option>
     <option value="Pinar del Río">Pinar del Río</option>
     <option value="Artemisa">Artemisa</option>
@@ -115,12 +115,16 @@ label{display:block;margin-top:8px;color:var(--muted)}
     <option value="Guantánamo">Guantánamo</option>
     <option value="Isla de la Juventud">Isla de la Juventud</option>
   </select>
-  <input id="municipio" placeholder="Escribe tu municipio" autocomplete="address-level2" required>
+  <label for="municipio">Municipio</label>
+  <select id="municipio" required disabled>
+    <option value="">Primero selecciona tu provincia</option>
+  </select>
   <input id="usuario" placeholder="Nombre de usuario" autocomplete="username" required>
   <button id="botonComprobar" onclick="comprobarUsuario()">Comprobar usuario</button>
   <input id="correo" type="email" placeholder="Correo electrónico" autocomplete="email" required>
   <input id="clave" type="password" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password" required>
-  <input id="invitacion" placeholder="Código de invitación (opcional)">
+  <label for="invitacion">Código de referencia de quien te invitó (obligatorio)</label>
+  <input id="invitacion" placeholder="Introduce el código de referencia" autocomplete="off" required>
   <button id="botonRegistro" onclick="registrar()">Crear cuenta</button>
   <button class="secundario" onclick="mostrar('inicio')">Volver</button>
 </div>
@@ -351,18 +355,51 @@ async function comprobarUsuario(){
   finally{boton.disabled=false;}
 }
 
+const municipiosPorProvincia={
+  "Pinar del Río":["Pinar del Río","Consolación del Sur","Guane","La Palma","Los Palacios","Mantua","Minas de Matahambre","San Juan y Martínez","San Luis","Sandino","Viñales"],
+  "Artemisa":["Artemisa","Alquízar","Bauta","Caimito","Candelaria","Guanajay","Güira de Melena","Mariel","San Antonio de los Baños","San Cristóbal","Bahía Honda"],
+  "La Habana":["Playa","Plaza de la Revolución","Centro Habana","La Habana Vieja","Regla","La Habana del Este","Guanabacoa","San Miguel del Padrón","Diez de Octubre","Cerro","Marianao","La Lisa","Boyeros","Arroyo Naranjo","Cotorro"],
+  "Mayabeque":["San José de las Lajas","Bejucal","Jaruco","Madruga","Nueva Paz","Santa Cruz del Norte","San Nicolás","Güines","Melena del Sur","Batabanó","Quivicán"],
+  "Matanzas":["Matanzas","Cárdenas","Martí","Colón","Perico","Jovellanos","Pedro Betancourt","Limonar","Unión de Reyes","Ciénaga de Zapata","Jagüey Grande","Calimete","Los Arabos"],
+  "Cienfuegos":["Cienfuegos","Abreus","Aguada de Pasajeros","Cruces","Cumanayagua","Lajas","Palmira","Rodas"],
+  "Villa Clara":["Santa Clara","Caibarién","Camajuaní","Cifuentes","Corralillo","Encrucijada","Manicaragua","Placetas","Quemado de Güines","Ranchuelo","Remedios","Sagua la Grande","Santo Domingo"],
+  "Sancti Spíritus":["Sancti Spíritus","Trinidad","Cabaiguán","Fomento","Jatibonico","La Sierpe","Taguasco","Yaguajay"],
+  "Ciego de Ávila":["Ciego de Ávila","Morón","Bolivia","Chambas","Ciro Redondo","Florencia","Majagua","Primero de Enero","Venezuela","Baraguá"],
+  "Camagüey":["Camagüey","Florida","Nuevitas","Guáimaro","Santa Cruz del Sur","Vertientes","Jimaguayú","Sibanicú","Esmeralda","Sierra de Cubitas","Minas","Najasa","Carlos Manuel de Céspedes"],
+  "Las Tunas":["Las Tunas","Puerto Padre","Jesús Menéndez","Majibacoa","Jobabo","Colombia","Amancio","Manatí"],
+  "Granma":["Bayamo","Manzanillo","Jiguaní","Guisa","Buey Arriba","Campechuela","Media Luna","Niquero","Pilón","Bartolomé Masó","Cauto Cristo","Yara","Río Cauto"],
+  "Holguín":["Holguín","Banes","Antilla","Báguanos","Cacocum","Calixto García","Cueto","Frank País","Gibara","Mayarí","Moa","Rafael Freyre","Sagua de Tánamo","Urbano Noris"],
+  "Santiago de Cuba":["Santiago de Cuba","Contramaestre","Mella","San Luis","Segundo Frente","Songo-La Maya","Tercer Frente","Palma Soriano","Guamá"],
+  "Guantánamo":["Guantánamo","Baracoa","Yateras","San Antonio del Sur","Imías","Maisí","Manuel Tames","Niceto Pérez","Caimanera","El Salvador"],
+  "Isla de la Juventud":["Isla de la Juventud"]
+};
+
+function cargarMunicipios(){
+  const provincia=document.getElementById("provincia").value;
+  const selector=document.getElementById("municipio");
+  selector.innerHTML='<option value="">Selecciona tu municipio</option>';
+  const municipios=municipiosPorProvincia[provincia]||[];
+  municipios.forEach(nombre=>{
+    const opcion=document.createElement("option");
+    opcion.value=nombre;
+    opcion.textContent=nombre;
+    selector.appendChild(opcion);
+  });
+  selector.disabled=municipios.length===0;
+}
+
 async function registrar(){
   const boton=document.getElementById("botonRegistro");
   const full_name=document.getElementById("nombre").value.trim();
   const province=document.getElementById("provincia").value;
-  const municipality=document.getElementById("municipio").value.trim();
+  const municipality=document.getElementById("municipio").value;
   const username=document.getElementById("usuario").value.trim().toLowerCase();
   const email=document.getElementById("correo").value.trim();
   const password=document.getElementById("clave").value;
   const referral_code=document.getElementById("invitacion").value.trim().toUpperCase();
 
-  if(!full_name||!province||!municipality||!username||!email||!password){
-    mensaje("Completa todos los campos obligatorios, incluida la provincia y el municipio.");
+  if(!full_name||!province||!municipality||!username||!email||!password||!referral_code){
+    mensaje("Todos los campos son obligatorios. Debes introducir el código de referencia de quien te invitó.");
     return;
   }
   if(!/^[a-z0-9_]{3,20}$/.test(username)){mensaje("El nombre de usuario no es válido.");return;}
@@ -375,11 +412,9 @@ async function registrar(){
     if(errorUsuario)throw errorUsuario;
     if(!disponibilidad?.[0]?.available){mensaje("Ese nombre de usuario ya está ocupado.");return;}
 
-    if(referral_code){
-      const {data:refVal,error:refError}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});
-      if(refError)throw refError;
-      if(refVal!==true){mensaje("El código de invitación no existe. Revísalo o déjalo vacío.");return;}
-    }
+    const {data:refVal,error:refError}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});
+    if(refError)throw refError;
+    if(refVal!==true){mensaje("El código de referencia no existe. Pídele a quien te invitó que te lo confirme.");return;}
 
     mensaje("Creando tu cuenta...");
     const {error}=await supabaseClient.auth.signUp({
@@ -392,9 +427,10 @@ async function registrar(){
     });
     if(error)throw error;
 
-    ["nombre","provincia","municipio","usuario","correo","clave","invitacion"].forEach(id=>{
+    ["nombre","provincia","usuario","correo","clave","invitacion"].forEach(id=>{
       document.getElementById(id).value="";
     });
+    cargarMunicipios();
     mostrar("login");
     mensaje("Cuenta creada. Si Supabase solicita confirmar el correo, revisa tu bandeja antes de iniciar sesión.");
   }catch(e){
