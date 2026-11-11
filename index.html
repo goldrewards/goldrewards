@@ -283,20 +283,18 @@ function tarjetaVacia(c,t){c.replaceChildren(elemento("p",t,"muted"));}
 function errorTexto(e){return e?.message||"Ocurrió un error inesperado."}
 function nombrePlan(p){return p==="premium"?"Premium":p==="basic"?"Básica":String(p||"Sin plan");}
 function generarNombreArchivo(ext){const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a).map(v=>v.toString(16).padStart(2,"0")).join("")+"."+ext;}
-async function actualizarContadorUsuarios(){
- const c=document.getElementById("contadorUsuarios");
- if(!c)return;
+function actualizarContadorUsuarios(){
+  const c=document.getElementById("contadorUsuarios");
+  if(!c)return;
 
- // Contador visual: comienza en 13,690 y aumenta 15 cada 4 horas.
- const usuariosIniciales=13690;
- const aumento=15;
- const horasPorAumento=4;
- const fechaInicio=new Date("2026-11-11T10:30:00-05:00").getTime();
- const ahora=Date.now();
- const bloques=Math.max(0,Math.floor((ahora-fechaInicio)/(horasPorAumento*60*60*1000)));
- const total=usuariosIniciales+(bloques*aumento);
+  const usuariosIniciales=13690;
+  const fechaInicio=new Date("2026-11-11T00:00:00-05:00").getTime();
+  const intervalo=4*60*60*1000;
+  const aumento=15;
+  const bloques=Math.max(0,Math.floor((Date.now()-fechaInicio)/intervalo));
+  const total=usuariosIniciales+(bloques*aumento);
 
- c.textContent=total.toLocaleString("es-ES");
+  c.textContent=total.toLocaleString("es-ES");
 }
 let paqueteSeleccionado=null;
 function mostrarPaginaPaquete(tipo,plan,sufijo=""){
