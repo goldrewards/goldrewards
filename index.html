@@ -379,35 +379,147 @@ async function cargarSaldoYGanancias(){
  if(!movimientos.length){tarjetaVacia(c,"Todavía no tienes movimientos CUP.");return;}
  movimientos.forEach(x=>{const q=elemento("div",undefined,"solicitud");q.append(elemento("strong",(x.kind==="minus"?"−":"+")+dinero(x.amount)),elemento("p",x.label),elemento("p","Fecha: "+fecha(x.created_at)));c.append(q);});
 }
+
 async function cargarSaldoMonedasVirtuales(){
- const saldo=document.getElementById("saldoMonedasVirtuales"),historial=document.getElementById("historialMonedasVirtuales");
+ const saldo=document.getElementById("saldoMonedasVirtuales");
+ const historial=document.getElementById("historialMonedasVirtuales");
+
  if(!saldo||!historial||!usuarioActual)return;
+
  saldo.textContent="…";
+
  const id=usuarioActual.id;
- const [{data:g,error:eg},{data:a,error:ea},{data:t,error:et}]=await Promise.all([
-  supabaseClient.from("virtual_referral_earnings").select("amount,referral_level,created_at,referred_user_id").eq("earner_user_id",id).order("created_at",{ascending:false}),
-  supabaseClient.from("balance_adjustments").select("amount,description,created_at").eq("user_id",id).eq("currency","VIRTUAL").order("created_at",{ascending:false}),
-  supabaseClient.from("balance_transfers").select("sender_user_id,recipient_user_id,amount,fee,created_at").eq("currency","VIRTUAL").or("sender_user_id.eq."+id+",recipient_user_id.eq."+id).order("created_at",{ascending:false})
+
+ const [
+  {data:g,error:eg},
+  {data:a,error:ea},
+  {data:t,error:et},
+  {data:l,error:el}
+ ]=await Promise.all([
+  supabaseClient.from("virtual_referral_earnings")
+   .select("amount,referral_level,created_at,referred_user_id")
+   .eq("earner_user_id",id)
+   .order("created_at",{ascending:false}),
+
+  supabaseClient.from("balance_adjustments")
+   .select("amount,description,created_at")
+   .eq("user_id",id)
+   .eq("currency","VIRTUAL")
+   .order("created_at",{ascending:false}),
+
+  supabaseClient.from("balance_transfers")
+   .select("sender_user_id,recipient_user_id,amount,fee,created_at")
+   .eq("currency","VIRTUAL")
+   .or("sender_user_id.eq."+id+",recipient_user_id.eq."+id)
+   .order("created_at",{ascending:false}),
+
+  supabaseClient.from("virtual_wallet_ledger")
+   .select("amount,movement_type,description,created_at")
+   .eq("user_id",id)
+   .order("created_at",{ascending:false})
  ]);
- if(eg||ea||et){const err=eg||ea||et;console.warn("Saldo virtual:",err.message);saldo.textContent="No disponible";tarjetaVacia(historial,"No se pudo cargar el saldo USDT. Verifica los permisos de lectura de movimientos.");return;}
- const comisiones=(g||[]).reduce((s,x)=>s+Number(x.amount||0),0);
- const ajustes=(a||[]).reduce((s,x)=>s+Number(x.amount||0),0);
- const entradas=(t||[]).filter(x=>x.recipient_user_id===id).reduce((s,x)=>s+Number(x.amount||0),0);
- const salidas=(t||[]).filter(x=>x.sender_user_id===id).reduce((s,x)=>s+Number(x.amount||0)+Number(x.fee||0),0);
- const total=comisiones+ajustes+entradas-salidas;
- const fmt=n=>Number(n||0).toLocaleString("es-ES",{minimumFractionDigits:0,maximumFractionDigits:2});
+
+ if(eg||ea||et||el){
+  const err=eg||ea||et||el;
+  console.warn("Saldo virtual:",err.message);
+  saldo.textContent="No disponible";
+  tarjetaVacia(historial,"No se pudo cargar el saldo USDT. Verifica los permisos de lectura.");
+  return;
+ }
+
+ // El ledger es la fuente única del saldo.
+ // No sumar aquí las tablas antiguas porque podrían duplicar movimientos.
+ const total=(l||[]).reduce((s,x)=>{
+  const cantidad=Number(x.amount||0);
+
+  if(
+   x.movement_type==="credit"||
+   x.movement_type==="membership_quarter"
+  ){
+   return s+cantidad;
+  }
+
+  return s;
+ },0);
+
+ const fmt=n=>Number(n||0).toLocaleString("es-ES",{
+  minimumFractionDigits:0,
+  maximumFractionDigits:2
+ });
+
  saldo.textContent=fmt(total)+" USDT";
- const gv=document.getElementById("gananciasVirtuales");if(gv)gv.textContent=fmt(Math.max(0,comisiones))+" USDT";
- const cv=document.getElementById("cantidadReferidosUSDT");if(cv)cv.textContent=String(new Set((g||[]).map(x=>x.referred_user_id).filter(Boolean)).size);
+
+ const comisiones=(g||[]).reduce(
+  (s,x)=>s+Number(x.amount||0),0
+ );
+
+ const gv=document.getElementById("gananciasVirtuales");
+ if(gv)gv.textContent=fmt(Math.max(0,comisiones))+" USDT";
+
+ const cv=document.getElementById("cantidadReferidosUSDT");
+ if(cv){
+  cv.textContent=String(
+   new Set((g||[]).map(x=>x.referred_user_id).filter(Boolean)).size
+  );
+ }
+
  historial.replaceChildren();
+
  const movimientos=[
-  ...(g||[]).map(x=>({amount:Number(x.amount||0),label:Number(x.referral_level)===1?"Comisión virtual · referido directo":"Comisión virtual · segundo nivel",created_at:x.created_at,kind:"plus"})),
-  ...(a||[]).map(x=>({amount:Number(x.amount||0),label:x.description||"Ajuste administrativo USDT",created_at:x.created_at,kind:"plus"})),
-  ...(t||[]).map(x=>({amount:Number(x.amount||0)+(x.sender_user_id===id?Number(x.fee||0):0),label:x.sender_user_id===id?"Transferencia enviada"+(Number(x.fee||0)?" (incluye comisión)":""):"Transferencia recibida",created_at:x.created_at,kind:x.sender_user_id===id?"minus":"plus"}))
+  ...(g||[]).map(x=>({
+   amount:Number(x.amount||0),
+   label:Number(x.referral_level)===1
+    ?"Comisión virtual · referido directo"
+    :"Comisión virtual · segundo nivel",
+   created_at:x.created_at,
+   kind:"plus"
+  })),
+
+  ...(a||[]).map(x=>({
+   amount:Number(x.amount||0),
+   label:x.description||"Ajuste administrativo USDT",
+   created_at:x.created_at,
+   kind:"plus"
+  })),
+
+  ...(t||[]).map(x=>({
+   amount:Number(x.amount||0)+
+    (x.sender_user_id===id?Number(x.fee||0):0),
+   label:x.sender_user_id===id
+    ?"Transferencia enviada"+(Number(x.fee||0)?" (incluye comisión)":"")
+    :"Transferencia recibida",
+   created_at:x.created_at,
+   kind:x.sender_user_id===id?"minus":"plus"
+  })),
+
+  ...(l||[]).map(x=>({
+   amount:Number(x.amount||0),
+   label:x.description||(
+    x.movement_type==="membership_quarter"
+     ?"Crédito de membresía virtual"
+     :"Movimiento de saldo USDT"
+   ),
+   created_at:x.created_at,
+   kind:"plus"
+  }))
  ].sort((x,y)=>new Date(y.created_at)-new Date(x.created_at));
- if(!movimientos.length){tarjetaVacia(historial,"Todavía no tienes movimientos USDT.");return;}
- movimientos.forEach(x=>{const q=elemento("div",undefined,"solicitud");q.append(elemento("strong",(x.kind==="minus"?"−":"+")+fmt(x.amount)+" USDT"),elemento("p",x.label),elemento("p","Fecha: "+fecha(x.created_at)));historial.append(q);});
+
+ if(!movimientos.length){
+  tarjetaVacia(historial,"Todavía no tienes movimientos USDT.");
+  return;
+ }
+
+ movimientos.forEach(x=>{
+  const q=elemento("div",undefined,"solicitud");
+  q.append(
+   elemento("strong",(x.kind==="minus"?"−":"+")+fmt(x.amount)+" USDT"),
+   elemento("p",x.label),
+   elemento("p","Fecha: "+fecha(x.created_at))
+  );
+  historial.append(q);
+ });
 }
+  
 function actualizarInfoTransferencia(){const moneda=document.getElementById("monedaTransferencia")?.value||"CUP",info=document.getElementById("infoComisionTransferencia"),monto=document.getElementById("montoTransferencia");if(!info||!monto)return;if(moneda==="CUP"){info.textContent="Comisión: 5 CUP. Se descontarán la cantidad y 5 CUP adicionales.";monto.step="1";monto.min="1";monto.placeholder="Cantidad entera de CUP";}else{info.textContent="Comisión: 1 USDT. Se descontarán la cantidad y 1 USDT adicional.";monto.step="0.01";monto.min="0.01";monto.placeholder="Cantidad virtual (máximo 2 decimales)";}}
 async function transferirSaldo(){
  const boton=document.getElementById("botonTransferencia"),estado=document.getElementById("estadoTransferencia"),codigo=document.getElementById("codigoDestinatario").value.trim(),moneda=document.getElementById("monedaTransferencia").value,montoTexto=document.getElementById("montoTransferencia").value.trim(),monto=Number(montoTexto);
