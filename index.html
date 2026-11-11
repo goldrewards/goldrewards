@@ -939,7 +939,89 @@ async function administrarSaldoUSDT() {
     estado.textContent = 'Error: ' + error.message;
   }
 }
-  
+// CONTROL DE INACTIVIDAD: 60 SEGUNDOS
+
+let temporizadorInactividad=null;
+let eventosInactividadRegistrados=false;
+
+function detenerControlInactividad(){
+ if(temporizadorInactividad!==null){
+  clearTimeout(temporizadorInactividad);
+  temporizadorInactividad=null;
+ }
+}
+
+function reiniciarControlInactividad(){
+ if(!usuarioActual)return;
+
+ detenerControlInactividad();
+
+ temporizadorInactividad=setTimeout(()=>{
+  if(usuarioActual){
+   salir(true);
+  }
+ },60000);
+}
+
+function iniciarControlInactividad(){
+
+ if(!eventosInactividadRegistrados){
+
+  const eventos=[
+   "pointerdown",
+   "pointermove",
+   "keydown",
+   "scroll",
+   "touchstart",
+   "click"
+  ];
+
+  eventos.forEach(evento=>{
+   document.addEventListener(
+    evento,
+    reiniciarControlInactividad,
+    {passive:true}
+   );
+  });
+
+  eventosInactividadRegistrados=true;
+ }
+
+ reiniciarControlInactividad();
+}
+
+
+// RESTAURAR SESIÓN AL ABRIR LA PÁGINA
+
+async function restaurarSesion(){
+
+ try{
+
+  const {data,error}=await supabaseClient.auth.getSession();
+
+  if(error)throw error;
+
+  if(data.session?.user){
+
+   usuarioActual=data.session.user;
+
+   perfilActual=await cargarPerfil(usuarioActual);
+
+   iniciarControlInactividad();
+
+   await dirigirUsuario();
+
+  }
+
+ }catch(e){
+
+  console.error("Error al restaurar sesión:",e);
+
+ }
+
+}
+
+restaurarSesion();  
 </script>
 </body>
 </html>
