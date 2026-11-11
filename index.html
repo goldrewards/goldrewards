@@ -176,31 +176,56 @@ label{display:block;margin-top:8px;color:var(--muted)}
   <div class="seccion-admin hidden" id="virtualRechazados"><h3>🔴 Pagos virtuales rechazados</h3><div id="listaVirtualRechazados"></div></div>
   <div class="seccion-admin hidden" id="retirosPendientes"><h3>🟡 Retiros pendientes</h3><div id="listaRetirosPendientes"></div></div>
   <div class="seccion-admin hidden" id="retirosProcesados"><h3>Historial de retiros</h3><div id="listaRetirosProcesados"></div></div>
-  <div class="seccion-admin hidden" id="ajusteSaldoAdmin">
-    <h3>💳 Ajuste de saldo de cuenta</h3>
-    <p class="muted">Acreditación administrativa solicitada. Se registra como ajuste, no como comisión por referido.</p>
-    <p><strong>Código de referido:</strong> C11FA11D47</p>
-    <p><strong>Crédito CUP:</strong> 600 · <strong>Crédito USDT:</strong> 200</p>
-    <button id="botonAjusteC11" onclick="acreditarCuentaC11()">Acreditar ambos saldos</button>
-    <p id="estadoAjusteC11" class="estado"></p>
-  </div>
   
-<div class="seccion-admin" id="administrarSaldosUSDT">
-  <h3>💰 Administrar saldos USDT</h3>
-  <p>Busca una cuenta y establece su nuevo saldo total.</p>
+<div class="seccion-admin hidden" id="ajusteSaldoAdmin">
+  <h3>💳 Administrar saldos de cuentas</h3>
+  <p class="muted">Busca cada cuenta mediante su código de referido.</p>
 
-  <label>Nombre de usuario</label>
-  <input type="text" id="usuarioAjusteUSDT" placeholder="Ejemplo: darien">
+  <div class="card">
+    <h3>🇨🇺 Administrar saldo CUP</h3>
 
-  <label>Nuevo saldo USDT</label>
-  <input type="number" id="nuevoSaldoUSDT" min="0" step="0.01" placeholder="Ejemplo: 30">
+    <label>Código de referido</label>
+    <input type="text" id="codigoAjusteCUP" placeholder="Código de referido">
 
-  <button type="button" onclick="administrarSaldoVirtualDesdePanel()">
-    Guardar nuevo saldo
-  </button>
+    <label>Operación</label>
+    <select id="operacionAjusteCUP">
+      <option value="add">➕ Agregar CUP</option>
+      <option value="remove">➖ Quitar CUP</option>
+    </select>
 
-  <p id="estadoAdministrarUSDT" class="estado"></p>
+    <label>Cantidad CUP</label>
+    <input type="number" id="cantidadAjusteCUP" min="0.01" step="0.01" placeholder="Cantidad">
+
+    <button type="button" onclick="administrarSaldoCUP()">
+      Aplicar ajuste CUP
+    </button>
+
+    <p id="estadoAdministrarCUP" class="estado"></p>
+  </div>
+
+  <div class="card">
+    <h3>💵 Administrar saldo USDT</h3>
+
+    <label>Código de referido</label>
+    <input type="text" id="codigoAjusteUSDT" placeholder="Código de referido">
+
+    <label>Operación</label>
+    <select id="operacionAjusteUSDT">
+      <option value="add">➕ Agregar USDT</option>
+      <option value="remove">➖ Quitar USDT</option>
+    </select>
+
+    <label>Cantidad USDT</label>
+    <input type="number" id="cantidadAjusteUSDT" min="0.01" step="0.01" placeholder="Cantidad">
+
+    <button type="button" onclick="administrarSaldoUSDT()">
+      Aplicar ajuste USDT
+    </button>
+
+    <p id="estadoAdministrarUSDT" class="estado"></p>
+  </div>
 </div>
+
 
   <div class="seccion-admin hidden" id="cuentasActivas"><h3>🟢 Cuentas con membresía activa</h3><p class="muted">Usuarios con membresía vigente en este momento.</p><div id="listaCuentasActivas"></div></div>
   <div class="seccion-admin hidden" id="cuentasAprobadas"><h3>✅ Cuentas con pagos aprobados</h3><p class="muted">Usuarios que tienen al menos un pago CUP aprobado o un pago virtual confirmado.</p><div id="listaCuentasAprobadas"></div></div>
