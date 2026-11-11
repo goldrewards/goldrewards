@@ -751,16 +751,17 @@ async function cargarAdmin(){
   msg.textContent="Cargando información...";
   const {data:s,error:se}=await supabaseClient.auth.getUser();if(se||!s.user)throw new Error("Debes iniciar sesión.");
   const p=await cargarPerfil(s.user);if(p.role!=="admin")throw new Error("Acceso denegado.");document.getElementById("perfilAdminHeader")?.replaceChildren(crearEncabezadoCuenta(p,"Administrador", "account-avatar"));
-  const [{data:pagos,error:ep},{data:retiros,error:er},{data:virtuales,error:ev}]=await Promise.all([
+  const [{data:pagos,error:ep},{data:retiros,error:er},{data:virtuales,error:ev},{data:retirosVirtuales,error:erv}]=await Promise.all([
    supabaseClient.from("payment_requests").select("id,user_id,plan,amount_cup,receipt_url,status,created_at").order("created_at",{ascending:false}),
    supabaseClient.from("withdrawal_requests").select("id,user_id,amount_cup,card_number,status,created_at,processed_at").order("created_at",{ascending:false}),
-   supabaseClient.from("virtual_payment_requests").select("id,user_id,plan_id,amount,receipt_url,status,created_at,confirmed_at").order("created_at",{ascending:false})
+   supabaseClient.from("virtual_payment_requests").select("id,user_id,plan_id,amount,receipt_url,status,created_at,confirmed_at").order("created_at",{ascending:false}),
+   supabaseClient.from("virtual_withdrawal_requests").select("id,user_id,amount,wallet_address,status,tx_hash,created_at,processed_at").order("created_at",{ascending:false})
   ]);
-  if(ep)throw ep;if(er)throw er;if(ev)throw ev;
-  const ids=[...new Set([...(pagos||[]).map(x=>x.user_id),...(retiros||[]).map(x=>x.user_id),...(virtuales||[]).map(x=>x.user_id)])];
+  if(ep)throw ep;if(er)throw er;if(ev)throw ev;if(erv)throw erv;
+  const ids=[...new Set([...(pagos||[]).map(x=>x.user_id),...(retiros||[]).map(x=>x.user_id),...(virtuales||[]).map(x=>x.user_id),...(retirosVirtuales||[]).map(x=>x.user_id)])];
   const n=await cargarPerfiles(ids);
-  await renderizarDepositos(pagos||[],n);renderizarRetiros(retiros||[],n);await renderizarPagosVirtuales(virtuales||[],n);await cargarListasCuentasAdmin();
-  msg.textContent=`Pagos CUP pendientes: ${(pagos||[]).filter(x=>x.status==="pending").length} · Virtuales pendientes: ${(virtuales||[]).filter(x=>x.status==="pending").length} · Retiros pendientes: ${(retiros||[]).filter(x=>x.status==="pending").length}`;
+  await renderizarDepositos(pagos||[],n);renderizarRetiros(retiros||[],retirosVirtuales||[],n);await renderizarPagosVirtuales(virtuales||[],n);await cargarListasCuentasAdmin();
+  msg.textContent=`Pagos CUP pendientes: ${(pagos||[]).filter(x=>x.status==="pending").length} · Virtuales pendientes: ${(virtuales||[]).filter(x=>x.status==="pending").length} · Retiros pendientes: ${(retiros||[]).filter(x=>x.status==="pending").length+(retirosVirtuales||[]).filter(x=>x.status==="pending").length} (CUP: ${(retiros||[]).filter(x=>x.status==="pending").length}, USDT: ${(retirosVirtuales||[]).filter(x=>x.status==="pending").length})`;
  }catch(e){msg.textContent="Error: "+errorTexto(e);}
 }
 async function cargarListasCuentasAdmin(){
@@ -813,7 +814,26 @@ async function verDetalleCuentaAdmin(userId){
 function cerrarDetalleCuenta(){document.getElementById("adminDetalleModal").classList.add("hidden");}
 
 async function renderizarDepositos(pagos,n){const g={pending:"listaDepPendientes",approved:"listaDepAprobados",rejected:"listaDepNegados"};Object.values(g).forEach(id=>tarjetaVacia(document.getElementById(id),"No hay solicitudes en esta sección."));for(const x of pagos){const ctn=document.getElementById(g[x.status]);if(!ctn)continue;if(ctn.querySelector(".muted"))ctn.replaceChildren();const q=elemento("div",undefined,"solicitud"),perfil=n.get(x.user_id)||{id:x.user_id};q.append(elemento("h3","Depósito: "+dinero(x.amount_cup)),crearEncabezadoCuenta(perfil,"Solicitante"),elemento("p","Plan: "+nombrePlan(x.plan)),elemento("p","Fecha: "+fecha(x.created_at)));if(x.receipt_url){const {data}=await supabaseClient.storage.from("payment_receipts").createSignedUrl(x.receipt_url,300);if(data?.signedUrl){const a=elemento("a","Ver comprobante","comprobante-link");a.href=data.signedUrl;a.target="_blank";a.rel="noopener noreferrer";q.append(a);}}if(x.status==="pending"){const a=elemento("button","Aprobar","aprobar"),r=elemento("button","Negar","negar");a.onclick=()=>procesarDeposito(x.id,"approved",a);r.onclick=()=>procesarDeposito(x.id,"rejected",r);q.append(a,r);}ctn.append(q);}}
-function renderizarRetiros(rs,n){const p=document.getElementById("listaRetirosPendientes"),h=document.getElementById("listaRetirosProcesados");tarjetaVacia(p,"No hay retiros por aprobar.");tarjetaVacia(h,"Todavía no hay retiros procesados.");rs.forEach(x=>{const c=x.status==="pending"?p:h;if(c.querySelector(".muted"))c.replaceChildren();const q=elemento("div",undefined,"solicitud"),perfil=n.get(x.user_id)||{id:x.user_id};q.append(elemento("h3","Retiro: "+dinero(x.amount_cup)),crearEncabezadoCuenta(perfil,"Solicitante"),elemento("p","Tarjeta: "+(x.card_number||"No indicada")),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")));if(x.status==="pending"){const a=elemento("button","Marcar como pagado y aprobar","aprobar"),r=elemento("button","Negar","negar");a.onclick=()=>procesarRetiro(x.id,"approved",a);r.onclick=()=>procesarRetiro(x.id,"rejected",r);q.append(a,r);}c.append(q);});}
+function renderizarRetiros(cup,virtuales,n){
+ const p=document.getElementById("listaRetirosPendientes"),h=document.getElementById("listaRetirosProcesados");
+ tarjetaVacia(p,"No hay retiros por aprobar.");tarjetaVacia(h,"Todavía no hay retiros procesados.");
+ const rs=[...(cup||[]).map(x=>({...x,_currency:"CUP"})),...(virtuales||[]).map(x=>({...x,_currency:"USDT"}))].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+ rs.forEach(x=>{
+  const c=x.status==="pending"?p:h;if(c.querySelector(".muted"))c.replaceChildren();
+  const q=elemento("div",undefined,"solicitud"),perfil=n.get(x.user_id)||{id:x.user_id};
+  const importe=x._currency==="CUP"?dinero(x.amount_cup):importeVirtualAdmin(x);
+  q.append(elemento("h3",`Retiro ${x._currency}: ${importe}`),crearEncabezadoCuenta(perfil,"Solicitante"));
+  q.append(elemento("p",x._currency==="CUP"?"Tarjeta: "+(x.card_number||"No indicada"):"Billetera USDT: "+(x.wallet_address||"No indicada")));
+  q.append(elemento("p","Solicitado: "+fecha(x.created_at)),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":x.status==="rejected"?"Rechazado":x.status)));
+  if(x.processed_at)q.append(elemento("p","Procesado: "+fecha(x.processed_at)));
+  if(x._currency==="USDT"&&x.tx_hash)q.append(elemento("p","Hash de transacción: "+x.tx_hash));
+  if(x.status==="pending"){
+   const a=elemento("button","Marcar como pagado y aprobar","aprobar"),r=elemento("button","Rechazar retiro","negar");
+   a.onclick=()=>procesarRetiro(x.id,"approved",a,x._currency);r.onclick=()=>procesarRetiro(x.id,"rejected",r,x._currency);q.append(a,r);
+  }
+  c.append(q);
+ });
+}
 function importeVirtualAdmin(x){return Number(x.amount||0).toLocaleString("es-ES")+" USDT";}
 async function renderizarPagosVirtuales(pagos,n){
  const grupos={pending:"listaVirtualPendientes",confirmed:"listaVirtualAprobados",failed:"listaVirtualRechazados",cancelled:"listaVirtualRechazados"};
@@ -845,7 +865,17 @@ async function procesarPagoVirtual(id,rpc,b){
  catch(e){alert("No se pudo procesar el pago virtual: "+errorTexto(e));b.disabled=false;}
 }
 async function procesarDeposito(id,estado,b){if(!confirm(estado==="approved"?"¿Confirmas que el depósito fue recibido?":"¿Confirmas que deseas negar este depósito?"))return;b.disabled=true;try{const {error}=await supabaseClient.rpc(estado==="approved"?"approve_payment_request":"reject_payment_request",{p_request_id:id});if(error)throw error;await cargarAdmin();}catch(e){alert("No se pudo procesar: "+errorTexto(e));b.disabled=false;}}
-async function procesarRetiro(id,estado,b){if(!confirm(estado==="approved"?"Confirma solo después de realizar el pago. ¿Ya realizaste el pago?":"¿Confirmas que deseas negar este retiro?"))return;b.disabled=true;try{const {error}=await supabaseClient.rpc(estado==="approved"?"approve_withdrawal":"reject_withdrawal",{p_withdrawal_id:id});if(error)throw error;await cargarAdmin();}catch(e){alert("No se pudo procesar: "+errorTexto(e));b.disabled=false;}}
+async function procesarRetiro(id,estado,b,moneda="CUP"){
+ const aprobando=estado==="approved";
+ if(!confirm(aprobando?`Confirma solo después de realizar el pago ${moneda}. ¿Ya realizaste el pago?`:`¿Confirmas que deseas rechazar este retiro ${moneda}?`))return;
+ b.disabled=true;
+ try{
+  const virtual=moneda==="USDT",rpc=virtual?(aprobando?"approve_virtual_withdrawal":"reject_virtual_withdrawal"):(aprobando?"approve_withdrawal":"reject_withdrawal");
+  const args=virtual?{p_request_id:id}:{p_withdrawal_id:id};
+  const {error}=await supabaseClient.rpc(rpc,args);if(error)throw error;
+  alert(aprobando?`Retiro ${moneda} aprobado.`:`Retiro ${moneda} rechazado.`);await cargarAdmin();
+ }catch(e){alert("No se pudo procesar el retiro: "+errorTexto(e));b.disabled=false;}
+}
 let temporizadorInactividad=null;
 let eventosInactividadRegistrados=false;
 
@@ -865,7 +895,7 @@ function reiniciarControlInactividad(){
   if(usuarioActual){
    salir(true);
   }
- },1200000);
+ },60000);
 }
 
 function iniciarControlInactividad(){
