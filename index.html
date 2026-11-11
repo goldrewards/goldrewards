@@ -152,6 +152,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
 </aside>
 <div id="adminDetalleModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="adminDetalleTitulo"><div class="modal-panel"><button class="modal-close" onclick="cerrarDetalleCuenta()" aria-label="Cerrar">✕</button><h2 id="adminDetalleTitulo">Información de la cuenta</h2><div id="adminDetalleContenido"><p class="muted">Cargando información...</p></div></div></div>
 
+<div id="paqueteModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel"><button class="modal-close" onclick="cerrarPaquete()" aria-label="Cerrar">✕</button><div class="modal-icon">💳</div><h2 id="paqueteTitulo">Información del paquete</h2><div id="paqueteDetalle" class="card"></div><div id="paquetePago"></div><p class="muted" style="text-align:center">La activación se realizará después de que el administrador revise y apruebe tu comprobante.</p><button type="button" style="display:block;width:100%" onclick="continuarPagoPaquete()">Continuar y subir comprobante</button></div></div>
 <div id="reglasModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel"><button class="modal-close" onclick="cerrarReglas()" aria-label="Cerrar">✕</button><div class="modal-icon">📜</div><h2>Reglas de GoldRewards</h2><p class="muted">Lee estas condiciones antes de participar.</p><ol class="reglas-lista"><li><strong>Registro:</strong> todos los datos solicitados son obligatorios, incluido el código válido de quien te invitó.</li><li><strong>Membresía Básica:</strong> cuesta 100 CUP y dura 30 días desde que el administrador aprueba el depósito.</li><li><strong>Membresía Premium:</strong> cuesta 200 CUP y dura 30 días desde que el administrador aprueba el depósito.</li><li><strong>Comisiones Básica:</strong> recibes 10 CUP por una invitación directa y 2 CUP por una invitación de segundo nivel, cuando el depósito correspondiente sea aprobado.</li><li><strong>Comisiones Premium:</strong> recibes 15 CUP por una invitación directa y 5 CUP por una invitación de segundo nivel, cuando el depósito correspondiente sea aprobado.</li><li><strong>Retiros:</strong> el mínimo es 100 CUP y el máximo 250 CUP por solicitud.</li><li><strong>Cantidades permitidas:</strong> los retiros deben ser múltiplos de 10 CUP.</li><li><strong>Saldo:</strong> solo puedes solicitar un retiro con ganancias disponibles.</li><li><strong>Revisión:</strong> todas las solicitudes de depósito y retiro son revisadas por el administrador.</li><li><strong>Cuenta activa:</strong> el lobby y el chat grupal están disponibles mientras la membresía esté vigente.</li><li><strong>Uso responsable:</strong> no se permite crear cuentas duplicadas ni manipular el sistema.</li></ol><button onclick="cerrarReglas()">Entendido</button></div></div>
 <div id="chatModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel chat-panel"><button class="modal-close" onclick="cerrarChat()" aria-label="Cerrar">✕</button><div class="modal-icon">💬</div><h2>Chat GoldRewards</h2><p class="muted">Un espacio grupal para miembros activos y administración.</p><div id="chatEstado" class="estado small">Conectando...</div><div id="chatMensajes" class="chat-messages"><p class="muted">Cargando mensajes...</p></div><form class="chat-compose" onsubmit="enviarMensajeChat(event)"><input id="chatTexto" maxlength="1000" placeholder="Escribe un mensaje..." autocomplete="off"><button id="chatEnviar" type="submit">Enviar</button></form></div></div><p id="message" class="estado"></p>
 
@@ -179,24 +180,53 @@ function errorTexto(e){return e?.message||"Ocurrió un error inesperado."}
 function nombrePlan(p){return p==="premium"?"Premium":p==="basic"?"Básica":String(p||"Sin plan");}
 function generarNombreArchivo(ext){const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a).map(v=>v.toString(16).padStart(2,"0")).join("")+"."+ext;}
 async function actualizarContadorUsuarios(){const c=document.getElementById("contadorUsuarios");if(!c)return;try{const {data,error}=await supabaseClient.rpc("get_public_user_counter");if(error)throw error;let total=0;if(Array.isArray(data)){const f=data[0]||{};total=Number(f.total_cuentas??f.total??f.count??0);}else if(typeof data==="object"&&data!==null)total=Number(data.total_cuentas??data.total??data.count??0);else total=Number(data||0);c.textContent=(total*2).toLocaleString("es-ES");}catch(e){console.error(e);c.textContent="—";}}
+let paqueteSeleccionado=null;
+function mostrarPaginaPaquete(tipo,plan,sufijo=""){
+ const lobby=sufijo==="Lobby";
+ const modal=document.getElementById("paqueteModal");
+ const titulo=document.getElementById("paqueteTitulo");
+ const detalle=document.getElementById("paqueteDetalle");
+ const pago=document.getElementById("paquetePago");
+ paqueteSeleccionado={tipo,plan,sufijo};
+ if(tipo==="cup"){
+  const premium=plan==="premium", nombre=premium?"Premium":"Básica", precio=premium?200:100;
+  const directo=premium?15:10, segundo=premium?5:2;
+  titulo.textContent="Membresía CUP · "+nombre;
+  detalle.innerHTML=`<h3>${nombre}</h3><div class="plan-precio">${precio} CUP</div><p>Duración: 30 días</p><p>Referido directo: ${directo} CUP</p><p>Segundo nivel: ${segundo} CUP</p>`;
+  pago.innerHTML='<h3>💳 Información de pago</h3><p>Transfiere exactamente el importe del paquete a esta tarjeta:</p><h2 class="code" style="text-align:center">9224069998634642</h2><p style="text-align:center">Titular: Cuenta del grupo de GoldRewards</p>';
+ }else{
+  const datos={1:["Bronce",10,2,1],2:["Plata",20,5,2],3:["Oro",40,10,3],4:["Diamante",60,15,5]}[Number(plan)]||["Plan",0,0,0];
+  titulo.textContent="Plan virtual · "+datos[0];
+  detalle.innerHTML=`<h3>${datos[0]}</h3><div class="plan-precio">${datos[1]} USDT</div><p>Duración: 30 días</p><p>Monedas directas: ${datos[2]}</p><p>Segundo nivel: ${datos[3]}</p>`;
+  pago.innerHTML='<h3>🪙 Información de pago USDT</h3><p>Envía exactamente el importe indicado usando la red <strong>BNB Smart Chain (BEP-20)</strong> a esta cuenta:</p><div class="virtual-address">0x64887d34deE08a033111b970fA031C73d5a63206</div><p class="small muted">Nunca compartas tu clave privada ni frase semilla.</p>';
+ }
+ modal.classList.remove("hidden");
+}
+function cerrarPaquete(){document.getElementById("paqueteModal").classList.add("hidden");}
+function continuarPagoPaquete(){
+ if(!paqueteSeleccionado)return;
+ const {tipo,plan,sufijo}=paqueteSeleccionado;
+ cerrarPaquete();
+ if(tipo==="cup"){
+  const selector=document.getElementById("planMembresia"+sufijo), archivo=document.getElementById("comprobante"+sufijo);
+  if(selector)selector.value=plan;
+  if(sufijo==="Lobby")actualizarDatosPlanLobby();else actualizarDatosPlan();
+  archivo?.scrollIntoView({behavior:"smooth",block:"center"});archivo?.click();
+ }else{
+  const selector=document.getElementById("virtualPlan"+sufijo), archivo=document.getElementById("comprobanteVirtual"+sufijo);
+  if(selector)selector.value=String(plan);
+  archivo?.scrollIntoView({behavior:"smooth",block:"center"});archivo?.click();
+ }
+}
 function elegirPlanCUP(plan,sufijo=""){
  const selector=document.getElementById("planMembresia"+sufijo);
- const archivo=document.getElementById("comprobante"+sufijo);
- if(!selector||!archivo)return;
- if(selector.disabled){(document.getElementById("estadoDeposito"+sufijo)||document.getElementById("estadoDepositoLobby"))?.scrollIntoView({behavior:"smooth",block:"center"});return;}
- selector.value=plan;
- if(sufijo==="Lobby")actualizarDatosPlanLobby();else actualizarDatosPlan();
- archivo.scrollIntoView({behavior:"smooth",block:"center"});
- archivo.click();
+ if(selector?.disabled){(document.getElementById("estadoDeposito"+sufijo)||document.getElementById("estadoDepositoLobby"))?.scrollIntoView({behavior:"smooth",block:"center"});return;}
+ mostrarPaginaPaquete("cup",plan,sufijo);
 }
 function elegirPlanVirtual(planId,sufijo=""){
  const selector=document.getElementById("virtualPlan"+sufijo);
- const archivo=document.getElementById("comprobanteVirtual"+sufijo);
- if(!selector||!archivo)return;
- if(selector.disabled){(document.getElementById("estadoPagoVirtual"+sufijo))?.scrollIntoView({behavior:"smooth",block:"center"});return;}
- selector.value=String(planId);
- archivo.scrollIntoView({behavior:"smooth",block:"center"});
- archivo.click();
+ if(selector?.disabled){document.getElementById("estadoPagoVirtual"+sufijo)?.scrollIntoView({behavior:"smooth",block:"center"});return;}
+ mostrarPaginaPaquete("virtual",planId,sufijo);
 }
 function actualizarDatosPlan(){const p=document.getElementById("planMembresia").value;document.getElementById("detallePlan").textContent=p==="premium"?"Premium: 200 CUP por 30 días. Comisiones: 15 CUP directo y 5 CUP segundo nivel.":"Básica: 100 CUP por 30 días. Comisiones: 10 CUP directo y 2 CUP segundo nivel.";}
 function abrirReglas(){document.getElementById("reglasModal").classList.remove("hidden");}
