@@ -734,20 +734,56 @@ async function procesarPagoVirtual(id,rpc,b){
 }
 async function procesarDeposito(id,estado,b){if(!confirm(estado==="approved"?"¿Confirmas que el depósito fue recibido?":"¿Confirmas que deseas negar este depósito?"))return;b.disabled=true;try{const {error}=await supabaseClient.rpc(estado==="approved"?"approve_payment_request":"reject_payment_request",{p_request_id:id});if(error)throw error;await cargarAdmin();}catch(e){alert("No se pudo procesar: "+errorTexto(e));b.disabled=false;}}
 async function procesarRetiro(id,estado,b){if(!confirm(estado==="approved"?"Confirma solo después de realizar el pago. ¿Ya realizaste el pago?":"¿Confirmas que deseas negar este retiro?"))return;b.disabled=true;try{const {error}=await supabaseClient.rpc(estado==="approved"?"approve_withdrawal":"reject_withdrawal",{p_withdrawal_id:id});if(error)throw error;await cargarAdmin();}catch(e){alert("No se pudo procesar: "+errorTexto(e));b.disabled=false;}}
-async function salir(){try{if(window.relojMembresia)clearInterval(window.relojMembresia);if(chatChannel){await supabaseClient.removeChannel(chatChannel);chatChannel=null;}chatIds.clear();cerrarChat();const {error}=await supabaseClient.auth.signOut();if(error)throw error;usuarioActual=null;perfilActual=null;perfilesCache.clear();document.getElementById("estadoPagoVirtual").textContent="";document.getElementById("comprobanteVirtual").value="";document.getElementById("botonComprobanteVirtual").disabled=false;document.getElementById("virtualPlan").disabled=false;["comprobanteVirtualLobby","comprobanteLobby"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});["botonComprobanteVirtualLobby","botonComprobanteLobby","virtualPlanLobby","planMembresiaLobby","estadoDepositoLobby"].forEach(id=>{const e=document.getElementById(id);if(e){if("disabled" in e)e.disabled=false;if(id==="estadoDepositoLobby")e.textContent="";}});["datos","estadoDeposito","estadoRetiro","bienvenidaLobby","tiempoMembresia"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent="";});document.getElementById("botonComprobante").disabled=false;document.getElementById("planMembresia").disabled=false;mostrar("inicio");mensaje("Has cerrado sesión.");await actualizarContadorUsuarios();}catch(e){mensaje("No se pudo cerrar sesión: "+errorTexto(e));}}
-async function restaurarSesion(){try{const {data,error}=await supabaseClient.auth.getSession();if(error)throw error;if(data.session?.user){usuarioActual=data.session.user;perfilActual=await cargarPerfil(usuarioActual);await dirigirUsuario();}}catch(e){mensaje("No se pudo restaurar la sesión: "+errorTexto(e));}}
-window.addEventListener("DOMContentLoaded",()=>{document.getElementById("cambiarFotoInput")?.addEventListener("change",e=>procesarCambioFoto(e.target.files?.[0]));const ref=new URLSearchParams(location.search).get("ref");if(ref){document.getElementById("invitacion").value=ref.toUpperCase();mostrar("registro");}actualizarDatosPlan();actualizarContadorUsuarios();setInterval(actualizarContadorUsuarios,60000);setInterval(async()=>{if(usuarioActual&&perfilActual?.role!=="admin"&&!document.getElementById("cuenta").classList.contains("hidden")){try{const mem=await buscarMembresiaActiva(usuarioActual.id);if(mem){mostrar("lobby");await cargarLobby(mem);}}catch(e){console.warn("No se pudo comprobar la activación de membresía:",e.message);}}},15000);restaurarSesion();});
-  
-async function administrarSaldoVirtualDesdePanel(){
-  const usuario = document.getElementById("usuarioAjusteUSDT").value.trim();
-  const campo = document.getElementById("nuevoSaldoUSDT");
-  const estado = document.getElementById("estadoAdministrarUSDT");
-  const nuevoSaldo = Number(campo.value);
+let temporizadorInactividad=null;
+let eventosInactividadRegistrados=false;
 
-  if(!usuario){
-    estado.textContent = "Escribe el nombre de usuario.";
-    return;
+function detenerControlInactividad(){
+ if(temporizadorInactividad!==null){
+  clearTimeout(temporizadorInactividad);
+  temporizadorInactividad=null;
+ }
+}
+
+function reiniciarControlInactividad(){
+ if(!usuarioActual)return;
+
+ detenerControlInactividad();
+
+ temporizadorInactividad=setTimeout(()=>{
+  if(usuarioActual){
+   salir(true);
   }
+ },60000);
+}
+
+function iniciarControlInactividad(){
+
+ if(!eventosInactividadRegistrados){
+
+  const eventos=[
+   "pointerdown",
+   "pointermove",
+   "keydown",
+   "scroll",
+   "touchstart",
+   "click"
+  ];
+
+  eventos.forEach(evento=>{
+   document.addEventListener(
+    evento,
+    reiniciarControlInactividad,
+    {passive:true}
+   );
+  });
+
+  eventosInactividadRegistrados=true;
+ }
+
+ reiniciarControlInactividad();
+}
+  usuarioActual=...
+perfilActual=...
 
   if(campo.value === "" || !Number.isFinite(nuevoSaldo) || nuevoSaldo < 0){
     estado.textContent = "Introduce un saldo válido.";
