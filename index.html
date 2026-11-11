@@ -557,7 +557,8 @@ async function cargarSaldoMonedasVirtuales(){
   {data:g,error:eg},
   {data:a,error:ea},
   {data:t,error:et},
-  {data:l,error:el}
+  {data:l,error:el},
+  {data:r,error:er}
  ]=await Promise.all([
   supabaseClient.from("virtual_referral_earnings")
    .select("amount,referral_level,created_at,referred_user_id")
@@ -579,31 +580,38 @@ async function cargarSaldoMonedasVirtuales(){
   supabaseClient.from("virtual_wallet_ledger")
    .select("amount,movement_type,description,created_at")
    .eq("user_id",id)
-   .order("created_at",{ascending:false})
+   .order("created_at",{ascending:false}),
+
+  supabaseClient.from("virtual_withdrawal_requests")
+   .select("amount,status,created_at")
+   .eq("user_id",id)
+   .eq("status","pending")
  ]);
 
- if(eg||ea||et||el){
-  const err=eg||ea||et||el;
+ if(eg||ea||et||el||er){
+  const err=eg||ea||et||el||er;
   console.warn("Saldo virtual:",err.message);
   saldo.textContent="No disponible";
   tarjetaVacia(historial,"No se pudo cargar el saldo USDT. Verifica los permisos de lectura.");
   return;
  }
 
- // El ledger es la fuente única del saldo.
- // No sumar aquí las tablas antiguas porque podrían duplicar movimientos.
- const total=(l||[]).reduce((s,x)=>{
-  const cantidad=Number(x.amount||0);
-
-  if(
-   x.movement_type==="credit"||
-   x.movement_type==="membership_quarter"
-  ){
-   return s+cantidad;
-  }
-
-  return s;
- },0);
+ // Replica el cálculo del saldo USDT del servidor:
+ // ledger (incluye débitos negativos por retiros aprobados)
+ // + ajustes + transferencias recibidas - enviadas y su comisión
+ // - retiros que todavía están pendientes.
+ const saldoLedger=(l||[]).reduce((s,x)=>s+Number(x.amount||0),0);
+ const saldoAjustes=(a||[]).reduce((s,x)=>s+Number(x.amount||0),0);
+ const transferenciasRecibidas=(t||[])
+  .filter(x=>x.recipient_user_id===id)
+  .reduce((s,x)=>s+Number(x.amount||0),0);
+ const transferenciasEnviadas=(t||[])
+  .filter(x=>x.sender_user_id===id)
+  .reduce((s,x)=>s+Number(x.amount||0)+Number(x.fee||0),0);
+ const retirosPendientes=(r||[])
+  .reduce((s,x)=>s+Number(x.amount||0),0);
+ const total=saldoLedger+saldoAjustes+transferenciasRecibidas-
+  transferenciasEnviadas-retirosPendientes;
 
  const fmt=n=>Number(n||0).toLocaleString("es-ES",{
   minimumFractionDigits:0,
@@ -655,10 +663,10 @@ if(gv){
   })),
 
   ...(a||[]).map(x=>({
-   amount:Number(x.amount||0),
+   amount:Math.abs(Number(x.amount||0)),
    label:x.description||"Ajuste administrativo USDT",
    created_at:x.created_at,
-   kind:"plus"
+   kind:Number(x.amount||0)<0?"minus":"plus"
   })),
 
   ...(t||[]).map(x=>({
@@ -672,14 +680,16 @@ if(gv){
   })),
 
   ...(l||[]).map(x=>({
-   amount:Number(x.amount||0),
+   amount:Math.abs(Number(x.amount||0)),
    label:x.description||(
     x.movement_type==="membership_quarter"
      ?"Crédito de membresía virtual"
-     :"Movimiento de saldo USDT"
+     :x.movement_type==="withdrawal"
+      ?"Retiro USDT aprobado"
+      :"Movimiento de saldo USDT"
    ),
    created_at:x.created_at,
-   kind:"plus"
+   kind:Number(x.amount||0)<0?"minus":"plus"
   }))
  ].sort((x,y)=>new Date(y.created_at)-new Date(x.created_at));
 
