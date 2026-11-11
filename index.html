@@ -719,25 +719,26 @@ async function buscarDestinatarioTransferencia(){
  clearTimeout(temporizadorBusquedaDestinatario);
  if(!codigo){aviso.textContent="";aviso.style.color="";return;}
  aviso.textContent="Buscando usuario...";
- aviso.style.color="";
+ aviso.style.color="#64748b";
  temporizadorBusquedaDestinatario=setTimeout(async()=>{
   try{
-   const {data,error}=await supabaseClient.from("profiles")
-    .select("full_name,username,referral_code")
-    .eq("referral_code",codigo).maybeSingle();
+   const {data,error}=await supabaseClient.rpc("lookup_transfer_recipient",{
+    p_referral_code:codigo
+   });
    if(error)throw error;
    if(campo.value.trim().toUpperCase()!==codigo)return;
-   if(!data){
+   const usuario=Array.isArray(data)&&data.length?data[0]:null;
+   if(!usuario){
     aviso.textContent="No se encontró ningún usuario con ese código.";
     aviso.style.color="#dc2626";
     return;
    }
-   const nombre=data.full_name||data.username||"Usuario";
-   aviso.textContent="✓ Código pertenece a: "+nombre;
+   aviso.textContent="✓ Código pertenece a: "+(usuario.display_name||"Usuario");
    aviso.style.color="#16a34a";
   }catch(e){
+   console.error("Error buscando destinatario:",e);
    if(campo.value.trim().toUpperCase()===codigo){
-    aviso.textContent="No se pudo verificar el código. Comprueba antes de transferir.";
+    aviso.textContent="No se pudo verificar el código. Inténtalo nuevamente.";
     aviso.style.color="#dc2626";
    }
   }
