@@ -731,7 +731,51 @@ async function cargarHistorialTransferencias(){const c=document.getElementById("
 async function cargarReferidos(){const c=document.getElementById("listaReferidos"),{data,error}=await supabaseClient.rpc("get_my_referrals");if(error){tarjetaVacia(c,"No se pudo mostrar la lista de invitados.");return;}if(!data?.length){tarjetaVacia(c,"Todavía no tienes personas invitadas.");return;}const {data:g}=await supabaseClient.from("referral_earnings").select("referred_user_id,amount_cup").eq("earner_user_id",usuarioActual.id).eq("referral_level",1),m=new Map((g||[]).map(x=>[x.referred_user_id,x]));await cargarPerfiles(data.map(x=>x.id));c.replaceChildren();data.forEach(p=>{const x=m.get(p.id),q=elemento("div",undefined,"solicitud"),perfil=perfilesCache.get(String(p.id))||p;q.append(crearEncabezadoCuenta({...perfil,...p},"Referido"),elemento("p",x?"Depósito aprobado · "+dinero(x.amount_cup):"Invitación registrada · comisión pendiente"));c.append(q);});}
 async function cargarReferidosUSDT(){const c=document.getElementById("listaReferidosUSDT");if(!c||!usuarioActual)return;const [{data:ref,error:er},{data:gan,error:eg}]=await Promise.all([supabaseClient.rpc("get_my_referrals"),supabaseClient.from("virtual_referral_earnings").select("referred_user_id,amount,referral_level").eq("earner_user_id",usuarioActual.id)]);if(er||eg){tarjetaVacia(c,"No se pudieron cargar los referidos USDT.");return;}const ids=[...new Set((gan||[]).map(x=>x.referred_user_id).filter(Boolean))];if(!ids.length){tarjetaVacia(c,"Todavía no tienes referidos con cuenta USDT.");return;}const perfiles=(ref||[]).filter(x=>ids.includes(x.id));await cargarPerfiles(ids);c.replaceChildren();perfiles.forEach(p=>{const q=elemento("div",undefined,"solicitud"),perfil=perfilesCache.get(String(p.id))||p;q.append(crearEncabezadoCuenta({...perfil,...p},"Referido con cuenta USDT"));c.append(q);});if(!perfiles.length)tarjetaVacia(c,"Hay movimientos virtuales, pero no se pudieron identificar los perfiles referidos.");}
 async function cargarHistorialPagos(){const c=document.getElementById("historialPagos"),{data,error}=await supabaseClient.from("payment_requests").select("id,plan,amount_cup,status,created_at").eq("user_id",usuarioActual.id).order("created_at",{ascending:false});if(error||!data?.length){tarjetaVacia(c,error?"No se pudo cargar el historial de depósitos.":"No hay depósitos registrados.");return;}c.replaceChildren();data.forEach(x=>{const q=elemento("div",undefined,"solicitud");q.append(elemento("strong",dinero(x.amount_cup)),elemento("p","Plan: "+nombrePlan(x.plan)),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")),elemento("p","Fecha: "+fecha(x.created_at)));c.append(q);});}
-async function cargarHistorialRetiros(){const c=document.getElementById("historialRetiros"),{data,error}=await supabaseClient.from("withdrawal_requests").select("amount_cup,status,created_at,processed_at").eq("user_id",usuarioActual.id).order("created_at",{ascending:false});if(error||!data?.length){tarjetaVacia(c,error?"No se pudo cargar el historial de retiros.":"Todavía no has solicitado retiros.");return;}c.replaceChildren();data.forEach(x=>{const q=elemento("div",undefined,"solicitud");q.append(elemento("strong",dinero(x.amount_cup)),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")),elemento("p","Solicitado: "+fecha(x.created_at)),elemento("p","Procesado: "+fecha(x.processed_at)));c.append(q);});}
+async function cargarHistorialRetiros(){
+ const c=document.getElementById("historialRetiros");
+ if(!c||!usuarioActual)return;
+ c.textContent="Cargando historial de retiros...";
+ const [{data:cup,error:ec},{data:usdt,error:eu}]=await Promise.all([
+  supabaseClient.from("withdrawal_requests")
+   .select("id,amount_cup,commission_cup,card_number,status,created_at,processed_at")
+   .eq("user_id",usuarioActual.id).order("created_at",{ascending:false}),
+  supabaseClient.from("virtual_withdrawal_requests")
+   .select("id,amount,wallet_address,status,tx_hash,created_at,processed_at")
+   .eq("user_id",usuarioActual.id).order("created_at",{ascending:false})
+ ]);
+ if(ec||eu){tarjetaVacia(c,"No se pudo cargar el historial de retiros: "+errorTexto(ec||eu));return;}
+ const retiros=[
+  ...(cup||[]).map(x=>({...x,_currency:"CUP"})),
+  ...(usdt||[]).map(x=>({...x,_currency:"USDT"}))
+ ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+ if(!retiros.length){tarjetaVacia(c,"Todavía no has solicitado retiros CUP ni USDT.");return;}
+ c.replaceChildren();
+ const codigo=perfilActual?.referral_code||"No disponible";
+ retiros.forEach(x=>{
+  const esCUP=x._currency==="CUP";
+  const cantidad=Number(esCUP?x.amount_cup:x.amount)||0;
+  const porcentaje=esCUP?10:3;
+  const comision=esCUP?(Number(x.commission_cup??(cantidad*0.10))):(cantidad*0.03);
+  const unidad=esCUP?"CUP":"USDT";
+  const estado=x.status==="pending"?"En proceso de aprobación":
+   x.status==="approved"?"Aprobada":
+   x.status==="rejected"?"Rechazada":String(x.status||"Desconocido");
+  const q=elemento("article",undefined,"solicitud");
+  q.append(
+   elemento("h3","Retiro "+unidad),
+   elemento("strong",cantidad.toLocaleString("es-ES",{minimumFractionDigits:esCUP?0:2,maximumFractionDigits:2})+" "+unidad),
+   elemento("p","Estado: "+estado,"estado"),
+   elemento("p","Código de referencia del usuario: "+codigo),
+   elemento("p",esCUP?"Tarjeta: "+(x.card_number||"No indicada"):"Billetera de destino: "+(x.wallet_address||"No indicada")),
+   elemento("p","Cantidad solicitada: "+cantidad.toLocaleString("es-ES",{minimumFractionDigits:esCUP?0:2,maximumFractionDigits:2})+" "+unidad),
+   elemento("p","Descuento: "+porcentaje+"% ("+comision.toLocaleString("es-ES",{minimumFractionDigits:2,maximumFractionDigits:2})+" "+unidad+")"),
+   elemento("p","Fecha de solicitud: "+fecha(x.created_at)),
+   elemento("p","Fecha de procesamiento: "+(x.processed_at?fecha(x.processed_at):"Pendiente"))
+  );
+  if(!esCUP&&x.tx_hash)q.append(elemento("p","Hash de transacción: "+x.tx_hash));
+  c.append(q);
+ });
+}
 async function solicitarRetiro(){const b=document.getElementById("botonRetiro"),e=document.getElementById("estadoRetiro"),cantidad=Number(document.getElementById("montoRetiro").value),tarjeta=document.getElementById("tarjetaRetiro").value.trim();if(!Number.isInteger(cantidad)||cantidad<250||cantidad>1000){e.textContent="El retiro debe ser un número entero entre 250 y 1000 CUP, sin decimales.";return;}if(tarjeta.length<8){e.textContent="Introduce un número de tarjeta válido.";return;}b.disabled=true;try{const {data,error}=await supabaseClient.rpc("request_withdrawal",{p_amount:cantidad,p_card_number:tarjeta});if(error)throw error;e.textContent="Solicitud enviada correctamente. Número: "+data;document.getElementById("montoRetiro").value="";document.getElementById("tarjetaRetiro").value="";await Promise.all([cargarSaldoYGanancias(),cargarHistorialRetiros()]);}catch(x){e.textContent="No se pudo solicitar: "+errorTexto(x);}finally{b.disabled=false;}}
 async function solicitarRetiroUSDT(){const b=document.getElementById("botonRetiroUSDT"),e=document.getElementById("estadoRetiroUSDT"),cantidad=Number(document.getElementById("montoRetiroUSDT").value),destino=document.getElementById("destinoRetiroUSDT").value.trim();if(!Number.isFinite(cantidad)||cantidad<=0){e.textContent="Introduce una cantidad válida de USDT.";return;}if(!destino){e.textContent="Introduce los datos de destino para recibir los USDT.";return;}b.disabled=true;e.textContent="";try{const {data,error}=await supabaseClient.rpc("request_virtual_withdrawal",{p_amount:cantidad,p_wallet_address:destino});if(error)throw error;e.textContent="Solicitud de retiro USDT enviada correctamente.";document.getElementById("montoRetiroUSDT").value="";document.getElementById("destinoRetiroUSDT").value="";await cargarSaldoMonedasVirtuales();}catch(x){e.textContent="No se pudo solicitar el retiro USDT: "+errorTexto(x);}finally{b.disabled=false;}}
 async function copiarEnlace(){const v=document.getElementById("enlaceInvitacion").value;if(!v){mensaje("Tu código todavía no está disponible.");return;}try{await navigator.clipboard.writeText(v);mensaje("Enlace copiado.");}catch(e){document.getElementById("enlaceInvitacion").select();mensaje("Selecciona y copia el enlace.");}}
