@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#101014">
 <title>GoldRewards</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2';"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--fondo:#09090c;--panel:rgba(25,23,19,.94);--panel2:rgba(38,35,28,.96);--oro:#f6cf55;--oro2:#fff0a6;--texto:#fffdf5;--muted:#c8c1ae;--verde:#38d878;--rojo:#ff6464;--borde:rgba(246,207,85,.28)}
 *{box-sizing:border-box}
@@ -25,377 +25,469 @@ button.secundario{background:#444;color:white}button.aprobar{background:var(--ve
 .card{text-align:center}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:15px 0}
 .stat{background:linear-gradient(145deg,rgba(64,53,28,.72),rgba(28,27,27,.95));border:1px solid rgba(246,207,85,.32);border-radius:13px;padding:15px;box-shadow:inset 0 1px rgba(255,240,166,.07)}
 .stat strong{display:block;color:var(--oro);font-size:1.35rem;margin-top:5px}.tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin:12px 0}.tabs button{font-size:.9rem}
-.seccion-admin{margin-top:22px;padding-top:12px;border-top:1px solid var(--borde)}.comprobante-link{display:inline-block;color:var(--oro);margin:8px 0}
-a{color:var(--oro)}hr{border:0;border-top:1px solid var(--borde);margin:20px 0}.code{font-weight:bold;color:var(--oro2);overflow-wrap:anywhere;text-shadow:0 0 18px rgba(246,207,85,.18)}
-.small{font-size:.85rem}label{display:block;margin-top:8px;color:var(--muted)}
+.seccion-admin{margin-top:22px;padding-top:12px;border-top:1px solid var(--borde)}.comprobante-link{display:inline-block;color:var(--oro);margin:8px 0}a{color:var(--oro)}
+hr{border:0;border-top:1px solid var(--borde);margin:20px 0}.code{font-weight:bold;color:var(--oro2);overflow-wrap:anywhere;text-shadow:0 0 18px rgba(246,207,85,.18)}.small{font-size:.85rem}
+label{display:block;margin-top:8px;color:var(--muted)}
 .hero{position:relative;overflow:hidden;padding:30px 22px 25px;background:radial-gradient(ellipse at 50% 0%,rgba(180,132,31,.22),transparent 56%),linear-gradient(145deg,rgba(43,34,18,.97),rgba(15,15,18,.98))}
 .hero:after{content:"";position:absolute;width:220px;height:220px;border:1px solid rgba(246,207,85,.10);border-radius:50%;top:-135px;right:-75px;box-shadow:0 0 0 18px rgba(246,207,85,.025),0 0 0 38px rgba(246,207,85,.02);pointer-events:none}
 .hero-emblem{width:78px;height:78px;display:grid;place-items:center;margin:0 auto 12px;border-radius:50%;font-size:40px;background:radial-gradient(circle at 35% 30%,#fff0a6,#d5a32e 58%,#75500e);box-shadow:0 0 0 6px rgba(246,207,85,.08),0 0 35px rgba(246,207,85,.2)}
-.eyebrow{font-size:.72rem;letter-spacing:3px;color:var(--oro);font-weight:bold}.hero-title{font-size:clamp(1.6rem,5vw,2.35rem);color:#fff0b2;margin:10px 0}
-.hero-copy{font-size:1.12rem;color:var(--oro);letter-spacing:1px}.gold-divider{display:flex;align-items:center;gap:12px;max-width:230px;margin:18px auto;color:var(--oro)}
-.gold-divider:before,.gold-divider:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--oro))}.gold-divider:after{transform:scaleX(-1)}
-.boton-principal{min-width:180px}.boton-reglas{display:block;margin:12px auto 0;background:transparent;color:var(--oro2);border:1px solid rgba(246,207,85,.45);box-shadow:none}
-.decoracion-oro{margin-top:18px;color:rgba(246,207,85,.68);letter-spacing:5px}.chat-launch{background:linear-gradient(135deg,#33270f,#171512);color:var(--oro2);border:1px solid rgba(246,207,85,.55);box-shadow:0 0 22px rgba(246,207,85,.08)}
-.modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(8px)}
-.modal.hidden{display:none!important}.modal-panel{position:relative;width:min(650px,100%);max-height:88vh;overflow:auto;text-align:left;padding:25px 20px 22px;border:1px solid rgba(246,207,85,.55);border-radius:18px;background:linear-gradient(145deg,#282116,#111114 72%);box-shadow:0 25px 80px rgba(0,0,0,.7),0 0 35px rgba(246,207,85,.10)}
-#reglasModal .modal-panel{width:min(650px,100%);height:auto;max-height:88vh;overflow-y:auto}
-.modal-panel h2{text-align:center;color:var(--oro2)}.modal-panel>.muted{text-align:center}
-.modal-close{position:absolute;right:9px;top:8px;margin:0;padding:8px 12px;background:rgba(255,255,255,.08);color:white;border:1px solid rgba(255,255,255,.16);box-shadow:none}
-.modal-icon{text-align:center;font-size:30px}.reglas-lista{padding-left:23px;line-height:1.55}.reglas-lista li{padding:8px 0;border-bottom:1px solid rgba(246,207,85,.13)}.reglas-lista strong{color:var(--oro2)}
-.modal-panel>button:last-child{display:block;margin:18px auto 0}.chat-panel{display:flex;flex-direction:column;height:min(720px,88vh);max-height:88vh}
-.chat-messages{flex:1;min-height:180px;overflow-y:auto;padding:12px;margin:12px 0;background:rgba(0,0,0,.32);border:1px solid rgba(246,207,85,.18);border-radius:12px}
-.chat-message{max-width:88%;margin:9px 0;padding:10px 12px;border-radius:12px;background:rgba(246,207,85,.10);border:1px solid rgba(246,207,85,.16);text-align:left;overflow-wrap:anywhere}
-.chat-message.own{margin-left:auto;background:rgba(246,207,85,.19)}.chat-meta{display:flex;justify-content:space-between;gap:10px;color:var(--oro2);font-size:.76rem;margin-bottom:5px}
-.chat-body{white-space:pre-wrap;line-height:1.4}.chat-compose{display:flex;align-items:center;gap:7px}.chat-compose input{flex:1;min-width:0;margin:0}.chat-compose button{margin:0;white-space:nowrap}
-.admin-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px;text-align:left;margin-top:15px}
-.admin-menu{background:rgba(0,0,0,.25);border:1px solid var(--borde);border-radius:13px;padding:10px;align-self:start}
-.admin-menu button{display:block;width:100%;margin:5px 0;text-align:left;background:rgba(246,207,85,.10);color:var(--oro2);box-shadow:none;border:1px solid rgba(246,207,85,.18)}
-.admin-menu button.activo{background:linear-gradient(135deg,#fff0a6,#dcae35);color:#17120a}
-.admin-content{min-width:0}.admin-view{display:none}.admin-view.activo{display:block}
-.admin-user{border:1px solid var(--borde);background:rgba(0,0,0,.2);border-radius:12px;padding:13px;margin:10px 0;overflow-wrap:anywhere}
-.admin-user .acciones{display:flex;flex-wrap:wrap;gap:5px}.admin-user .acciones button{margin:3px}
-.admin-danger{background:linear-gradient(135deg,#ffb0a8,#d94b43);color:#210b09}
-@media(max-width:650px){.admin-layout{grid-template-columns:1fr}.admin-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.admin-menu button{font-size:.82rem;padding:10px 7px;text-align:center}}
-@media(max-width:420px){.modal-panel{padding:24px 14px 18px}.chat-compose{gap:4px}.chat-compose button{padding:12px}.chat-message{max-width:95%}.container{padding:15px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}button{max-width:100%}}
+.eyebrow{font-size:.72rem;letter-spacing:3px;color:var(--oro);font-weight:bold}.hero-title{font-size:clamp(1.6rem,5vw,2.35rem);color:#fff0b2;margin:10px 0}.hero-copy{font-size:1.12rem;color:var(--oro);letter-spacing:1px}
+.gold-divider{display:flex;align-items:center;gap:12px;max-width:230px;margin:18px auto;color:var(--oro)}.gold-divider:before,.gold-divider:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--oro))}.gold-divider:after{transform:scaleX(-1)}
+.boton-principal{min-width:180px}.boton-reglas{display:block;margin:12px auto 0;background:transparent;color:var(--oro2);border:1px solid rgba(246,207,85,.45);box-shadow:none}.decoracion-oro{margin-top:18px;color:rgba(246,207,85,.68);letter-spacing:5px}
+.chat-launch{background:linear-gradient(135deg,#33270f,#171512);color:var(--oro2);border:1px solid rgba(246,207,85,.55);box-shadow:0 0 22px rgba(246,207,85,.08)}
+.contador-usuarios{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 4px;padding:10px 18px;border-radius:999px;background:rgba(246,207,85,.10);border:1px solid rgba(246,207,85,.38);color:var(--oro2);font-weight:bold;box-shadow:0 0 22px rgba(246,207,85,.08)}
+.contador-usuarios .ojo{font-size:1.25rem}.logout-top{position:absolute;top:14px;right:14px;margin:0;z-index:20;padding:9px 13px;font-size:.82rem}#cuenta,#lobby,#panelAdmin{position:relative}
+.modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(8px)}.modal.hidden{display:none!important}
+.modal-panel{position:relative;width:min(650px,100%);max-height:88vh;overflow:auto;text-align:left;padding:25px 20px 22px;border:1px solid rgba(246,207,85,.55);border-radius:18px;background:linear-gradient(145deg,#282116,#111114 72%);box-shadow:0 25px 80px rgba(0,0,0,.7),0 0 35px rgba(246,207,85,.10)}
+.modal-panel h2{text-align:center;color:var(--oro2)}.modal-panel>.muted{text-align:center}.modal-close{position:absolute;right:9px;top:8px;margin:0;padding:8px 12px;background:rgba(255,255,255,.08);color:white;border:1px solid rgba(255,255,255,.16);box-shadow:none}.modal-icon{text-align:center;font-size:30px}
+.reglas-lista{padding-left:23px;line-height:1.55}.reglas-lista li{padding:8px 0;border-bottom:1px solid rgba(246,207,85,.13)}.reglas-lista strong{color:var(--oro2)}.modal-panel>button:last-child{display:block;margin:18px auto 0}
+.chat-panel{display:flex;flex-direction:column;height:min(720px,88vh);max-height:88vh}.chat-messages{flex:1;min-height:180px;overflow-y:auto;padding:12px;margin:12px 0;background:rgba(0,0,0,.32);border:1px solid rgba(246,207,85,.18);border-radius:12px}
+.chat-message{max-width:88%;margin:9px 0;padding:10px 12px;border-radius:12px;background:rgba(246,207,85,.10);border:1px solid rgba(246,207,85,.16);text-align:left;overflow-wrap:anywhere}.chat-message.own{margin-left:auto;background:rgba(246,207,85,.19)}
+.chat-meta{display:flex;align-items:center;gap:9px;color:var(--oro2);font-size:.76rem;margin-bottom:5px}.chat-meta .chat-time{margin-left:auto;white-space:nowrap}.chat-meta .account-avatar{width:30px;height:30px;min-width:30px;font-size:12px;border-width:1px}.chat-body{white-space:pre-wrap;line-height:1.4}.chat-compose{display:flex;align-items:center;gap:7px}.chat-compose input{flex:1;min-width:0;margin:0}.chat-compose button{margin:0;white-space:nowrap}
+.planes{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:14px 0}.plan-opcion{border:1px solid var(--borde);border-radius:14px;padding:14px;background:rgba(0,0,0,.2);text-align:left}.plan-opcion strong{display:block;color:var(--oro2);font-size:1.1rem}.plan-precio{font-size:1.45rem;color:var(--oro);font-weight:bold;margin:8px 0}.plan-opcion p{margin:5px 0}.plan-opcion .btn-plan{display:block;width:100%;margin:12px 0 0}.plan-opcion .btn-plan:focus{outline:2px solid var(--oro2);outline-offset:3px}
+.virtual-box{margin-top:18px;padding:16px;border:1px solid rgba(246,207,85,.42);border-radius:16px;background:linear-gradient(145deg,rgba(52,42,20,.72),rgba(18,18,21,.96));text-align:left}.virtual-box h3{color:var(--oro2);text-align:center}.virtual-steps{font-size:.9rem;color:var(--muted);line-height:1.55}.virtual-address{font-size:.92rem;word-break:break-all;text-align:center;padding:12px;border-radius:10px;background:#09090c;border:1px dashed var(--borde);color:var(--oro2)}.virtual-status{margin-top:10px;color:var(--oro);text-align:center;word-break:break-word}
+.planes-lobby-pagos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}.planes-lobby-pagos>.virtual-box{min-width:0;margin-top:0}.planes-lobby-pagos .planes{grid-template-columns:1fr}.planes-lobby-pagos input,.planes-lobby-pagos select{max-width:100%}@media(max-width:760px){.planes-lobby-pagos{grid-template-columns:1fr}}
+@media(max-width:420px){.modal-panel{padding:24px 14px 18px}.chat-compose{gap:4px}.chat-compose button{padding:12px}.chat-message{max-width:95%}.container{padding:15px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}button{max-width:100%}.logout-top{top:10px;right:10px;padding:8px 10px}}
+
+/* Menú lateral del administrador */
+.admin-menu-btn{position:absolute;top:12px;right:14px;z-index:1201;width:48px;height:44px;padding:8px;margin:0;font-size:25px;line-height:1;background:rgba(246,207,85,.13);color:var(--oro2);border:1px solid var(--borde);box-shadow:none}
+.admin-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1200;opacity:0;pointer-events:none;transition:opacity .2s}
+.admin-menu-overlay.open{opacity:1;pointer-events:auto}
+.admin-drawer{position:fixed;top:0;right:0;width:min(340px,88vw);height:100dvh;overflow-y:auto;z-index:1202;padding:22px 16px 30px;background:linear-gradient(160deg,#2a2316,#111114 72%);border-left:1px solid var(--oro);box-shadow:-18px 0 55px rgba(0,0,0,.55);transform:translateX(105%);transition:transform .24s;text-align:left}
+.admin-drawer.open{transform:translateX(0)}
+.admin-drawer-head{display:flex;align-items:center;justify-content:space-between;margin:24px 0 18px;color:var(--oro2)}
+.admin-drawer-head h3{margin:0}
+.admin-drawer .drawer-group{padding:12px 0;border-top:1px solid var(--borde)}
+.admin-drawer .drawer-label{display:block;color:var(--oro);font-size:.78rem;letter-spacing:1px;font-weight:bold;margin:4px 8px 8px}
+.admin-drawer button.drawer-link{display:block;width:100%;margin:5px 0;text-align:left;background:rgba(255,255,255,.045);border:1px solid rgba(246,207,85,.15);color:var(--texto);box-shadow:none}
+.admin-drawer button.drawer-link:hover{background:rgba(246,207,85,.13)}
+.admin-account-card{background:linear-gradient(145deg,rgba(49,43,29,.92),rgba(25,25,27,.96));border:1px solid var(--borde);border-radius:14px;padding:15px;margin:12px 0;text-align:left;overflow-wrap:anywhere}
+.admin-account-card h4{color:var(--oro2);margin:0 0 8px}
+.account-person-row{display:flex;align-items:center;gap:11px;text-align:left;margin:8px 0 12px;min-width:0}.account-person-info{min-width:0;overflow-wrap:anywhere}.avatar-edit-wrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.avatar-edit-wrap .account-person-row{margin:8px 0 12px}.avatar-edit-btn{margin:0;padding:8px 12px;font-size:.82rem}.avatar-upload-note{font-size:.82rem;color:var(--muted);margin:6px 0}.account-person-info strong{display:block;color:var(--oro2)}.account-person-info span{display:block;color:var(--muted);font-size:.82rem;overflow-wrap:anywhere}.account-avatar{width:44px;height:44px;min-width:44px;border-radius:50%;object-fit:cover;border:2px solid var(--oro);background:#29251b;display:grid;place-items:center;color:var(--oro2);font-weight:800;font-size:17px}.account-avatar.large{width:58px;height:58px;min-width:58px;font-size:21px}.admin-account-heading{display:flex;align-items:center;gap:12px;margin:0 0 10px}.admin-account-avatar{width:48px;height:48px;min-width:48px;border-radius:50%;object-fit:cover;border:2px solid var(--oro);background:#29251b;display:grid;place-items:center;color:var(--oro2);font-weight:800;font-size:18px}.admin-account-heading h4{margin:0}
+.admin-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.admin-detail-field{padding:9px;background:rgba(255,255,255,.045);border:1px solid rgba(246,207,85,.12);border-radius:9px;overflow-wrap:anywhere}
+.admin-detail-field b{display:block;color:var(--oro);font-size:.78rem;margin-bottom:4px}
+.admin-receipt-img{display:block;max-width:100%;max-height:420px;object-fit:contain;margin:10px auto;border:1px solid var(--borde);border-radius:10px}
+.admin-subheading{color:var(--oro2);margin:20px 0 8px}
+#adminDetalleModal .modal-panel{width:min(780px,100%)}
+@media(max-width:420px){.admin-menu-btn{top:9px;right:9px}.admin-account-card{padding:12px}}
+
 </style>
 </head>
 <body>
 <header><h1>GoldRewards</h1><p>Gana, comparte y crece</p></header>
 
 <div class="container hero" id="inicio">
-  <div class="hero-emblem">🪙</div><p class="eyebrow">COMUNIDAD EXCLUSIVA</p>
-  <h2 class="hero-title">Bienvenido a GoldRewards</h2><p class="hero-copy">Gana, comparte y crece</p>
-  <div class="gold-divider"><span>✦</span></div>
-  <p class="muted">Una comunidad para compartir invitaciones y obtener recompensas.</p>
-  <button class="boton-principal" onclick="mostrar('registro')">Crear mi cuenta</button>
-  <button class="secundario" onclick="mostrar('login')">Iniciar sesión</button>
-  <button class="boton-reglas" onclick="abrirReglas()">📜 Leer reglas</button>
-  <div class="decoracion-oro">◆　🪙　◆</div>
+  <div class="hero-emblem">🪙</div><p class="eyebrow">COMUNIDAD EXCLUSIVA</p><h2 class="hero-title">Bienvenido a GoldRewards</h2><p class="hero-copy">Gana, comparte y crece</p><div class="gold-divider"><span>✦</span></div><p class="muted">Una comunidad para compartir invitaciones y obtener recompensas.</p><div class="contador-usuarios" title="Usuarios de la comunidad"><span class="ojo">👁️</span><span id="contadorUsuarios">Cargando...</span></div><p class="small muted">Miembros en la comunidad</p><button class="boton-principal" onclick="mostrar('registro')">Crear mi cuenta</button><button class="secundario" onclick="mostrar('login')">Iniciar sesión</button><button class="boton-reglas" onclick="abrirReglas()">📜 Leer reglas</button><div class="decoracion-oro">◆　🪙　◆</div>
 </div>
 
 <div class="container hidden" id="registro">
   <h2>Crear cuenta</h2><input id="nombre" placeholder="Nombre completo" autocomplete="name" required>
-  <label for="provincia">Provincia</label><select id="provincia" onchange="cargarMunicipios()" required>
-    <option value="">Selecciona tu provincia</option><option>Pinar del Río</option><option>Artemisa</option><option>La Habana</option><option>Mayabeque</option><option>Matanzas</option><option>Cienfuegos</option><option>Villa Clara</option><option>Sancti Spíritus</option><option>Ciego de Ávila</option><option>Camagüey</option><option>Las Tunas</option><option>Granma</option><option>Holguín</option><option>Santiago de Cuba</option><option>Guantánamo</option><option>Isla de la Juventud</option>
-  </select>
-  <label for="municipio">Municipio</label><select id="municipio" required disabled><option value="">Primero selecciona tu provincia</option></select>
-  <input id="usuario" placeholder="Nombre de usuario" autocomplete="username" required>
-  <button id="botonComprobar" onclick="comprobarUsuario()">Comprobar usuario</button>
-  <input id="correo" type="email" placeholder="Correo electrónico" autocomplete="email" required>
-  <input id="clave" type="password" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password" required>
-  <label for="invitacion">Código de referencia de quien te invitó (obligatorio)</label><input id="invitacion" placeholder="Introduce el código de referencia" autocomplete="off" required>
-  <button id="botonRegistro" onclick="registrar()">Crear cuenta</button><button class="secundario" onclick="mostrar('inicio')">Volver</button>
+  <label for="provincia">Provincia</label><select id="provincia" onchange="cargarMunicipios()" required><option value="">Selecciona tu provincia</option><option value="Pinar del Río">Pinar del Río</option><option value="Artemisa">Artemisa</option><option value="La Habana">La Habana</option><option value="Mayabeque">Mayabeque</option><option value="Matanzas">Matanzas</option><option value="Cienfuegos">Cienfuegos</option><option value="Villa Clara">Villa Clara</option><option value="Sancti Spíritus">Sancti Spíritus</option><option value="Ciego de Ávila">Ciego de Ávila</option><option value="Camagüey">Camagüey</option><option value="Las Tunas">Las Tunas</option><option value="Granma">Granma</option><option value="Holguín">Holguín</option><option value="Santiago de Cuba">Santiago de Cuba</option><option value="Guantánamo">Guantánamo</option><option value="Isla de la Juventud">Isla de la Juventud</option></select>
+  <label for="municipio">Municipio</label><select id="municipio" required disabled><option value="">Primero selecciona tu provincia</option></select><input id="usuario" placeholder="Nombre de usuario" autocomplete="username" required><button id="botonComprobar" onclick="comprobarUsuario()">Comprobar usuario</button><input id="correo" type="email" placeholder="Correo electrónico" autocomplete="email" required><input id="clave" type="password" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password" required><label for="invitacion">Código de referencia de quien te invitó (obligatorio)</label><input id="invitacion" placeholder="Introduce el código de referencia" autocomplete="off" required><label for="fotoRegistro">Foto de perfil (obligatoria)</label><input id="fotoRegistro" type="file" accept="image/jpeg,image/png,image/webp" required><p class="small muted">Sube una foto JPG, PNG o WEBP de máximo 5 MB.</p><button id="botonRegistro" onclick="registrar()">Crear cuenta</button><button class="secundario" onclick="mostrar('inicio')">Volver</button>
 </div>
 
-<div class="container hidden" id="login">
-  <h2>Iniciar sesión</h2><input id="correoLogin" type="email" placeholder="Correo electrónico" autocomplete="email">
-  <input id="claveLogin" type="password" placeholder="Contraseña" autocomplete="current-password">
-  <button id="botonLogin" onclick="entrar()">Entrar</button><button class="secundario" onclick="mostrar('inicio')">Volver</button>
-</div>
+<div class="container hidden" id="login"><h2>Iniciar sesión</h2><input id="correoLogin" type="email" placeholder="Correo electrónico" autocomplete="username"><input id="claveLogin" type="password" placeholder="Contraseña" autocomplete="current-password"><button id="botonLogin" onclick="entrar()">Entrar</button><button class="secundario" onclick="mostrar('inicio')">Volver</button></div>
 
 <div class="container hidden" id="cuenta">
-  <h2>Mi cuenta</h2><p id="datos"></p><hr><h3>Depósito de membresía</h3><p>Selecciona el plan que deseas pagar:</p>
-  <select id="planMembresia"><option value="basic">Plan Básico — 100 CUP</option><option value="premium">Plan Premium — 200 CUP</option></select>
-  <p>Realiza tu transferencia a esta tarjeta:</p><h2 class="code">9224069998634642</h2><p>Titular: Cuenta del grupo de GoldRewards</p>
-  <p>Después de transferir, sube la captura del comprobante:</p><input type="file" id="comprobante" accept="image/jpeg,image/png,image/webp">
-  <button id="botonComprobante" onclick="subirComprobante()">Enviar comprobante</button><p id="estadoDeposito" class="estado"></p><hr><button onclick="salir()">Cerrar sesión</button>
+  <button class="logout-top secundario" onclick="salir()">Cerrar sesión</button><h2>Activa tu membresía GoldRewards</h2><div id="fotoObligatoriaCuenta" class="card hidden"><h3>📸 Completa tu perfil</h3><p>Antes de continuar, sube tu foto de perfil obligatoria.</p><input id="fotoCuentaInput" type="file" accept="image/jpeg,image/png,image/webp"><button id="guardarFotoCuentaBtn" onclick="subirFotoCuenta()">Guardar foto de perfil</button><p id="estadoFotoCuenta" class="estado"></p></div><div id="perfilCuentaHeader"></div><p id="datos"></p><div class="card"><h3>🔐 Paso obligatorio antes de entrar al Lobby</h3><p class="muted">Selecciona una membresía CUP o una membresía virtual, realiza el pago a la dirección indicada y envía el comprobante. Tu cuenta tendrá acceso al Lobby únicamente después de que el administrador apruebe el pago y active tu membresía.</p></div><hr><h3>Elige tu membresía</h3>
+  <div class="planes"><div class="plan-opcion"><strong>🥇 Básica</strong><div class="plan-precio">100 CUP</div><p>Duración: 30 días</p><p>Referido directo: 10 CUP</p><p>Segundo nivel: 2 CUP</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('basic','')">Comprar Básica</button></div><div class="plan-opcion"><strong>👑 Premium</strong><div class="plan-precio">200 CUP</div><p>Duración: 30 días</p><p>Referido directo: 15 CUP</p><p>Segundo nivel: 5 CUP</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('premium','')">Comprar Premium</button></div></div>
+  <label for="planMembresia">Selecciona el plan que deseas activar</label><select id="planMembresia" onchange="actualizarDatosPlan()"><option value="basic">Básica — 100 CUP</option><option value="premium">Premium — 200 CUP</option></select><p id="detallePlan" class="muted">Básica: 100 CUP por 30 días. Comisiones: 10 CUP directo y 2 CUP segundo nivel.</p><hr><h3>Pago de membresía CUP</h3><p>Realiza tu transferencia a esta tarjeta:</p><h2 class="code">9224069998634642</h2><p>Titular: Cuenta del grupo de GoldRewards</p><p>Después de transferir, sube la captura del comprobante:</p><input type="file" id="comprobante" accept="image/jpeg,image/png,image/webp"><button id="botonComprobante" onclick="subirComprobante()">Enviar comprobante</button><p id="estadoDeposito" class="estado"></p>
+  <div class="virtual-box"><h3>🪙 Membresías virtuales · Pago con USDT</h3><p class="muted">Red: BNB Smart Chain (BEP-20). Selecciona tu plan, realiza el pago a la dirección indicada y sube una captura del comprobante. La solicitud será revisada manualmente por el administrador.</p><div class="planes"><div class="plan-opcion"><strong>💠 Bronce</strong><div class="plan-precio">10 USDT</div><p>Duración: 30 días</p><p class="small muted">2 monedas directas · 1 de segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(1,'')">Comprar Bronce</button></div><div class="plan-opcion"><strong>💠 Plata</strong><div class="plan-precio">20 USDT</div><p>Duración: 30 días</p><p class="small muted">5 monedas directas · 2 de segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(2,'')">Comprar Plata</button></div><div class="plan-opcion"><strong>💠 Oro</strong><div class="plan-precio">40 USDT</div><p>Duración: 30 días</p><p class="small muted">10 monedas directas · 3 de segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(3,'')">Comprar Oro</button></div><div class="plan-opcion"><strong>💠 Diamante</strong><div class="plan-precio">60 USDT</div><p>Duración: 30 días</p><p class="small muted">15 monedas directas · 5 de segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(4,'')">Comprar Diamante</button></div></div><label for="virtualPlan">Selecciona el plan virtual</label><select id="virtualPlan"><option value="1">Bronce — 10 USDT</option><option value="2">Plata — 20 USDT</option><option value="3">Oro — 40 USDT</option><option value="4">Diamante — 60 USDT</option></select><p class="virtual-steps">Envía exactamente el importe del plan en <strong>USDT (BEP-20)</strong> a esta dirección:</p><div class="virtual-address">0x64887d34deE08a033111b970fA031C73d5a63206</div><p class="small muted">Nunca introduzcas tu clave privada ni frase semilla.</p><label for="comprobanteVirtual">Sube una captura del comprobante de pago</label><input type="file" id="comprobanteVirtual" accept="image/jpeg,image/png,image/webp"><button id="botonComprobanteVirtual" onclick="subirComprobanteVirtual()">Enviar comprobante virtual</button><p id="estadoPagoVirtual" class="virtual-status" aria-live="polite"></p></div>
 </div>
 
 <div class="container hidden" id="lobby">
-  <h2>🏆 Lobby GoldRewards</h2><p id="bienvenidaLobby"></p><button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button>
-  <div class="card"><h3>Membresía activa</h3><p id="tiempoMembresia" class="code"></p></div>
-  <div class="card" id="renovarMembresia">
-    <h3>🪙 Activar / Renovar membresía</h3>
-    <p class="muted">Tu membresía dura 30 días desde que el administrador apruebe el pago. Puedes renovar antes de que venza.</p>
-    <label for="planMembresiaLobby">Selecciona el plan:</label>
-    <select id="planMembresiaLobby">
-      <option value="basic">Plan Básico — 100 CUP</option>
-      <option value="premium">Plan Premium — 200 CUP</option>
-    </select>
-    <p>Transfiere el importe correspondiente a esta tarjeta:</p>
-    <h2 class="code">9224069998634642</h2>
-    <p>Titular: Cuenta del grupo de GoldRewards</p>
-    <p>Después de realizar la transferencia, adjunta el comprobante:</p>
-    <input type="file" id="comprobanteLobby" accept="image/jpeg,image/png,image/webp">
-    <button id="botonComprobanteLobby" onclick="subirComprobanteLobby()">Enviar comprobante</button>
-    <p id="estadoDepositoLobby" class="estado" aria-live="polite"></p>
-  </div>
-  <div class="grid"><div class="stat">Saldo disponible<strong id="saldoDisponible">0 CUP</strong></div><div class="stat">Ganancias totales<strong id="gananciasTotales">0 CUP</strong></div><div class="stat">Referidos aprobados<strong id="cantidadReferidos">0</strong></div></div>
-  <hr><h3>Tu invitación</h3><p>Código: <span id="miCodigo" class="code">—</span></p><p class="small muted">Comparte tu enlace. La comisión se genera cuando el depósito de la persona invitada es aprobado.</p>
-  <input id="enlaceInvitacion" readonly><button onclick="copiarEnlace()">Copiar enlace</button><hr><h3>Solicitar retiro</h3>
-  <p class="muted">Mínimo 100 CUP · Máximo acumulado de 250 CUP por día. Los límites no utilizados se conservan. Los retiros deben ser múltiplos de 10 CUP.</p>
-  <div class="grid"><div class="stat">Referidos directos aprobados<strong id="referidosAprobados">0</strong></div><div class="stat">Límite acumulado<strong id="limiteAcumulado">0 CUP</strong></div><div class="stat">Límite restante<strong id="limiteRestante">0 CUP</strong></div><div class="stat">Límite diario restante<strong id="limiteDiario">250 CUP</strong></div></div>
-  <input id="montoRetiro" type="number" min="100" max="250" step="10" placeholder="Cantidad (ej. 100, 120, 250)"><input id="tarjetaRetiro" type="text" inputmode="numeric" maxlength="40" placeholder="Número de tarjeta para recibir el pago">
-  <button id="botonRetiro" onclick="solicitarRetiro()">Enviar solicitud de retiro</button><p id="estadoRetiro" class="estado"></p>
-  <hr><h3>Mis referidos</h3><div id="listaReferidos"><p class="muted">Cargando...</p></div><h3>Historial de ganancias</h3><div id="historialGanancias"></div>
-  <h3>Historial de membresías y depósitos</h3><div id="historialPagos"></div><h3>Historial de retiros</h3><div id="historialRetiros"></div><button onclick="salir()">Cerrar sesión</button>
+  <button class="logout-top secundario" onclick="salir()">Cerrar sesión</button><h2>🏆 Lobby GoldRewards</h2><div id="perfilLobbyHeader"></div><input id="cambiarFotoInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden"><p id="estadoCambiarFoto" class="small muted" aria-live="polite"></p><p id="bienvenidaLobby"></p><button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button><div class="card"><h3>Membresía activa</h3><p id="tiempoMembresia" class="code"></p></div><div class="grid"><div class="stat">Saldo disponible<strong id="saldoDisponible">0 CUP</strong></div><div class="stat">Ganancias totales<strong id="gananciasTotales">0 CUP</strong></div><div class="stat">Referidos aprobados<strong id="cantidadReferidos">0</strong></div></div><hr><h3>Tu invitación</h3><p>Código: <span id="miCodigo" class="code">—</span></p><p class="small muted">Comparte tu enlace. La comisión se genera cuando el depósito de la persona invitada es aprobado.</p><input id="enlaceInvitacion" readonly><button onclick="copiarEnlace()">Copiar enlace</button><hr><h3>Solicitar retiro</h3><p class="muted">Mínimo 100 CUP · Máximo 250 CUP · Solo cantidades en múltiplos de 10.</p><input id="montoRetiro" type="number" min="100" max="250" step="10" placeholder="Cantidad (ej. 100, 120, 250)"><input id="tarjetaRetiro" type="text" inputmode="numeric" maxlength="40" placeholder="Número de tarjeta para recibir el pago"><button id="botonRetiro" onclick="solicitarRetiro()">Enviar solicitud de retiro</button><p id="estadoRetiro" class="estado"></p><hr><h3>Mis referidos</h3><div id="listaReferidos"><p class="muted">Cargando...</p></div><h3>Historial de ganancias CUP</h3><div id="historialGanancias"></div><hr><div class="card"><h3>🪙 Monedas virtuales</h3><p class="muted">Este saldo es independiente de tus ganancias CUP y no se suma al saldo disponible para retiros.</p><div class="stat">Monedas virtuales acumuladas<strong id="saldoMonedasVirtuales">0 monedas</strong></div><h3>Historial de monedas virtuales</h3><div id="historialMonedasVirtuales"><p class="muted">Cargando...</p></div></div><div class="card transfer-card"><h3>🔁 Transferir saldo a otro usuario</h3><p class="muted">Envía saldo usando el código de referido de la persona. Las monedas CUP y virtuales se mantienen separadas.</p><label for="monedaTransferencia">Tipo de saldo</label><select id="monedaTransferencia" onchange="actualizarInfoTransferencia()"><option value="CUP">Saldo CUP</option><option value="VIRTUAL">Saldo virtual (USDT)</option></select><label for="codigoDestinatario">Código de referido del destinatario</label><input id="codigoDestinatario" type="text" maxlength="80" placeholder="Introduce el código de referido"><label for="montoTransferencia">Cantidad que recibirá</label><input id="montoTransferencia" type="number" min="1" step="1" placeholder="Cantidad a transferir"><p id="infoComisionTransferencia" class="muted">Comisión: 5 CUP. Se descontarán la cantidad y la comisión.</p><button id="botonTransferencia" onclick="transferirSaldo()">Continuar transferencia</button><p id="estadoTransferencia" class="estado" aria-live="polite"></p><h3>Historial de transferencias</h3><div id="historialTransferencias"><p class="muted">Cargando...</p></div></div><h3>Historial de membresías y depósitos</h3><div id="historialPagos"></div><h3>Historial de retiros</h3><div id="historialRetiros"></div>
+  <hr><h3>Activa o renueva tus planes</h3><p class="muted">Los pagos CUP y los planes virtuales funcionan por separado. Pagar una membresía CUP no genera monedas virtuales; si tu referido compra un plan virtual, recibes la comisión virtual que corresponda.</p><div class="planes-lobby-pagos">
+  <div class="virtual-box"><h3>🥇 Membresías CUP · Activar o renovar</h3><p class="muted">Puedes comprar cualquier membresía CUP cuando quieras. Cada compra se registra como una solicitud independiente y requiere aprobación del administrador antes de activarse.</p><div class="planes"><div class="plan-opcion"><strong>🥇 Básica</strong><div class="plan-precio">100 CUP</div><p>Duración: 30 días</p><p>Referido directo: 10 CUP</p><p>Segundo nivel: 2 CUP</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('basic','Lobby')">Comprar Básica</button></div><div class="plan-opcion"><strong>👑 Premium</strong><div class="plan-precio">200 CUP</div><p>Duración: 30 días</p><p>Referido directo: 15 CUP</p><p>Segundo nivel: 5 CUP</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('premium','Lobby')">Comprar Premium</button></div></div><select id="planMembresiaLobby" onchange="actualizarDatosPlanLobby()" class="hidden" aria-hidden="true" tabindex="-1"><option value="basic">Básica — 100 CUP</option><option value="premium">Premium — 200 CUP</option></select><p id="detallePlanLobby" class="hidden"></p></div>
+  <div class="virtual-box"><h3>🪙 Planes virtuales · Activar o renovar</h3><p class="muted">Puedes comprar cualquier plan virtual cuando quieras. Cada compra se registra como una solicitud independiente y requiere aprobación manual del administrador antes de activarse. Red: BNB Smart Chain (BEP-20).</p><div class="planes"><div class="plan-opcion"><strong>💠 Bronce</strong><div class="plan-precio">10 USDT</div><p>30 días</p><p class="small muted">2 monedas directas · 1 segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(1,'Lobby')">Comprar Bronce</button></div><div class="plan-opcion"><strong>💠 Plata</strong><div class="plan-precio">20 USDT</div><p>30 días</p><p class="small muted">5 monedas directas · 2 segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(2,'Lobby')">Comprar Plata</button></div><div class="plan-opcion"><strong>💠 Oro</strong><div class="plan-precio">40 USDT</div><p>30 días</p><p class="small muted">10 monedas directas · 3 segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(3,'Lobby')">Comprar Oro</button></div><div class="plan-opcion"><strong>💠 Diamante</strong><div class="plan-precio">60 USDT</div><p>30 días</p><p class="small muted">15 monedas directas · 5 segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(4,'Lobby')">Comprar Diamante</button></div></div><select id="virtualPlanLobby" class="hidden" aria-hidden="true" tabindex="-1"><option value="1">Bronce — 10 USDT</option><option value="2">Plata — 20 USDT</option><option value="3">Oro — 40 USDT</option><option value="4">Diamante — 60 USDT</option></select></div></div>
 </div>
 
 <div class="container hidden" id="panelAdmin">
-  <h2>👑 Panel de administración</h2><p>Gestión de GoldRewards</p>
-  <button onclick="cargarAdmin()">Actualizar panel</button><button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button>
-  <p id="mensajeAdmin" class="estado"></p>
-  <div class="admin-layout">
-    <nav class="admin-menu" aria-label="Menú de administración">
-      <button class="activo" onclick="mostrarAdminVista('cuentasTodas',this)">☰ Todas las cuentas</button>
-      <button onclick="mostrarAdminVista('cuentasActivas',this)">🟢 Cuentas activas</button>
-      <button onclick="mostrarAdminVista('cuentasInactivas',this)">🔴 Cuentas no activas</button>
-      <button onclick="mostrarAdminVista('cuentasBasic',this)">💳 Membresías de 100 CUP</button>
-      <button onclick="mostrarAdminVista('cuentasPremium',this)">💎 Membresías de 200 CUP</button>
-      <button onclick="mostrarAdminVista('estadisticas',this)">📊 Estadísticas</button>
-      <button onclick="mostrarAdminVista('depPendientes',this)">🟡 Depósitos por aprobar</button>
-      <button onclick="mostrarAdminVista('depAprobados',this)">🟢 Depósitos aprobados</button>
-      <button onclick="mostrarAdminVista('depNegados',this)">🔴 Depósitos negados</button>
-      <button onclick="mostrarAdminVista('retirosPendientes',this)">💸 Retiros por aprobar</button>
-      <button onclick="mostrarAdminVista('retirosProcesados',this)">📁 Retiros procesados</button>
-    </nav>
-    <div class="admin-content">
-      <section class="admin-view activo" id="cuentasTodas"><h3>☰ Todas las cuentas</h3><div id="listaTodasCuentas"></div></section>
-      <section class="admin-view" id="cuentasActivas"><h3>🟢 Cuentas activas</h3><div id="listaCuentasActivas"></div></section>
-      <section class="admin-view" id="cuentasInactivas"><h3>🔴 Cuentas no activas</h3><div id="listaCuentasInactivas"></div></section>
-      <section class="admin-view" id="cuentasBasic"><h3>💳 Membresías de 100 CUP</h3><div id="listaCuentasBasic"></div></section>
-      <section class="admin-view" id="cuentasPremium"><h3>💎 Membresías de 200 CUP</h3><div id="listaCuentasPremium"></div></section>
-      <section class="admin-view" id="estadisticas"><h3>📊 Estadísticas</h3><div class="grid">
-        <div class="stat">Total de cuentas<strong id="statTotalCuentas">—</strong></div><div class="stat">Membresías activas<strong id="statActivas">—</strong></div>
-        <div class="stat">Cuentas no activas<strong id="statInactivas">—</strong></div><div class="stat">Plan Básico activo<strong id="statBasic">—</strong></div>
-        <div class="stat">Plan Premium activo<strong id="statPremium">—</strong></div><div class="stat">Depósitos pendientes<strong id="statDepositos">—</strong></div>
-        <div class="stat">Retiros pendientes<strong id="statRetiros">—</strong></div>
-      </div></section>
-      <section class="admin-view" id="depPendientes"><h3>🟡 Depósitos por aprobar</h3><div id="listaDepPendientes"></div></section>
-      <section class="admin-view" id="depAprobados"><h3>🟢 Depósitos aprobados</h3><div id="listaDepAprobados"></div></section>
-      <section class="admin-view" id="depNegados"><h3>🔴 Depósitos negados</h3><div id="listaDepNegados"></div></section>
-      <section class="admin-view" id="retirosPendientes"><h3>🟡 Retiros por aprobar</h3><div id="listaRetirosPendientes"></div></section>
-      <section class="admin-view" id="retirosProcesados"><h3>📁 Historial de retiros</h3><div id="listaRetirosProcesados"></div></section>
-    </div>
+  <button class="logout-top secundario" onclick="salir()" style="left:14px;right:auto">Cerrar sesión</button>
+  <button class="admin-menu-btn" type="button" onclick="toggleAdminMenu()" aria-label="Abrir menú de administración" aria-expanded="false">☰</button>
+  <h2>👑 Panel de administración</h2><div id="perfilAdminHeader"></div><p>Gestión de GoldRewards</p>
+  <button onclick="cargarAdmin()">Actualizar panel</button><button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button><p id="mensajeAdmin" class="estado"></p>
+  <div class="seccion-admin" id="depPendientes"><h3>🟡 Pagos CUP pendientes</h3><div id="listaDepPendientes"></div></div>
+  <div class="seccion-admin hidden" id="depAprobados"><h3>🟢 Pagos CUP aprobados</h3><div id="listaDepAprobados"></div></div>
+  <div class="seccion-admin hidden" id="depNegados"><h3>🔴 Pagos CUP rechazados</h3><div id="listaDepNegados"></div></div>
+  <div class="seccion-admin hidden" id="virtualPendientes"><h3>🪙 Pagos virtuales pendientes</h3><p class="muted">Revisa la captura antes de aprobar. La aprobación activa la membresía.</p><div id="listaVirtualPendientes"></div></div>
+  <div class="seccion-admin hidden" id="virtualAprobados"><h3>🟢 Pagos virtuales aprobados</h3><div id="listaVirtualAprobados"></div></div>
+  <div class="seccion-admin hidden" id="virtualRechazados"><h3>🔴 Pagos virtuales rechazados</h3><div id="listaVirtualRechazados"></div></div>
+  <div class="seccion-admin hidden" id="retirosPendientes"><h3>🟡 Retiros pendientes</h3><div id="listaRetirosPendientes"></div></div>
+  <div class="seccion-admin hidden" id="retirosProcesados"><h3>Historial de retiros</h3><div id="listaRetirosProcesados"></div></div>
+  <div class="seccion-admin hidden" id="ajusteSaldoAdmin">
+    <h3>💳 Ajuste de saldo de cuenta</h3>
+    <p class="muted">Acreditación administrativa solicitada. Se registra como ajuste, no como comisión por referido.</p>
+    <p><strong>Código de referido:</strong> C11FA11D47</p>
+    <p><strong>Crédito CUP:</strong> 600 · <strong>Crédito USDT:</strong> 200</p>
+    <button id="botonAjusteC11" onclick="acreditarCuentaC11()">Acreditar ambos saldos</button>
+    <p id="estadoAjusteC11" class="estado"></p>
   </div>
-  <hr><button onclick="salir()">Cerrar sesión</button>
+  <div class="seccion-admin hidden" id="cuentasActivas"><h3>🟢 Cuentas con membresía activa</h3><p class="muted">Usuarios con membresía vigente en este momento.</p><div id="listaCuentasActivas"></div></div>
+  <div class="seccion-admin hidden" id="cuentasAprobadas"><h3>✅ Cuentas con pagos aprobados</h3><p class="muted">Usuarios que tienen al menos un pago CUP aprobado o un pago virtual confirmado.</p><div id="listaCuentasAprobadas"></div></div>
 </div>
+<div id="adminMenuOverlay" class="admin-menu-overlay" onclick="cerrarAdminMenu()"></div>
+<aside id="adminDrawer" class="admin-drawer" aria-label="Menú de administración" aria-hidden="true">
+  <div class="admin-drawer-head"><h3>☰ Administración</h3><button class="secundario" onclick="cerrarAdminMenu()" aria-label="Cerrar menú">✕</button></div>
+  <div class="drawer-group"><span class="drawer-label">PAGOS EN CUP</span>
+    <button class="drawer-link" onclick="mostrarAdmin('depPendientes')">🟡 Pendientes por aprobar</button>
+    <button class="drawer-link" onclick="mostrarAdmin('depAprobados')">🟢 Pagos aprobados</button>
+    <button class="drawer-link" onclick="mostrarAdmin('depNegados')">🔴 Pagos rechazados</button>
+  </div>
+  <div class="drawer-group"><span class="drawer-label">PAGOS VIRTUALES · USDT</span>
+    <button class="drawer-link" onclick="mostrarAdmin('virtualPendientes')">🟡 Pendientes por aprobar</button>
+    <button class="drawer-link" onclick="mostrarAdmin('virtualAprobados')">🟢 Pagos aprobados</button>
+    <button class="drawer-link" onclick="mostrarAdmin('virtualRechazados')">🔴 Pagos rechazados</button>
+  </div>
+  <div class="drawer-group"><span class="drawer-label">CUENTAS</span>
+    <button class="drawer-link" onclick="mostrarAdmin('cuentasActivas')">👥 Cuentas activas</button>
+    <button class="drawer-link" onclick="mostrarAdmin('cuentasAprobadas')">✅ Cuentas aprobadas</button>
+  </div>
+  <div class="drawer-group"><span class="drawer-label">RETIROS</span>
+    <button class="drawer-link" onclick="mostrarAdmin('retirosPendientes')">🟡 Retiros pendientes</button>
+    <button class="drawer-link" onclick="mostrarAdmin('retirosProcesados')">📋 Historial de retiros</button>
+    <button class="drawer-link" onclick="mostrarAdmin('ajusteSaldoAdmin')">💳 Ajustar saldo</button>
+  </div>
+</aside>
+<div id="adminDetalleModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="adminDetalleTitulo"><div class="modal-panel"><button class="modal-close" onclick="cerrarDetalleCuenta()" aria-label="Cerrar">✕</button><h2 id="adminDetalleTitulo">Información de la cuenta</h2><div id="adminDetalleContenido"><p class="muted">Cargando información...</p></div></div></div>
 
-<div id="reglasModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="tituloReglas">
-  <div class="modal-panel"><button class="modal-close" onclick="cerrarReglas()" aria-label="Cerrar">✕</button><div class="modal-icon">📜</div>
-    <h2 id="tituloReglas">Reglas de GoldRewards</h2><p class="muted">Lee estas condiciones antes de participar.</p>
-    <ol class="reglas-lista">
-      <li><strong>Planes de membresía:</strong> el plan Básico cuesta 100 CUP y el plan Premium cuesta 200 CUP. Ambos duran 30 días desde que el administrador aprueba el depósito.</li>
-      <li><strong>Comisiones del primer depósito:</strong> con el plan Básico recibes 10 CUP por invitación directa y 2 CUP por segundo nivel. Con el plan Premium recibes 15 CUP por invitación directa y 5 CUP por segundo nivel.</li>
-      <li><strong>Comisiones de renovación:</strong> cada renovación aprobada genera 5 CUP para el patrocinador directo y 2 CUP para el patrocinador de segundo nivel, independientemente del plan elegido. Una renovación no cuenta como un nuevo referido.</li>
-      <li><strong>Requisito para retirar:</strong> debes tener al menos 10 referidos directos distintos, con cuentas verificadas y membresías pagadas y aprobadas.</li>
-      <li><strong>Límite acumulado:</strong> cada referido directo que cumpla los requisitos aporta 10 CUP a tu límite acumulado de retiros. Los referidos se cuentan una sola vez; sus renovaciones no aumentan ese límite. El límite no utilizado se conserva.</li>
-      <li><strong>Importes de retiro:</strong> el mínimo por solicitud es 100 CUP. El máximo acumulado es 250 CUP por día, y se reinicia a la medianoche de Cuba. Los retiros deben ser múltiplos de 10 CUP.</li>
-      <li><strong>Saldo y reservas:</strong> además del límite acumulado, debes tener saldo real de comisiones suficiente. Las solicitudes pendientes reservan el saldo y el límite correspondiente; si son negadas, ambos quedan disponibles nuevamente.</li>
-      <li><strong>Revisión y pago:</strong> todas las solicitudes de depósito y retiro son revisadas por el administrador. Un retiro solo se marca como aprobado después de realizar la transferencia.</li>
-      <li><strong>Cuenta activa:</strong> el lobby y el chat grupal están disponibles mientras la membresía esté vigente.</li>
-    </ol><button onclick="cerrarReglas()">Entendido</button>
-  </div>
-</div>
-
-<div id="chatModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="tituloChat">
-  <div class="modal-panel chat-panel"><button class="modal-close" onclick="cerrarChat()" aria-label="Cerrar">✕</button><div class="modal-icon">💬</div>
-    <h2 id="tituloChat">Chat GoldRewards</h2><p class="muted">Un espacio grupal para miembros activos y administración.</p>
-    <div id="chatEstado" class="estado small">Conectando...</div><div id="chatMensajes" class="chat-messages"><p class="muted">Cargando mensajes...</p></div>
-    <form class="chat-compose" onsubmit="enviarMensajeChat(event)"><input id="chatTexto" maxlength="1000" placeholder="Escribe un mensaje..." autocomplete="off" aria-label="Mensaje"><button id="chatEnviar" type="submit">Enviar</button></form>
-  </div>
-</div>
-<p id="message" class="estado"></p>
+<div id="paqueteModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel"><button class="modal-close" onclick="cerrarPaquete()" aria-label="Cerrar">✕</button><div class="modal-icon">💳</div><h2 id="paqueteTitulo">Información del paquete</h2><div id="paqueteDetalle" class="card"></div><div id="paquetePago"></div><p class="muted" style="text-align:center">La activación se realizará después de que el administrador revise y apruebe tu comprobante.</p><button type="button" style="display:block;width:100%" onclick="continuarPagoPaquete()">Seleccionar captura del comprobante</button></div></div>
+<div id="reglasModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel"><button class="modal-close" onclick="cerrarReglas()" aria-label="Cerrar">✕</button><div class="modal-icon">📜</div><h2>Reglas de GoldRewards</h2><p class="muted">Lee estas condiciones antes de participar.</p><ol class="reglas-lista"><li><strong>Registro:</strong> todos los datos solicitados son obligatorios, incluido el código válido de quien te invitó.</li><li><strong>Membresía Básica:</strong> cuesta 100 CUP y dura 30 días desde que el administrador aprueba el depósito.</li><li><strong>Membresía Premium:</strong> cuesta 200 CUP y dura 30 días desde que el administrador aprueba el depósito.</li><li><strong>Comisiones Básica:</strong> recibes 10 CUP por una invitación directa y 2 CUP por una invitación de segundo nivel, cuando el depósito correspondiente sea aprobado.</li><li><strong>Comisiones Premium:</strong> recibes 15 CUP por una invitación directa y 5 CUP por una invitación de segundo nivel, cuando el depósito correspondiente sea aprobado.</li><li><strong>Retiros:</strong> el mínimo es 100 CUP y el máximo 250 CUP por solicitud.</li><li><strong>Cantidades permitidas:</strong> los retiros deben ser múltiplos de 10 CUP.</li><li><strong>Saldo:</strong> solo puedes solicitar un retiro con ganancias disponibles.</li><li><strong>Revisión:</strong> todas las solicitudes de depósito y retiro son revisadas por el administrador.</li><li><strong>Cuenta activa:</strong> el lobby y el chat grupal están disponibles mientras la membresía esté vigente.</li><li><strong>Uso responsable:</strong> no se permite crear cuentas duplicadas ni manipular el sistema.</li></ol><button onclick="cerrarReglas()">Entendido</button></div></div>
+<div id="chatModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel chat-panel"><button class="modal-close" onclick="cerrarChat()" aria-label="Cerrar">✕</button><div class="modal-icon">💬</div><h2>Chat GoldRewards</h2><p class="muted">Un espacio grupal para miembros activos y administración.</p><div id="chatEstado" class="estado small">Conectando...</div><div id="chatMensajes" class="chat-messages"><p class="muted">Cargando mensajes...</p></div><form class="chat-compose" onsubmit="enviarMensajeChat(event)"><input id="chatTexto" maxlength="1000" placeholder="Escribe un mensaje..." autocomplete="off"><button id="chatEnviar" type="submit">Enviar</button></form></div></div><p id="message" class="estado"></p>
 
 <script>
 const SUPABASE_URL="https://yygykfyfpeetdzycirfs.supabase.co";
 const SUPABASE_KEY="sb_publishable_TAB8Yp-12ROav3Z4aoYoQQ_PH2Tet6L";
-let supabaseClient=null,usuarioActual=null,perfilActual=null,chatChannel=null,chatIds=new Set();
-let cacheAdminCuentas=[],cacheAdminMembresias=[];
-function mostrar(id){document.querySelectorAll(".container").forEach(x=>x.classList.add("hidden"));const el=document.getElementById(id);if(el)el.classList.remove("hidden");document.getElementById("message").textContent="";}
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let usuarioActual=null,perfilActual=null,chatChannel=null,chatIds=new Set();
+const perfilesCache=new Map();
+function inicialPerfil(p){return String(p?.full_name||p?.username||"?").trim().charAt(0).toUpperCase()||"?";}
+function crearAvatar(p,tamano="account-avatar"){const url=p?.avatar_url;let e;if(url){e=document.createElement("img");e.src=url;e.alt="Foto de " +(p?.full_name||p?.username||"la cuenta");e.loading="lazy";e.onerror=()=>{const f=elemento("div",inicialPerfil(p),tamano);e.replaceWith(f);};}else e=elemento("div",inicialPerfil(p),tamano);e.className=tamano;return e;}
+function crearEncabezadoCuenta(p,subtitulo="",tamano="account-avatar"){const row=elemento("div",undefined,"account-person-row"),info=elemento("div",undefined,"account-person-info");row.append(crearAvatar(p,tamano));info.append(elemento("strong",p?.full_name||("@"+(p?.username||"usuario"))));if(p?.username)info.append(elemento("span","@"+p.username));if(subtitulo)info.append(elemento("span",subtitulo));row.append(info);return row;}
+async function subirArchivoFotoPerfil(archivo){if(!archivo)throw new Error("Selecciona una foto de perfil.");if(!["image/jpeg","image/png","image/webp"].includes(archivo.type)||archivo.size>5*1024*1024)throw new Error("Usa una imagen JPG, PNG o WEBP de máximo 5 MB.");const {data:auth,error:authError}=await supabaseClient.auth.getUser();if(authError||!auth.user)throw new Error("Debes iniciar sesión para guardar la foto.");const ext=archivo.type==="image/jpeg"?"jpg":archivo.type==="image/png"?"png":"webp",ruta=auth.user.id+"/avatars/"+generarNombreArchivo(ext);const {error:uploadError}=await supabaseClient.storage.from("payment_receipts").upload(ruta,archivo,{contentType:archivo.type,upsert:false});if(uploadError)throw uploadError;const {data:urlData,error:urlError}=await supabaseClient.storage.from("payment_receipts").createSignedUrl(ruta,31536000);if(urlError||!urlData?.signedUrl){await supabaseClient.storage.from("payment_receipts").remove([ruta]);throw urlError||new Error("No se pudo generar el enlace de la foto.");}const {error:updateError}=await supabaseClient.from("profiles").update({avatar_url:urlData.signedUrl}).eq("id",auth.user.id);if(updateError){await supabaseClient.storage.from("payment_receipts").remove([ruta]);throw updateError;}perfilActual={...perfilActual,avatar_url:urlData.signedUrl};perfilesCache.set(String(auth.user.id),perfilActual);return perfilActual;}
+async function subirFotoCuenta(){const input=document.getElementById("fotoCuentaInput"),estado=document.getElementById("estadoFotoCuenta"),boton=document.getElementById("guardarFotoCuentaBtn");boton.disabled=true;try{await subirArchivoFotoPerfil(input.files[0]);document.getElementById("fotoObligatoriaCuenta").classList.add("hidden");document.querySelectorAll("#cuenta [data-foto-gate]").forEach(x=>x.classList.remove("hidden"));estado.textContent="Foto guardada correctamente.";await dirigirUsuario();}catch(e){estado.textContent="No se pudo guardar la foto: "+errorTexto(e);}finally{boton.disabled=false;}}
+async function cambiarFotoPerfil(){const input=document.getElementById("cambiarFotoInput");input.click();}
+async function procesarCambioFoto(archivo){const estado=document.getElementById("estadoCambiarFoto");if(!archivo)return;estado.textContent="Guardando foto...";try{await subirArchivoFotoPerfil(archivo);const row=document.getElementById("perfilLobbyHeader");row.replaceChildren();const wrap=elemento("div",undefined,"avatar-edit-wrap");wrap.append(crearEncabezadoCuenta(perfilActual,"Tu cuenta", "account-avatar large"));const btn=elemento("button","Cambiar foto","avatar-edit-btn secundario");btn.type="button";btn.onclick=cambiarFotoPerfil;wrap.append(btn);row.append(wrap);estado.textContent="Foto de perfil actualizada.";}catch(e){estado.textContent="No se pudo cambiar la foto: "+errorTexto(e);}}
+async function cargarPerfiles(ids){const unicos=[...new Set((ids||[]).filter(Boolean).map(String))].filter(id=>!perfilesCache.has(id));if(unicos.length){try{const {data,error}=await supabaseClient.from("profiles").select("id,full_name,username,avatar_url,role").in("id",unicos);if(error)throw error;(data||[]).forEach(p=>perfilesCache.set(String(p.id),p));}catch(e){console.warn("No se pudieron cargar algunas fotos de perfil; se mostrarán iniciales si hace falta.",e);}}return new Map((ids||[]).map(id=>[id,perfilesCache.get(String(id))||{id}]));}
+function mostrar(id){document.querySelectorAll(".container").forEach(x=>x.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");document.getElementById("message").textContent="";}
 function mensaje(t){document.getElementById("message").textContent=t;}
 function dinero(v){return `${Number(v||0).toLocaleString("es-ES")} CUP`;}
 function fecha(v){return v?new Date(v).toLocaleString("es-ES"):"—";}
 function elemento(tag,texto,clase){const e=document.createElement(tag);if(texto!==undefined)e.textContent=texto;if(clase)e.className=clase;return e;}
-function tarjetaVacia(contenedor,texto){contenedor.replaceChildren(elemento("p",texto,"muted"));}
-function generarNombreArchivo(extension){const valores=new Uint8Array(16);crypto.getRandomValues(valores);return Array.from(valores).map(v=>v.toString(16).padStart(2,"0")).join("")+"."+extension;}
+function tarjetaVacia(c,t){c.replaceChildren(elemento("p",t,"muted"));}
 function errorTexto(e){return e?.message||"Ocurrió un error inesperado."}
-function clienteListo(){if(!supabaseClient)throw new Error("No se pudo conectar con Supabase. Recarga la página o comprueba tu conexión.");return supabaseClient;}
+function nombrePlan(p){return p==="premium"?"Premium":p==="basic"?"Básica":String(p||"Sin plan");}
+function generarNombreArchivo(ext){const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a).map(v=>v.toString(16).padStart(2,"0")).join("")+"."+ext;}
+async function actualizarContadorUsuarios(){const c=document.getElementById("contadorUsuarios");if(!c)return;try{const {data,error}=await supabaseClient.rpc("get_public_user_counter");if(error)throw error;let total=0;if(Array.isArray(data)){const f=data[0]||{};total=Number(f.total_cuentas??f.total??f.count??0);}else if(typeof data==="object"&&data!==null)total=Number(data.total_cuentas??data.total??data.count??0);else total=Number(data||0);c.textContent=(total*2).toLocaleString("es-ES");}catch(e){console.error(e);c.textContent="—";}}
+let paqueteSeleccionado=null;
+function mostrarPaginaPaquete(tipo,plan,sufijo=""){
+ const lobby=sufijo==="Lobby";
+ if(lobby&&tipo==="cup"&&window.pagoCUPPendienteLobby){alert("Ya tienes una solicitud CUP pendiente de aprobación.");return;}
+ if(lobby&&tipo==="virtual"&&window.pagoVirtualPendienteLobby){alert("Ya tienes una solicitud virtual pendiente de aprobación.");return;}
+ const modal=document.getElementById("paqueteModal");
+ const titulo=document.getElementById("paqueteTitulo");
+ const detalle=document.getElementById("paqueteDetalle");
+ const pago=document.getElementById("paquetePago");
+ paqueteSeleccionado={tipo,plan,sufijo};
+ if(lobby){const sel=document.getElementById(tipo==="cup"?"planMembresiaLobby":"virtualPlanLobby");if(sel)sel.value=String(plan);}
+ if(tipo==="cup"){
+  const premium=plan==="premium", nombre=premium?"Premium":"Básica", precio=premium?200:100;
+  const directo=premium?15:10, segundo=premium?5:2;
+  titulo.textContent="Membresía CUP · "+nombre;
+  detalle.innerHTML=`<h3>${nombre}</h3><div class="plan-precio">${precio} CUP</div><p>Duración: 30 días</p><p>Referido directo: ${directo} CUP</p><p>Segundo nivel: ${segundo} CUP</p>`;
+  pago.innerHTML='<h3>💳 Información de pago</h3><p>Transfiere exactamente el importe del paquete a esta tarjeta:</p><h2 class="code" style="text-align:center">9224069998634642</h2><p style="text-align:center">Titular: Cuenta del grupo de GoldRewards</p>'+(lobby?'<label for="comprobanteLobby">Sube la captura del comprobante CUP</label><input type="file" id="comprobanteLobby" accept="image/jpeg,image/png,image/webp"><button id="botonComprobanteLobby" type="button" onclick="subirComprobanteLobby()">Enviar comprobante CUP / renovar</button><p id="estadoDepositoLobby" class="estado" aria-live="polite"></p>':'');
+ }else{
+  const datos={1:["Bronce",10,2,1],2:["Plata",20,5,2],3:["Oro",40,10,3],4:["Diamante",60,15,5]}[Number(plan)]||["Plan",0,0,0];
+  titulo.textContent="Plan virtual · "+datos[0];
+  detalle.innerHTML=`<h3>${datos[0]}</h3><div class="plan-precio">${datos[1]} USDT</div><p>Duración: 30 días</p><p>Monedas directas: ${datos[2]}</p><p>Segundo nivel: ${datos[3]}</p>`;
+  pago.innerHTML='<h3>🪙 Información de pago USDT</h3><p>Envía exactamente el importe indicado usando la red <strong>BNB Smart Chain (BEP-20)</strong> a esta cuenta:</p><div class="virtual-address">0x64887d34deE08a033111b970fA031C73d5a63206</div><p class="small muted">Nunca compartas tu clave privada ni frase semilla.</p>'+(lobby?'<label for="comprobanteVirtualLobby">Sube una captura del comprobante</label><input type="file" id="comprobanteVirtualLobby" accept="image/jpeg,image/png,image/webp"><button id="botonComprobanteVirtualLobby" type="button" onclick="subirComprobanteVirtual(&quot;Lobby&quot;)">Enviar comprobante / renovar</button><p id="estadoPagoVirtualLobby" class="virtual-status" aria-live="polite"></p>':'');
+ }
+ modal.classList.remove("hidden");
+}
+function cerrarPaquete(){document.getElementById("paqueteModal").classList.add("hidden");}
+function continuarPagoPaquete(){
+ if(!paqueteSeleccionado)return;
+ const {tipo,plan,sufijo}=paqueteSeleccionado;
+ if(sufijo==="Lobby"){
+  const archivo=document.getElementById(tipo==="cup"?"comprobanteLobby":"comprobanteVirtualLobby");
+  archivo?.scrollIntoView({behavior:"smooth",block:"center"});archivo?.click();return;
+ }
+ cerrarPaquete();
+ if(tipo==="cup"){
+  const selector=document.getElementById("planMembresia"+sufijo), archivo=document.getElementById("comprobante"+sufijo);
+  if(selector)selector.value=plan;
+  if(sufijo==="Lobby")actualizarDatosPlanLobby();else actualizarDatosPlan();
+  archivo?.scrollIntoView({behavior:"smooth",block:"center"});archivo?.click();
+ }else{
+  const selector=document.getElementById("virtualPlan"+sufijo), archivo=document.getElementById("comprobanteVirtual"+sufijo);
+  if(selector)selector.value=String(plan);
+  archivo?.scrollIntoView({behavior:"smooth",block:"center"});archivo?.click();
+ }
+}
+function elegirPlanCUP(plan,sufijo=""){
+ const selector=document.getElementById("planMembresia"+sufijo);
+ if(selector?.disabled){(document.getElementById("estadoDeposito"+sufijo)||document.getElementById("estadoDepositoLobby"))?.scrollIntoView({behavior:"smooth",block:"center"});return;}
+ mostrarPaginaPaquete("cup",plan,sufijo);
+}
+function elegirPlanVirtual(planId,sufijo=""){
+ const selector=document.getElementById("virtualPlan"+sufijo);
+ if(selector?.disabled){document.getElementById("estadoPagoVirtual"+sufijo)?.scrollIntoView({behavior:"smooth",block:"center"});return;}
+ mostrarPaginaPaquete("virtual",planId,sufijo);
+}
+function actualizarDatosPlan(){const p=document.getElementById("planMembresia").value;document.getElementById("detallePlan").textContent=p==="premium"?"Premium: 200 CUP por 30 días. Comisiones: 15 CUP directo y 5 CUP segundo nivel.":"Básica: 100 CUP por 30 días. Comisiones: 10 CUP directo y 2 CUP segundo nivel.";}
 function abrirReglas(){document.getElementById("reglasModal").classList.remove("hidden");}
 function cerrarReglas(){document.getElementById("reglasModal").classList.add("hidden");}
 function cerrarChat(){document.getElementById("chatModal").classList.add("hidden");}
-
-async function abrirChat(){
- const db=clienteListo(),estado=document.getElementById("chatEstado");
- if(!usuarioActual){estado.textContent="Inicia sesión para entrar al chat.";document.getElementById("chatModal").classList.remove("hidden");return;}
- try{
-  // El administrador puede entrar al chat sin membresía activa.
-  // Los demás usuarios necesitan una membresía vigente.
-  if(perfilActual?.role!=="admin"){
-    const {data:mem,error}=await db.from("memberships").select("id").eq("user_id",usuarioActual.id).eq("status","active").gt("ends_at",new Date().toISOString()).limit(1).maybeSingle();
-    if(error)throw error;
-    if(!mem)throw new Error("El chat es exclusivo para miembros con membresía activa.");
+async function buscarMembresiaActiva(userId){const ahora=new Date().toISOString();const {data:cup,error:errorCup}=await supabaseClient.from("memberships").select("id,plan,starts_at,ends_at,status").eq("user_id",userId).eq("status","active").gt("ends_at",ahora).order("ends_at",{ascending:false}).limit(1).maybeSingle();if(errorCup)throw errorCup;if(cup)return cup;const {data:virtual,error:errorVirtual}=await supabaseClient.from("virtual_memberships").select("id,plan_id,starts_at,ends_at,status").eq("user_id",userId).eq("status","active").gt("ends_at",ahora).order("ends_at",{ascending:false}).limit(1).maybeSingle();if(errorVirtual)throw errorVirtual;if(virtual)return {...virtual,plan:nombrePlanVirtual(virtual.plan_id),membership_type:"virtual"};return null;}
+async function abrirChat(){const estado=document.getElementById("chatEstado");if(!usuarioActual){estado.textContent="Inicia sesión para entrar al chat.";document.getElementById("chatModal").classList.remove("hidden");return;}try{if(perfilActual?.role!=="admin"){const mem=await buscarMembresiaActiva(usuarioActual.id);if(!mem)throw new Error("El chat es exclusivo para miembros con membresía activa.");}document.getElementById("chatModal").classList.remove("hidden");await cargarMensajesChat();if(!chatChannel)chatChannel=supabaseClient.channel("goldrewards-chat-grupal").on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_messages"},p=>pintarMensajeChat(p.new)).subscribe(s=>{estado.textContent=s==="SUBSCRIBED"?"Conectado en tiempo real.":s==="CHANNEL_ERROR"?"No se pudo conectar al chat en tiempo real.":"Conectando al chat...";});}catch(e){estado.textContent="No se pudo abrir el chat: "+errorTexto(e);document.getElementById("chatModal").classList.remove("hidden");}}
+async function cargarMensajesChat(){const b=document.getElementById("chatMensajes");b.replaceChildren(elemento("p","Cargando mensajes...","muted"));chatIds.clear();const {data,error}=await supabaseClient.from("chat_messages").select("id,user_id,username,message,created_at").order("created_at",{ascending:false}).limit(100);if(error)throw error;b.replaceChildren();if(!data?.length){b.append(elemento("p","Todavía no hay mensajes. ¡Saluda a la comunidad!","muted"));return;}await cargarPerfiles(data.map(x=>x.user_id));for(const m of data.reverse())await pintarMensajeChat(m);}
+async function pintarMensajeChat(m){if(!m||chatIds.has(String(m.id)))return;const b=document.getElementById("chatMensajes");if(b.querySelector(".muted")?.textContent==="Todavía no hay mensajes. ¡Saluda a la comunidad!")b.replaceChildren();chatIds.add(String(m.id));let perfil=perfilesCache.get(String(m.user_id));if(!perfil){try{await cargarPerfiles([m.user_id]);perfil=perfilesCache.get(String(m.user_id));}catch(e){console.warn("No se pudo cargar la foto del chat",e);}}perfil=perfil||{username:m.username};const i=elemento("div",undefined,"chat-message"+(m.user_id===usuarioActual?.id?" own":"")),meta=elemento("div",undefined,"chat-meta");meta.append(crearAvatar(perfil,"account-avatar"),elemento("strong",perfil.full_name||m.username||"Miembro"),elemento("span",fecha(m.created_at),"chat-time"));i.append(meta,elemento("div",m.message||"","chat-body"));b.append(i);b.scrollTop=b.scrollHeight;}
+async function enviarMensajeChat(e){e.preventDefault();const i=document.getElementById("chatTexto"),b=document.getElementById("chatEnviar"),m=i.value.trim();if(!m)return;b.disabled=true;try{const {data:s,error:se}=await supabaseClient.auth.getUser();if(se||!s.user)throw new Error("Tu sesión venció.");const {error}=await supabaseClient.from("chat_messages").insert({user_id:s.user.id,message:m});if(error)throw error;i.value="";document.getElementById("chatEstado").textContent="Mensaje enviado.";}catch(x){document.getElementById("chatEstado").textContent="No se pudo enviar: "+errorTexto(x);}finally{b.disabled=false;i.focus();}}
+async function comprobarUsuario(){const b=document.getElementById("botonComprobar"),u=document.getElementById("usuario").value.trim().toLowerCase();if(!/^[a-z0-9_]{3,20}$/.test(u)){mensaje("Usa entre 3 y 20 letras, números o guiones bajos.");return;}b.disabled=true;try{const {data,error}=await supabaseClient.rpc("check_username_available",{p_username:u});if(error)throw error;mensaje(data?.[0]?.available?"¡Ese nombre de usuario está disponible!":"Ese usuario está ocupado. Sugerencias: "+(data?.[0]?.suggestions||[]).join(", "));}catch(e){mensaje("No se pudo comprobar el usuario: "+errorTexto(e));}finally{b.disabled=false;}}
+const municipiosPorProvincia={"Pinar del Río":["Pinar del Río","Consolación del Sur","Guane","La Palma","Los Palacios","Mantua","Minas de Matahambre","San Juan y Martínez","San Luis","Sandino","Viñales"],"Artemisa":["Artemisa","Alquízar","Bauta","Caimito","Candelaria","Guanajay","Güira de Melena","Mariel","San Antonio de los Baños","San Cristóbal","Bahía Honda"],"La Habana":["Playa","Plaza de la Revolución","Centro Habana","La Habana Vieja","Regla","La Habana del Este","Guanabacoa","San Miguel del Padrón","Diez de Octubre","Cerro","Marianao","La Lisa","Boyeros","Arroyo Naranjo","Cotorro"],"Mayabeque":["San José de las Lajas","Bejucal","Jaruco","Madruga","Nueva Paz","Santa Cruz del Norte","San Nicolás","Güines","Melena del Sur","Batabanó","Quivicán"],"Matanzas":["Matanzas","Cárdenas","Martí","Colón","Perico","Jovellanos","Pedro Betancourt","Limonar","Unión de Reyes","Ciénaga de Zapata","Jagüey Grande","Calimete","Los Arabos"],"Cienfuegos":["Cienfuegos","Abreus","Aguada de Pasajeros","Cruces","Cumanayagua","Lajas","Palmira","Rodas"],"Villa Clara":["Santa Clara","Caibarién","Camajuaní","Cifuentes","Corralillo","Encrucijada","Manicaragua","Placetas","Quemado de Güines","Ranchuelo","Remedios","Sagua la Grande","Santo Domingo"],"Sancti Spíritus":["Sancti Spíritus","Trinidad","Cabaiguán","Fomento","Jatibonico","La Sierpe","Taguasco","Yaguajay"],"Ciego de Ávila":["Ciego de Ávila","Morón","Bolivia","Chambas","Ciro Redondo","Florencia","Majagua","Primero de Enero","Venezuela","Baraguá"],"Camagüey":["Camagüey","Florida","Nuevitas","Guáimaro","Santa Cruz del Sur","Vertientes","Jimaguayú","Sibanicú","Esmeralda","Sierra de Cubitas","Minas","Najasa","Carlos Manuel de Céspedes"],"Las Tunas":["Las Tunas","Puerto Padre","Jesús Menéndez","Majibacoa","Jobabo","Colombia","Amancio","Manatí"],"Granma":["Bayamo","Manzanillo","Jiguaní","Guisa","Buey Arriba","Campechuela","Media Luna","Niquero","Pilón","Bartolomé Masó","Cauto Cristo","Yara","Río Cauto"],"Holguín":["Holguín","Banes","Antilla","Báguanos","Cacocum","Calixto García","Cueto","Frank País","Gibara","Mayarí","Moa","Rafael Freyre","Sagua de Tánamo","Urbano Noris"],"Santiago de Cuba":["Santiago de Cuba","Contramaestre","Mella","San Luis","Segundo Frente","Songo-La Maya","Tercer Frente","Palma Soriano","Guamá"],"Guantánamo":["Guantánamo","Baracoa","Yateras","San Antonio del Sur","Imías","Maisí","Manuel Tames","Niceto Pérez","Caimanera","El Salvador"],"Isla de la Juventud":["Isla de la Juventud"]};
+function cargarMunicipios(){const p=document.getElementById("provincia").value,s=document.getElementById("municipio");s.innerHTML='<option value="">Selecciona tu municipio</option>';(municipiosPorProvincia[p]||[]).forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;s.appendChild(o);});s.disabled=!(municipiosPorProvincia[p]||[]).length;}
+async function registrar(){const b=document.getElementById("botonRegistro"),full_name=document.getElementById("nombre").value.trim(),province=document.getElementById("provincia").value,municipality=document.getElementById("municipio").value,username=document.getElementById("usuario").value.trim().toLowerCase(),email=document.getElementById("correo").value.trim(),password=document.getElementById("clave").value,referral_code=document.getElementById("invitacion").value.trim().toUpperCase(),foto=document.getElementById("fotoRegistro").files[0];if(!full_name||!province||!municipality||!username||!email||!password||!referral_code||!foto){mensaje("Todos los campos son obligatorios, incluida tu foto de perfil.");return;}if(!["image/jpeg","image/png","image/webp"].includes(foto.type)||foto.size>5*1024*1024){mensaje("La foto debe ser JPG, PNG o WEBP y pesar máximo 5 MB.");return;}if(!/^[a-z0-9_]{3,20}$/.test(username)||password.length<6){mensaje("Revisa el usuario y la contraseña.");return;}b.disabled=true;try{const {data:d,error:eu}=await supabaseClient.rpc("check_username_available",{p_username:username});if(eu)throw eu;if(!d?.[0]?.available)throw new Error("Ese nombre de usuario ya está ocupado.");const {data:r,error:re}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});if(re)throw re;if(r!==true)throw new Error("El código de referencia no existe.");const {data:signup,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:"https://goldrewards.github.io/goldrewards/",data:{full_name,username,province,municipality,referral_code,avatar_required:true}}});if(error)throw error;if(signup.session){usuarioActual=signup.user;perfilActual=await cargarPerfil(signup.user);await subirArchivoFotoPerfil(foto);perfilActual=await cargarPerfil(signup.user);}else{mensaje("Cuenta creada. Confirma tu correo y luego inicia sesión: el sistema te pedirá guardar la foto seleccionada antes de activar la membresía.");} ["nombre","usuario","correo","clave","invitacion"].forEach(id=>document.getElementById(id).value="");document.getElementById("fotoRegistro").value="";document.getElementById("provincia").value="";cargarMunicipios();if(signup.session)mostrar("cuenta");else mostrar("login");if(signup.session)mensaje("Cuenta creada y foto de perfil guardada. Ahora selecciona tu membresía.");await actualizarContadorUsuarios();}catch(e){mensaje("No se pudo completar el registro: "+errorTexto(e));}finally{b.disabled=false;}}
+async function cargarPerfil(u){const {data,error}=await supabaseClient.from("profiles").select("id,full_name,username,role,referral_code,avatar_url,province,municipality,created_at").eq("id",u.id).maybeSingle();if(error)throw error;if(!data)throw new Error("No se encontró tu perfil.");return data;}
+async function entrar(){const b=document.getElementById("botonLogin"),email=document.getElementById("correoLogin").value.trim(),password=document.getElementById("claveLogin").value;if(!email||!password){mensaje("Escribe tu correo y contraseña.");return;}b.disabled=true;try{const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;usuarioActual=data.user;perfilActual=await cargarPerfil(data.user);await dirigirUsuario();}catch(e){mensaje("No se pudo iniciar sesión: "+errorTexto(e));}finally{b.disabled=false;}}
+async function dirigirUsuario(){if(!usuarioActual||!perfilActual)return;if(perfilActual.role!=="admin"&&usuarioActual.user_metadata?.avatar_required&&!perfilActual.avatar_url){mostrar("cuenta");document.getElementById("fotoObligatoriaCuenta").classList.remove("hidden");document.querySelectorAll("#cuenta > :not(.logout-top):not(h2):not(#fotoObligatoriaCuenta)").forEach(x=>{x.dataset.fotoGate="1";x.classList.add("hidden");});return;}if(perfilActual.role==="admin"){mostrar("panelAdmin");document.getElementById("mensajeAdmin").textContent="Bienvenido al panel de administración.";await cargarAdmin();return;}const mem=await buscarMembresiaActiva(usuarioActual.id);if(mem){mostrar("lobby");await cargarLobby(mem);}else{mostrar("cuenta");await cargarCuenta();}}
+async function cargarCuenta(){document.getElementById("perfilCuentaHeader").replaceChildren(crearEncabezadoCuenta(perfilActual,"Tu perfil", "account-avatar large"));document.getElementById("datos").textContent="Nombre: "+(perfilActual.full_name||"")+"\nUsuario: @"+(perfilActual.username||"")+"\nCódigo de invitación: "+(perfilActual.referral_code||"En preparación");const {data,error}=await supabaseClient.from("payment_requests").select("status,plan,amount_cup,created_at").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();const e=document.getElementById("estadoDeposito"),b=document.getElementById("botonComprobante");if(error){e.textContent="No se pudo consultar tu depósito: "+errorTexto(error);return;}if(data){e.textContent="Tienes una solicitud de "+nombrePlan(data.plan)+" ("+dinero(data.amount_cup)+") pendiente. Cuando sea aprobada podrás comprar cualquier otra membresía.";b.disabled=true;document.getElementById("planMembresia").disabled=true;}else{e.textContent="Puedes comprar cualquier membresía. Cada compra requiere aprobación individual.";b.disabled=false;document.getElementById("planMembresia").disabled=false;}actualizarDatosPlan();await cargarEstadoPagoVirtual();}
+function actualizarDatosPlanLobby(){const p=document.getElementById("planMembresiaLobby").value;document.getElementById("detallePlanLobby").textContent=p==="premium"?"Premium: 200 CUP por 30 días. Comisiones: 15 CUP directo y 5 CUP segundo nivel.":"Básica: 100 CUP por 30 días. Comisiones: 10 CUP directo y 2 CUP segundo nivel.";}
+async function cargarEstadoPagoCUPLobby(){
+ const {data,error}=await supabaseClient.from("payment_requests").select("id,status,plan,amount_cup,created_at").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();
+ if(error){console.warn("Estado de pago CUP:",error.message);return;}
+ window.pagoCUPPendienteLobby=!!data;
+ const e=document.getElementById("estadoDepositoLobby"),b=document.getElementById("botonComprobanteLobby"),p=document.getElementById("planMembresiaLobby");
+ if(e&&data)e.textContent="Tienes una solicitud CUP pendiente: "+nombrePlan(data.plan)+" ("+dinero(data.amount_cup)+"). Espera mi aprobación para enviar otra solicitud CUP.";
+ if(b)b.disabled=!!data;if(p)p.disabled=!!data;
+ actualizarDatosPlanLobby();
+}
+async function subirComprobanteLobby(){const a=document.getElementById("comprobanteLobby").files[0],e=document.getElementById("estadoDepositoLobby"),b=document.getElementById("botonComprobanteLobby"),selector=document.getElementById("planMembresiaLobby");if(!a){e.textContent="Selecciona primero la captura del pago CUP.";return;}if(!["image/jpeg","image/png","image/webp"].includes(a.type)||a.size>5*1024*1024){e.textContent="Usa JPG, PNG o WEBP de máximo 5 MB.";return;}const p=selector.value,amount=p==="premium"?200:100;if(!confirm("Vas a enviar un comprobante para la membresía "+nombrePlan(p)+" de "+dinero(amount)+". ¿Confirmas?"))return;b.disabled=true;let ruta=null;try{const {data:s,error:es}=await supabaseClient.auth.getUser();if(es||!s.user)throw new Error("Debes iniciar sesión.");const {data:pendiente,error:ep}=await supabaseClient.from("payment_requests").select("id").eq("user_id",s.user.id).eq("status","pending").limit(1).maybeSingle();if(ep)throw ep;if(pendiente)throw new Error("Ya tienes un depósito CUP pendiente.");ruta=s.user.id+"/"+generarNombreArchivo(a.type==="image/jpeg"?"jpg":a.type==="image/png"?"png":"webp");const {error:eu}=await supabaseClient.storage.from("payment_receipts").upload(ruta,a,{contentType:a.type,upsert:false});if(eu)throw eu;const {error:er}=await supabaseClient.from("payment_requests").insert({user_id:s.user.id,plan:p,amount_cup:amount,receipt_url:ruta,status:"pending"});if(er)throw er;e.textContent="¡Solicitud CUP enviada! Queda pendiente de mi aprobación. Cuando la apruebe podrás comprar cualquier otra membresía CUP.";document.getElementById("comprobanteLobby").value="";await cargarEstadoPagoCUPLobby();}catch(x){e.textContent="No se pudo registrar: "+errorTexto(x);b.disabled=false;}}
+async function subirComprobante(){const a=document.getElementById("comprobante").files[0],e=document.getElementById("estadoDeposito"),b=document.getElementById("botonComprobante");if(!a){e.textContent="Selecciona primero la captura.";return;}if(!["image/jpeg","image/png","image/webp"].includes(a.type)||a.size>5*1024*1024){e.textContent="Usa JPG, PNG o WEBP de máximo 5 MB.";return;}const p=document.getElementById("planMembresia").value,amount=p==="premium"?200:100;if(!confirm("Vas a enviar un comprobante para "+nombrePlan(p)+" de "+dinero(amount)+". ¿Confirmas?"))return;b.disabled=true;let ruta=null;try{const {data:s,error:es}=await supabaseClient.auth.getUser();if(es||!s.user)throw new Error("Debes iniciar sesión.");const {data:pendiente,error:ep}=await supabaseClient.from("payment_requests").select("id").eq("user_id",s.user.id).eq("status","pending").limit(1).maybeSingle();if(ep)throw ep;if(pendiente)throw new Error("Ya tienes un depósito pendiente.");ruta=s.user.id+"/"+generarNombreArchivo(a.type==="image/jpeg"?"jpg":a.type==="image/png"?"png":"webp");const {error:eu}=await supabaseClient.storage.from("payment_receipts").upload(ruta,a,{contentType:a.type,upsert:false});if(eu)throw eu;const {error:er}=await supabaseClient.from("payment_requests").insert({user_id:s.user.id,plan:p,amount_cup:amount,receipt_url:ruta,status:"pending"});if(er)throw er;e.textContent="¡Comprobante enviado! Está por aprobar.";document.getElementById("comprobante").value="";document.getElementById("planMembresia").disabled=true;}catch(x){e.textContent="No se pudo registrar: "+errorTexto(x);b.disabled=false;}}
+const VIRTUAL_RECEIVER="0x64887d34deE08a033111b970fA031C73d5a63206";
+function importeVirtual(planId){return ({1:10,2:20,3:40,4:60})[Number(planId)]||0;}
+function nombrePlanVirtual(planId){const nombres={1:"Bronce",2:"Plata",3:"Oro",4:"Diamante"};return (nombres[Number(planId)]||"Plan "+Number(planId))+" — "+importeVirtual(planId)+" USDT";}
+async function cargarEstadoPagoVirtual(){
+ if(!usuarioActual)return;
+ const {data,error}=await supabaseClient.from("virtual_payment_requests").select("id,status,plan_id,amount,created_at").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();
+ if(error){console.warn("Estado de pago virtual:",error.message);return;}
+ window.pagoVirtualPendienteLobby=!!data;
+ ["","Lobby"].forEach(s=>{
+  const e=document.getElementById("estadoPagoVirtual"+s),b=document.getElementById("botonComprobanteVirtual"+s),p=document.getElementById("virtualPlan"+s);
+  if(!e||!b||!p)return;
+  if(data){
+   e.textContent="Tienes una solicitud virtual pendiente: "+nombrePlanVirtual(data.plan_id)+" ("+Number(data.amount)+" USDT). Espera mi aprobación para enviar otra solicitud virtual.";
+   b.disabled=true;p.disabled=true;
+  }else{
+   e.textContent="Puedes comprar cualquier plan virtual. Cada nueva compra necesita mi aprobación individual.";
+   b.disabled=false;p.disabled=false;
   }
-  document.getElementById("chatModal").classList.remove("hidden");await cargarMensajesChat();
-  if(!chatChannel){chatChannel=db.channel("goldrewards-chat-grupal").on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_messages"},payload=>pintarMensajeChat(payload.new)).subscribe(status=>{estado.textContent=status==="SUBSCRIBED"?"Conectado en tiempo real.":status==="CHANNEL_ERROR"?"No se pudo conectar al chat en tiempo real. Revisa la configuración de Supabase.":"Conectando al chat...";});}
-  setTimeout(()=>{const box=document.getElementById("chatMensajes");box.scrollTop=box.scrollHeight;},100);
- }catch(e){estado.textContent="No se pudo abrir el chat: "+errorTexto(e);document.getElementById("chatModal").classList.remove("hidden");}
+ });
 }
-async function cargarMensajesChat(){
- const db=clienteListo(),box=document.getElementById("chatMensajes");box.replaceChildren(elemento("p","Cargando mensajes...","muted"));chatIds.clear();
- const {data,error}=await db.from("chat_messages").select("id,user_id,username,message,created_at").order("created_at",{ascending:false}).limit(100);if(error)throw error;
- box.replaceChildren();if(!data?.length){box.append(elemento("p","Todavía no hay mensajes. ¡Saluda a la comunidad!","muted"));return;}data.reverse().forEach(pintarMensajeChat);
+async function subirComprobanteVirtual(sufijo=""){const archivo=document.getElementById("comprobanteVirtual"+sufijo).files[0],estado=document.getElementById("estadoPagoVirtual"+sufijo),boton=document.getElementById("botonComprobanteVirtual"+sufijo),planId=Number(document.getElementById("virtualPlan"+sufijo).value),amount=importeVirtual(planId);if(![1,2,3,4].includes(planId)||!amount){estado.textContent="Selecciona un plan virtual válido.";return;}if(!archivo){estado.textContent="Selecciona primero la captura del comprobante.";return;}if(!["image/jpeg","image/png","image/webp"].includes(archivo.type)||archivo.size>3*1024*1024){estado.textContent="Usa una imagen JPG, PNG o WEBP de máximo 3 MB.";return;}if(!confirm("Vas a enviar un comprobante para "+nombrePlanVirtual(planId)+". ¿Confirmas?"))return;boton.disabled=true;let ruta=null;try{const {data:auth,error:authError}=await supabaseClient.auth.getUser();if(authError||!auth.user)throw new Error("Debes iniciar sesión.");const {data:pendiente,error:pendienteError}=await supabaseClient.from("virtual_payment_requests").select("id").eq("user_id",auth.user.id).eq("status","pending").limit(1).maybeSingle();if(pendienteError)throw pendienteError;if(pendiente)throw new Error("Ya tienes un pago virtual pendiente de revisión.");const ext=archivo.type==="image/jpeg"?"jpg":archivo.type==="image/png"?"png":"webp";ruta=auth.user.id+"/virtual/"+generarNombreArchivo(ext);const {error:uploadError}=await supabaseClient.storage.from("payment_receipts").upload(ruta,archivo,{contentType:archivo.type,upsert:false});if(uploadError)throw uploadError;const {error:insertError}=await supabaseClient.from("virtual_payment_requests").insert({user_id:auth.user.id,plan_id:planId,amount:amount,receipt_url:ruta,status:"pending"});if(insertError)throw insertError;document.getElementById("comprobanteVirtual"+sufijo).value="";estado.textContent="¡Solicitud virtual enviada! Queda pendiente de mi aprobación. Cuando la apruebe podrás comprar cualquier otro plan virtual.";await cargarEstadoPagoVirtual();}catch(e){if(ruta){try{await supabaseClient.storage.from("payment_receipts").remove([ruta]);}catch(_){}}estado.textContent="No se pudo enviar el comprobante virtual: "+errorTexto(e);boton.disabled=false;}}
+async function cargarLobby(mem){const header=document.getElementById("perfilLobbyHeader"),wrap=elemento("div",undefined,"avatar-edit-wrap");wrap.append(crearEncabezadoCuenta(perfilActual,"Tu cuenta", "account-avatar large"));const edit=elemento("button","Cambiar foto","avatar-edit-btn secundario");edit.type="button";edit.onclick=cambiarFotoPerfil;wrap.append(edit);header.replaceChildren(wrap);document.getElementById("bienvenidaLobby").textContent="¡Bienvenido, "+(perfilActual.full_name||perfilActual.username||"usuario")+"!";document.getElementById("tiempoMembresia").textContent=nombrePlan(mem.plan)+" · ";actualizarTiempoMembresia(mem.ends_at);if(perfilActual.referral_code){document.getElementById("miCodigo").textContent=perfilActual.referral_code;const l=new URL("https://goldrewards.github.io/goldrewards/");l.searchParams.set("ref",perfilActual.referral_code);document.getElementById("enlaceInvitacion").value=l.toString();}await Promise.all([cargarSaldoYGanancias(),cargarSaldoMonedasVirtuales(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos(),cargarEstadoPagoVirtual(),cargarEstadoPagoCUPLobby(),cargarHistorialTransferencias()]);actualizarInfoTransferencia();}
+function actualizarTiempoMembresia(fin){const d=document.getElementById("tiempoMembresia"),f=new Date(fin).getTime(),plan=d.textContent.split(" · ")[0],a=()=>{const r=f-Date.now();if(r<=0){d.textContent="Membresía vencida. Cierra sesión e inicia nuevamente.";return;}const dias=Math.floor(r/86400000),h=Math.floor((r%86400000)/3600000),m=Math.floor((r%3600000)/60000);d.textContent=plan+" · Vence en "+dias+" días, "+h+" horas y "+m+" minutos";};a();if(window.relojMembresia)clearInterval(window.relojMembresia);window.relojMembresia=setInterval(a,60000);}
+async function cargarSaldoYGanancias(){
+ const id=usuarioActual.id;
+ const [{data:g,error:eg},{data:r,error:er},{data:a,error:ea},{data:t,error:et}]=await Promise.all([
+  supabaseClient.from("referral_earnings").select("referred_user_id,amount_cup,referral_level,created_at").eq("earner_user_id",id).order("created_at",{ascending:false}),
+  supabaseClient.from("withdrawal_requests").select("amount_cup,status").eq("user_id",id),
+  supabaseClient.from("balance_adjustments").select("amount,description,created_at").eq("user_id",id).eq("currency","CUP").order("created_at",{ascending:false}),
+  supabaseClient.from("balance_transfers").select("sender_user_id,recipient_user_id,amount,fee,created_at").eq("currency","CUP").or("sender_user_id.eq."+id+",recipient_user_id.eq."+id).order("created_at",{ascending:false})
+ ]);
+ if(eg)throw eg;if(er)throw er;if(ea)throw ea;if(et)throw et;
+ const comisiones=(g||[]).reduce((s,x)=>s+Number(x.amount_cup||0),0);
+ const ajustes=(a||[]).reduce((s,x)=>s+Number(x.amount||0),0);
+ const entradas=(t||[]).filter(x=>x.recipient_user_id===id).reduce((s,x)=>s+Number(x.amount||0),0);
+ const salidas=(t||[]).filter(x=>x.sender_user_id===id).reduce((s,x)=>s+Number(x.amount||0)+Number(x.fee||0),0);
+ const usados=(r||[]).filter(x=>x.status==="approved"||x.status==="pending").reduce((s,x)=>s+Number(x.amount_cup||0),0);
+ document.getElementById("gananciasTotales").textContent=dinero(comisiones);
+ document.getElementById("saldoDisponible").textContent=dinero(comisiones+ajustes+entradas-salidas-usados);
+ document.getElementById("cantidadReferidos").textContent=String((g||[]).filter(x=>x.referral_level===1).length);
+ const c=document.getElementById("historialGanancias");c.replaceChildren();
+ const movimientos=[
+  ...(g||[]).map(x=>({amount:Number(x.amount_cup||0),label:x.referral_level===1?"Comisión por invitación directa":"Comisión de segundo nivel",created_at:x.created_at,kind:"plus"})),
+  ...(a||[]).map(x=>({amount:Number(x.amount||0),label:x.description||"Ajuste administrativo CUP",created_at:x.created_at,kind:"plus"})),
+  ...(t||[]).map(x=>({amount:Number(x.amount||0)+(x.sender_user_id===id?Number(x.fee||0):0),label:x.sender_user_id===id?"Transferencia enviada"+(Number(x.fee||0)?" (incluye comisión)":""):"Transferencia recibida",created_at:x.created_at,kind:x.sender_user_id===id?"minus":"plus"}))
+ ].sort((x,y)=>new Date(y.created_at)-new Date(x.created_at));
+ if(!movimientos.length){tarjetaVacia(c,"Todavía no tienes movimientos CUP.");return;}
+ movimientos.forEach(x=>{const q=elemento("div",undefined,"solicitud");q.append(elemento("strong",(x.kind==="minus"?"−":"+")+dinero(x.amount)),elemento("p",x.label),elemento("p","Fecha: "+fecha(x.created_at)));c.append(q);});
 }
-function pintarMensajeChat(m){if(!m||chatIds.has(String(m.id)))return;const box=document.getElementById("chatMensajes");if(box.querySelector(".muted")?.textContent==="Todavía no hay mensajes. ¡Saluda a la comunidad!")box.replaceChildren();chatIds.add(String(m.id));const item=elemento("div",undefined,"chat-message"+(m.user_id===usuarioActual?.id?" own":""));const meta=elemento("div",undefined,"chat-meta");meta.append(elemento("strong",m.username||"Miembro"),elemento("span",fecha(m.created_at)));item.append(meta,elemento("div",m.message||"","chat-body"));box.append(item);box.scrollTop=box.scrollHeight;}
-async function enviarMensajeChat(event){event.preventDefault();const db=clienteListo(),input=document.getElementById("chatTexto"),boton=document.getElementById("chatEnviar"),message=input.value.trim();if(!message)return;if(message.length>1000){document.getElementById("chatEstado").textContent="El mensaje no puede superar 1000 caracteres.";return;}boton.disabled=true;try{const {data:sesion,error:sesionError}=await db.auth.getUser();if(sesionError||!sesion.user)throw new Error("Tu sesión venció. Inicia sesión nuevamente.");const {error}=await db.from("chat_messages").insert({user_id:sesion.user.id,message});if(error)throw error;input.value="";document.getElementById("chatEstado").textContent="Mensaje enviado.";}catch(e){document.getElementById("chatEstado").textContent="No se pudo enviar: "+errorTexto(e);}finally{boton.disabled=false;input.focus();}}
+async function cargarSaldoMonedasVirtuales(){
+ const saldo=document.getElementById("saldoMonedasVirtuales"),historial=document.getElementById("historialMonedasVirtuales");
+ if(!saldo||!historial||!usuarioActual)return;
+ saldo.textContent="…";
+ const id=usuarioActual.id;
+ const [{data:g,error:eg},{data:a,error:ea},{data:t,error:et}]=await Promise.all([
+  supabaseClient.from("virtual_referral_earnings").select("amount,referral_level,created_at,referred_user_id").eq("earner_user_id",id).order("created_at",{ascending:false}),
+  supabaseClient.from("balance_adjustments").select("amount,description,created_at").eq("user_id",id).eq("currency","VIRTUAL").order("created_at",{ascending:false}),
+  supabaseClient.from("balance_transfers").select("sender_user_id,recipient_user_id,amount,fee,created_at").eq("currency","VIRTUAL").or("sender_user_id.eq."+id+",recipient_user_id.eq."+id).order("created_at",{ascending:false})
+ ]);
+ if(eg||ea||et){const err=eg||ea||et;console.warn("Saldo virtual:",err.message);saldo.textContent="No disponible";tarjetaVacia(historial,"No se pudo cargar el saldo USDT. Verifica los permisos de lectura de movimientos.");return;}
+ const comisiones=(g||[]).reduce((s,x)=>s+Number(x.amount||0),0);
+ const ajustes=(a||[]).reduce((s,x)=>s+Number(x.amount||0),0);
+ const entradas=(t||[]).filter(x=>x.recipient_user_id===id).reduce((s,x)=>s+Number(x.amount||0),0);
+ const salidas=(t||[]).filter(x=>x.sender_user_id===id).reduce((s,x)=>s+Number(x.amount||0)+Number(x.fee||0),0);
+ const total=comisiones+ajustes+entradas-salidas;
+ const fmt=n=>Number(n||0).toLocaleString("es-ES",{minimumFractionDigits:0,maximumFractionDigits:2});
+ saldo.textContent=fmt(total)+" USDT";
+ historial.replaceChildren();
+ const movimientos=[
+  ...(g||[]).map(x=>({amount:Number(x.amount||0),label:Number(x.referral_level)===1?"Comisión virtual · referido directo":"Comisión virtual · segundo nivel",created_at:x.created_at,kind:"plus"})),
+  ...(a||[]).map(x=>({amount:Number(x.amount||0),label:x.description||"Ajuste administrativo USDT",created_at:x.created_at,kind:"plus"})),
+  ...(t||[]).map(x=>({amount:Number(x.amount||0)+(x.sender_user_id===id?Number(x.fee||0):0),label:x.sender_user_id===id?"Transferencia enviada"+(Number(x.fee||0)?" (incluye comisión)":""):"Transferencia recibida",created_at:x.created_at,kind:x.sender_user_id===id?"minus":"plus"}))
+ ].sort((x,y)=>new Date(y.created_at)-new Date(x.created_at));
+ if(!movimientos.length){tarjetaVacia(historial,"Todavía no tienes movimientos USDT.");return;}
+ movimientos.forEach(x=>{const q=elemento("div",undefined,"solicitud");q.append(elemento("strong",(x.kind==="minus"?"−":"+")+fmt(x.amount)+" USDT"),elemento("p",x.label),elemento("p","Fecha: "+fecha(x.created_at)));historial.append(q);});
+}
+function actualizarInfoTransferencia(){const moneda=document.getElementById("monedaTransferencia")?.value||"CUP",info=document.getElementById("infoComisionTransferencia"),monto=document.getElementById("montoTransferencia");if(!info||!monto)return;if(moneda==="CUP"){info.textContent="Comisión: 5 CUP. Se descontarán la cantidad y 5 CUP adicionales.";monto.step="1";monto.min="1";monto.placeholder="Cantidad entera de CUP";}else{info.textContent="Comisión: 1 USDT. Se descontarán la cantidad y 1 USDT adicional.";monto.step="0.01";monto.min="0.01";monto.placeholder="Cantidad virtual (máximo 2 decimales)";}}
+async function transferirSaldo(){
+ const boton=document.getElementById("botonTransferencia"),estado=document.getElementById("estadoTransferencia"),codigo=document.getElementById("codigoDestinatario").value.trim(),moneda=document.getElementById("monedaTransferencia").value,montoTexto=document.getElementById("montoTransferencia").value.trim(),monto=Number(montoTexto);
+ if(!codigo){estado.textContent="Introduce el código de referido del destinatario.";return;}
+ if(!Number.isFinite(monto)||monto<=0){estado.textContent="Introduce una cantidad válida.";return;}
+ if(moneda==="CUP"&&!Number.isInteger(monto)){estado.textContent="Las transferencias CUP deben ser números enteros.";return;}
+ if(moneda==="VIRTUAL"&&Math.round(monto*100)!==monto*100){estado.textContent="El saldo virtual admite máximo 2 decimales.";return;}
+ const comision=moneda==="CUP"?5:1,total=monto+comision,unidad=moneda==="CUP"?"CUP":"USDT";
+ if(!confirm("Vas a transferir "+monto.toLocaleString("es-ES")+" "+unidad+". Comisión: "+comision+" "+unidad+". Total descontado: "+total.toLocaleString("es-ES")+" "+unidad+". ¿Confirmas?"))return;
+ boton.disabled=true;estado.textContent="Procesando transferencia...";
+ try{const {data,error}=await supabaseClient.rpc("transfer_balance",{p_recipient_referral_code:codigo,p_currency:moneda,p_amount:monto});if(error)throw error;if(!data?.success)throw new Error("No se pudo confirmar la transferencia.");
+ estado.textContent="¡Transferencia realizada! Destinatario: "+(data.recipient_name||"Usuario")+". Enviado: "+Number(data.amount).toLocaleString("es-ES")+" "+unidad+". Comisión: "+Number(data.fee).toLocaleString("es-ES")+" "+unidad+".";
+ document.getElementById("codigoDestinatario").value="";document.getElementById("montoTransferencia").value="";
+ await Promise.all([cargarSaldoYGanancias(),cargarSaldoMonedasVirtuales(),cargarHistorialTransferencias()]);
+ }catch(e){estado.textContent="No se pudo realizar la transferencia: "+errorTexto(e);}finally{boton.disabled=false;}
+}
+async function cargarHistorialTransferencias(){const c=document.getElementById("historialTransferencias");if(!c||!usuarioActual)return;const {data,error}=await supabaseClient.from("balance_transfers").select("id,sender_user_id,recipient_user_id,currency,amount,fee,created_at").or(`sender_user_id.eq.${usuarioActual.id},recipient_user_id.eq.${usuarioActual.id}`).order("created_at",{ascending:false}).limit(50);if(error){tarjetaVacia(c,"No se pudo cargar el historial de transferencias: "+errorTexto(error));return;}if(!data?.length){tarjetaVacia(c,"Todavía no tienes transferencias.");return;}const ids=data.map(x=>x.sender_user_id===usuarioActual.id?x.recipient_user_id:x.sender_user_id);await cargarPerfiles(ids);c.replaceChildren();data.forEach(x=>{const saliente=x.sender_user_id===usuarioActual.id,otroId=saliente?x.recipient_user_id:x.sender_user_id,perfil=perfilesCache.get(String(otroId))||{id:otroId},unidad=x.currency==="CUP"?"CUP":"USDT",q=elemento("div",undefined,"solicitud");q.append(crearEncabezadoCuenta(perfil,saliente?"Destinatario":"Remitente"),elemento("strong",(saliente?"−":"+")+Number(x.amount).toLocaleString("es-ES",{maximumFractionDigits:2})+" "+unidad),elemento("p",saliente?"Comisión cobrada: "+Number(x.fee).toLocaleString("es-ES")+" "+unidad:"Recibiste esta transferencia"),elemento("p","Fecha: "+fecha(x.created_at)));c.append(q);});}
 
-async function comprobarUsuario(){const db=clienteListo(),boton=document.getElementById("botonComprobar"),username=document.getElementById("usuario").value.trim().toLowerCase();if(!/^[a-z0-9_]{3,20}$/.test(username)){mensaje("Usa entre 3 y 20 letras, números o guiones bajos.");return;}boton.disabled=true;mensaje("Comprobando usuario...");try{const {data,error}=await db.rpc("check_username_available",{p_username:username});if(error)throw error;if(data?.[0]?.available)mensaje("¡Ese nombre de usuario está disponible!");else mensaje("Ese usuario está ocupado. Sugerencias: "+(data?.[0]?.suggestions||[]).join(", "));}catch(e){mensaje("No se pudo comprobar el usuario: "+errorTexto(e));}finally{boton.disabled=false;}}
 
-const municipiosPorProvincia={
-"Pinar del Río":["Pinar del Río","Consolación del Sur","Guane","La Palma","Los Palacios","Mantua","Minas de Matahambre","San Juan y Martínez","San Luis","Sandino","Viñales"],
-"Artemisa":["Artemisa","Alquízar","Bauta","Caimito","Candelaria","Guanajay","Güira de Melena","Mariel","San Antonio de los Baños","San Cristóbal","Bahía Honda"],
-"La Habana":["Playa","Plaza de la Revolución","Centro Habana","La Habana Vieja","Regla","La Habana del Este","Guanabacoa","San Miguel del Padrón","Diez de Octubre","Cerro","Marianao","La Lisa","Boyeros","Arroyo Naranjo","Cotorro"],
-"Mayabeque":["San José de las Lajas","Bejucal","Jaruco","Madruga","Nueva Paz","Santa Cruz del Norte","San Nicolás","Güines","Melena del Sur","Batabanó","Quivicán"],
-"Matanzas":["Matanzas","Cárdenas","Martí","Colón","Perico","Jovellanos","Pedro Betancourt","Limonar","Unión de Reyes","Ciénaga de Zapata","Jagüey Grande","Calimete","Los Arabos"],
-"Cienfuegos":["Cienfuegos","Abreus","Aguada de Pasajeros","Cruces","Cumanayagua","Lajas","Palmira","Rodas"],
-"Villa Clara":["Santa Clara","Caibarién","Camajuaní","Cifuentes","Corralillo","Encrucijada","Manicaragua","Placetas","Quemado de Güines","Ranchuelo","Remedios","Sagua la Grande","Santo Domingo"],
-"Sancti Spíritus":["Sancti Spíritus","Trinidad","Cabaiguán","Fomento","Jatibonico","La Sierpe","Taguasco","Yaguajay"],
-"Ciego de Ávila":["Ciego de Ávila","Morón","Bolivia","Chambas","Ciro Redondo","Florencia","Majagua","Primero de Enero","Venezuela","Baraguá"],
-"Camagüey":["Camagüey","Florida","Nuevitas","Guáimaro","Santa Cruz del Sur","Vertientes","Jimaguayú","Sibanicú","Esmeralda","Sierra de Cubitas","Minas","Najasa","Carlos Manuel de Céspedes"],
-"Las Tunas":["Las Tunas","Puerto Padre","Jesús Menéndez","Majibacoa","Jobabo","Colombia","Amancio","Manatí"],
-"Granma":["Bayamo","Manzanillo","Jiguaní","Guisa","Buey Arriba","Campechuela","Media Luna","Niquero","Pilón","Bartolomé Masó","Cauto Cristo","Yara","Río Cauto"],
-"Holguín":["Holguín","Banes","Antilla","Báguanos","Cacocum","Calixto García","Cueto","Frank País","Gibara","Mayarí","Moa","Rafael Freyre","Sagua de Tánamo","Urbano Noris"],
-"Santiago de Cuba":["Santiago de Cuba","Contramaestre","Mella","San Luis","Segundo Frente","Songo-La Maya","Tercer Frente","Palma Soriano","Guamá"],
-"Guantánamo":["Guantánamo","Baracoa","Yateras","San Antonio del Sur","Imías","Maisí","Manuel Tames","Niceto Pérez","Caimanera","El Salvador"],
-"Isla de la Juventud":["Isla de la Juventud"]};
-function cargarMunicipios(){const provincia=document.getElementById("provincia").value,selector=document.getElementById("municipio");selector.innerHTML='<option value="">Selecciona tu municipio</option>';const municipios=municipiosPorProvincia[provincia]||[];municipios.forEach(nombre=>{const opcion=document.createElement("option");opcion.value=nombre;opcion.textContent=nombre;selector.appendChild(opcion);});selector.disabled=municipios.length===0;}
+async function cargarReferidos(){const c=document.getElementById("listaReferidos"),{data,error}=await supabaseClient.rpc("get_my_referrals");if(error){tarjetaVacia(c,"No se pudo mostrar la lista de invitados.");return;}if(!data?.length){tarjetaVacia(c,"Todavía no tienes personas invitadas.");return;}const {data:g}=await supabaseClient.from("referral_earnings").select("referred_user_id,amount_cup").eq("earner_user_id",usuarioActual.id).eq("referral_level",1),m=new Map((g||[]).map(x=>[x.referred_user_id,x]));await cargarPerfiles(data.map(x=>x.id));c.replaceChildren();data.forEach(p=>{const x=m.get(p.id),q=elemento("div",undefined,"solicitud"),perfil=perfilesCache.get(String(p.id))||p;q.append(crearEncabezadoCuenta({...perfil,...p},"Referido"),elemento("p",x?"Depósito aprobado · "+dinero(x.amount_cup):"Invitación registrada · comisión pendiente"));c.append(q);});}
+async function cargarHistorialPagos(){const c=document.getElementById("historialPagos"),{data,error}=await supabaseClient.from("payment_requests").select("id,plan,amount_cup,status,created_at").eq("user_id",usuarioActual.id).order("created_at",{ascending:false});if(error||!data?.length){tarjetaVacia(c,error?"No se pudo cargar el historial de depósitos.":"No hay depósitos registrados.");return;}c.replaceChildren();data.forEach(x=>{const q=elemento("div",undefined,"solicitud");q.append(elemento("strong",dinero(x.amount_cup)),elemento("p","Plan: "+nombrePlan(x.plan)),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")),elemento("p","Fecha: "+fecha(x.created_at)));c.append(q);});}
+async function cargarHistorialRetiros(){const c=document.getElementById("historialRetiros"),{data,error}=await supabaseClient.from("withdrawal_requests").select("amount_cup,status,created_at,processed_at").eq("user_id",usuarioActual.id).order("created_at",{ascending:false});if(error||!data?.length){tarjetaVacia(c,error?"No se pudo cargar el historial de retiros.":"Todavía no has solicitado retiros.");return;}c.replaceChildren();data.forEach(x=>{const q=elemento("div",undefined,"solicitud");q.append(elemento("strong",dinero(x.amount_cup)),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")),elemento("p","Solicitado: "+fecha(x.created_at)),elemento("p","Procesado: "+fecha(x.processed_at)));c.append(q);});}
+async function solicitarRetiro(){const b=document.getElementById("botonRetiro"),e=document.getElementById("estadoRetiro"),cantidad=Number(document.getElementById("montoRetiro").value),tarjeta=document.getElementById("tarjetaRetiro").value.trim();if(!Number.isInteger(cantidad)||cantidad<100||cantidad>250||cantidad%10!==0){e.textContent="El retiro debe ser de 100 a 250 CUP, en múltiplos de 10.";return;}if(tarjeta.length<8){e.textContent="Introduce un número de tarjeta válido.";return;}b.disabled=true;try{const {data,error}=await supabaseClient.rpc("request_withdrawal",{p_amount:cantidad,p_card_number:tarjeta});if(error)throw error;e.textContent="Solicitud enviada correctamente. Número: "+data;document.getElementById("montoRetiro").value="";document.getElementById("tarjetaRetiro").value="";await Promise.all([cargarSaldoYGanancias(),cargarHistorialRetiros()]);}catch(x){e.textContent="No se pudo solicitar: "+errorTexto(x);}finally{b.disabled=false;}}
+async function copiarEnlace(){const v=document.getElementById("enlaceInvitacion").value;if(!v){mensaje("Tu código todavía no está disponible.");return;}try{await navigator.clipboard.writeText(v);mensaje("Enlace copiado.");}catch(e){document.getElementById("enlaceInvitacion").select();mensaje("Selecciona y copia el enlace.");}}
 
-async function registrar(){
- const db=clienteListo(),boton=document.getElementById("botonRegistro"),full_name=document.getElementById("nombre").value.trim(),province=document.getElementById("provincia").value,municipality=document.getElementById("municipio").value,username=document.getElementById("usuario").value.trim().toLowerCase(),email=document.getElementById("correo").value.trim(),password=document.getElementById("clave").value,referral_code=document.getElementById("invitacion").value.trim().toUpperCase();
- if(!full_name||!province||!municipality||!username||!email||!password||!referral_code){mensaje("Todos los campos son obligatorios. Debes introducir el código de referencia de quien te invitó.");return;}
- if(!/^[a-z0-9_]{3,20}$/.test(username)){mensaje("El nombre de usuario no es válido.");return;}if(password.length<6){mensaje("La contraseña debe tener al menos 6 caracteres.");return;}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){mensaje("Introduce un correo válido.");return;}
- boton.disabled=true;mensaje("Comprobando disponibilidad...");
- try{const {data:disponibilidad,error:errorUsuario}=await db.rpc("check_username_available",{p_username:username});if(errorUsuario)throw errorUsuario;if(!disponibilidad?.[0]?.available){mensaje("Ese nombre de usuario ya está ocupado.");return;}
- const {data:refVal,error:refError}=await db.rpc("check_referral_code",{p_code:referral_code});if(refError)throw refError;if(refVal!==true){mensaje("El código de referencia no existe. Pídele a quien te invitó que te lo confirme.");return;}
- mensaje("Creando tu cuenta...");const {error}=await db.auth.signUp({email,password,options:{emailRedirectTo:"https://goldrewards.github.io/goldrewards/",data:{full_name,username,province,municipality,referral_code}}});if(error)throw error;
- ["nombre","provincia","usuario","correo","clave","invitacion"].forEach(id=>document.getElementById(id).value="");cargarMunicipios();mostrar("login");mensaje("Cuenta creada. Si Supabase solicita confirmar el correo, revisa tu bandeja antes de iniciar sesión.");
- }catch(e){mensaje("No se pudo crear la cuenta: "+errorTexto(e));}finally{boton.disabled=false;}
-}
-async function cargarPerfil(user){const db=clienteListo(),{data,error}=await db.from("profiles").select("id,full_name,username,role,referral_code").eq("id",user.id).maybeSingle();if(error)throw error;if(!data)throw new Error("No se encontró tu perfil.");return data;}
-async function entrar(){const db=clienteListo(),boton=document.getElementById("botonLogin"),email=document.getElementById("correoLogin").value.trim(),password=document.getElementById("claveLogin").value;if(!email||!password){mensaje("Escribe tu correo y contraseña.");return;}boton.disabled=true;mensaje("Iniciando sesión...");try{const {data,error}=await db.auth.signInWithPassword({email,password});if(error)throw error;usuarioActual=data.user;perfilActual=await cargarPerfil(data.user);await dirigirUsuario();}catch(e){mensaje("No se pudo iniciar sesión: "+errorTexto(e));}finally{boton.disabled=false;}}
-async function dirigirUsuario(){if(!usuarioActual||!perfilActual)return;if(perfilActual.role==="admin"){mostrar("panelAdmin");document.getElementById("mensajeAdmin").textContent="Bienvenido al panel de administración.";await cargarAdmin();return;}const db=clienteListo(),{data:mem,error}=await db.from("memberships").select("id,plan,starts_at,ends_at,status").eq("user_id",usuarioActual.id).eq("status","active").gt("ends_at",new Date().toISOString()).order("ends_at",{ascending:false}).limit(1).maybeSingle();if(error)throw error;if(mem){mostrar("lobby");await cargarLobby(mem);}else{mostrar("cuenta");await cargarCuenta();}}
-async function cargarCuenta(){const db=clienteListo();document.getElementById("datos").textContent="Nombre: "+(perfilActual.full_name||"")+"\nUsuario: @"+(perfilActual.username||"")+"\nCódigo de invitación: "+(perfilActual.referral_code||"En preparación");const {data,error}=await db.from("payment_requests").select("status,created_at").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();const estado=document.getElementById("estadoDeposito");if(error){estado.textContent="No se pudo consultar tu depósito: "+errorTexto(error);return;}if(data){estado.textContent="Tu comprobante está por aprobar desde "+fecha(data.created_at)+". No necesitas enviarlo otra vez.";document.getElementById("botonComprobante").disabled=true;}else{estado.textContent="Todavía no tienes un depósito por aprobar.";document.getElementById("botonComprobante").disabled=false;}}
-async function subirComprobante(){
- const db=clienteListo(),archivo=document.getElementById("comprobante").files[0],estado=document.getElementById("estadoDeposito"),boton=document.getElementById("botonComprobante"),plan=document.getElementById("planMembresia").value,planes={basic:{plan:"basic",amount_cup:100},premium:{plan:"premium",amount_cup:200}},seleccionado=planes[plan];
- if(!seleccionado){estado.textContent="Selecciona un plan válido.";return;}if(!archivo){estado.textContent="Selecciona primero la captura de tu transferencia.";return;}if(!["image/jpeg","image/png","image/webp"].includes(archivo.type)){estado.textContent="Solo se permiten imágenes JPG, PNG o WEBP.";return;}if(archivo.size>5*1024*1024){estado.textContent="La imagen no puede pesar más de 5 MB.";return;}
- boton.disabled=true;estado.textContent="Enviando comprobante...";let ruta=null;
- try{const {data:sesion,error:errorSesion}=await db.auth.getUser();if(errorSesion)throw errorSesion;if(!sesion.user)throw new Error("Debes iniciar sesión.");ruta=sesion.user.id+"/"+generarNombreArchivo(archivo.type==="image/jpeg"?"jpg":archivo.type==="image/png"?"png":"webp");const {error:subidaError}=await db.storage.from("payment_receipts").upload(ruta,archivo,{contentType:archivo.type,upsert:false});if(subidaError)throw subidaError;const {error:registroError}=await db.from("payment_requests").insert({user_id:sesion.user.id,plan:seleccionado.plan,amount_cup:seleccionado.amount_cup,receipt_url:ruta,status:"pending"});if(registroError)throw registroError;estado.textContent="¡Comprobante enviado! Tu depósito de "+seleccionado.amount_cup+" CUP está por aprobar.";document.getElementById("comprobante").value="";boton.disabled=true;
- }catch(e){estado.textContent="No se pudo registrar el comprobante: "+errorTexto(e)+(ruta?" Si la imagen se subió pero no aparece la solicitud, contacta al administrador.":"");boton.disabled=false;}
-}
-async function subirComprobanteLobby(){
- const db=clienteListo(),archivo=document.getElementById("comprobanteLobby").files[0],estado=document.getElementById("estadoDepositoLobby"),boton=document.getElementById("botonComprobanteLobby"),plan=document.getElementById("planMembresiaLobby").value;
- const planes={basic:{plan:"basic",amount_cup:100},premium:{plan:"premium",amount_cup:200}},seleccionado=planes[plan];
- if(!seleccionado){estado.textContent="Selecciona un plan válido.";return;}
- if(!archivo){estado.textContent="Selecciona primero la captura de tu transferencia.";return;}
- if(!["image/jpeg","image/png","image/webp"].includes(archivo.type)){estado.textContent="Solo se permiten imágenes JPG, PNG o WEBP.";return;}
- if(archivo.size>5*1024*1024){estado.textContent="La imagen no puede pesar más de 5 MB.";return;}
- boton.disabled=true;estado.textContent="Comprobando solicitudes pendientes...";let ruta=null;
+const ADMIN_SECCIONES=["depPendientes","depAprobados","depNegados","virtualPendientes","virtualAprobados","virtualRechazados","retirosPendientes","retirosProcesados","ajusteSaldoAdmin","cuentasActivas","cuentasAprobadas"];
+function toggleAdminMenu(){const d=document.getElementById("adminDrawer"),o=document.getElementById("adminMenuOverlay"),b=document.querySelector(".admin-menu-btn"),abierto=!d.classList.contains("open");d.classList.toggle("open",abierto);o.classList.toggle("open",abierto);d.setAttribute("aria-hidden",String(!abierto));b?.setAttribute("aria-expanded",String(abierto));}
+function cerrarAdminMenu(){const d=document.getElementById("adminDrawer"),o=document.getElementById("adminMenuOverlay");d?.classList.remove("open");o?.classList.remove("open");d?.setAttribute("aria-hidden","true");document.querySelector(".admin-menu-btn")?.setAttribute("aria-expanded","false");}
+function mostrarAdmin(id){ADMIN_SECCIONES.forEach(x=>document.getElementById(x)?.classList.toggle("hidden",x!==id));cerrarAdminMenu();}
+async function acreditarCuentaC11(){
+ const boton=document.getElementById("botonAjusteC11"),estado=document.getElementById("estadoAjusteC11");
+ if(!confirm("¿Confirmas acreditar 600 CUP y 200 USDT a la cuenta C11FA11D47? Esta acción no se puede deshacer."))return;
+ boton.disabled=true;estado.textContent="Procesando acreditaciones...";
+ let cupOK=false;
  try{
-  const {data:sesion,error:errorSesion}=await db.auth.getUser();if(errorSesion)throw errorSesion;if(!sesion.user)throw new Error("Debes iniciar sesión.");
-  const {data:pendiente,error:errorPendiente}=await db.from("payment_requests").select("id,created_at").eq("user_id",sesion.user.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();
-  if(errorPendiente)throw errorPendiente;
-  if(pendiente){estado.textContent="Ya tienes un comprobante pendiente de aprobación. No envíes otro.";document.getElementById("comprobanteLobby").value="";return;}
-  estado.textContent="Enviando comprobante...";
-  ruta=sesion.user.id+"/"+generarNombreArchivo(archivo.type==="image/jpeg"?"jpg":archivo.type==="image/png"?"png":"webp");
-  const {error:subidaError}=await db.storage.from("payment_receipts").upload(ruta,archivo,{contentType:archivo.type,upsert:false});if(subidaError)throw subidaError;
-  const {error:registroError}=await db.from("payment_requests").insert({user_id:sesion.user.id,plan:seleccionado.plan,amount_cup:seleccionado.amount_cup,receipt_url:ruta,status:"pending"});if(registroError)throw registroError;
-  estado.textContent="¡Comprobante enviado! Tu pago de "+seleccionado.amount_cup+" CUP está pendiente de aprobación. No necesitas enviarlo otra vez.";
-  document.getElementById("comprobanteLobby").value="";
- }catch(e){estado.textContent="No se pudo registrar el comprobante: "+errorTexto(e)+(ruta?" Si la imagen se subió pero no aparece la solicitud, contacta al administrador.":"");boton.disabled=false;}
-}
-async function cargarEstadoDepositoLobby(){
- const db=clienteListo(),estado=document.getElementById("estadoDepositoLobby"),boton=document.getElementById("botonComprobanteLobby");
- boton.disabled=true;estado.textContent="Consultando depósitos pendientes...";
- try{const {data,error}=await db.from("payment_requests").select("created_at,plan,amount_cup").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();if(error)throw error;
-  if(data){estado.textContent="Tienes un comprobante pendiente de aprobación desde "+fecha(data.created_at)+" ("+dinero(data.amount_cup)+"). No envíes otro.";boton.disabled=true;}
-  else{estado.textContent="Puedes activar o renovar tu membresía cuando quieras.";boton.disabled=false;}
- }catch(e){estado.textContent="No se pudo consultar el estado del depósito: "+errorTexto(e);boton.disabled=true;}
-}
-async function cargarLobby(mem){
- document.getElementById("bienvenidaLobby").textContent="¡Bienvenido, "+(perfilActual.full_name||perfilActual.username||"usuario")+"!";actualizarTiempoMembresia(mem.ends_at);
- if(perfilActual.referral_code){document.getElementById("miCodigo").textContent=perfilActual.referral_code;const link=new URL("https://goldrewards.github.io/goldrewards/");link.searchParams.set("ref",perfilActual.referral_code);document.getElementById("enlaceInvitacion").value=link.toString();}else{document.getElementById("miCodigo").textContent="Pendiente de asignación";document.getElementById("enlaceInvitacion").value="";}
- await Promise.all([cargarSaldoYGanancias(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos(),cargarEstadoDepositoLobby()]);
-}
-function actualizarTiempoMembresia(fin){const destino=document.getElementById("tiempoMembresia"),final=new Date(fin).getTime(),actualizar=()=>{const restante=final-Date.now();if(restante<=0){destino.textContent="Membresía vencida. Cierra sesión e inicia nuevamente.";return;}const dias=Math.floor(restante/86400000),horas=Math.floor((restante%86400000)/3600000),min=Math.floor((restante%3600000)/60000);destino.textContent=`Vence en ${dias} días, ${horas} horas y ${min} minutos`;};actualizar();if(window.relojMembresia)clearInterval(window.relojMembresia);window.relojMembresia=setInterval(actualizar,60000);}
-async function cargarSaldoYGanancias(){const db=clienteListo(),{data:ganancias,error}=await db.from("referral_earnings").select("referred_user_id,amount_cup,referral_level,created_at").eq("earner_user_id",usuarioActual.id).order("created_at",{ascending:false});if(error)throw error;const {data:resumen,error:errorResumen}=await db.rpc("get_my_withdrawal_summary");if(errorResumen)throw errorResumen;const r=Array.isArray(resumen)?resumen[0]:resumen;if(!r)throw new Error("No se pudo obtener el resumen de retiros.");const total=(ganancias||[]).reduce((s,x)=>s+Number(x.amount_cup||0),0);document.getElementById("gananciasTotales").textContent=dinero(total);document.getElementById("saldoDisponible").textContent=dinero(r.commission_balance);document.getElementById("cantidadReferidos").textContent=String(r.approved_direct_referrals);document.getElementById("referidosAprobados").textContent=String(r.approved_direct_referrals);document.getElementById("limiteAcumulado").textContent=dinero(r.cumulative_limit);document.getElementById("limiteRestante").textContent=dinero(r.entitlement_remaining);document.getElementById("limiteDiario").textContent=dinero(r.daily_remaining);const cont=document.getElementById("historialGanancias");cont.replaceChildren();if(!ganancias?.length){tarjetaVacia(cont,"Todavía no tienes ganancias.");return;}ganancias.forEach(g=>{const c=elemento("div",undefined,"solicitud"),tipo=g.referral_level===1?"Comisión directa":"Comisión de segundo nivel";c.append(elemento("strong",dinero(g.amount_cup)),elemento("p",tipo),elemento("p","Fecha: "+fecha(g.created_at)));cont.append(c);});}
-async function cargarReferidos(){const db=clienteListo(),cont=document.getElementById("listaReferidos"),{data,error}=await db.rpc("get_my_referrals");if(error){tarjetaVacia(cont,"No se pudo mostrar la lista de invitados. El saldo y las comisiones se consultan por separado.");return;}if(!data?.length){tarjetaVacia(cont,"Todavía no tienes personas invitadas.");return;}const {data:gan,error:eg}=await db.from("referral_earnings").select("referred_user_id,amount_cup").eq("earner_user_id",usuarioActual.id).eq("referral_level",1);if(eg){tarjetaVacia(cont,"No se pudo consultar el estado de las comisiones de tus invitados.");return;}const mapa=new Map();(gan||[]).forEach(x=>mapa.set(x.referred_user_id,(mapa.get(x.referred_user_id)||0)+Number(x.amount_cup||0)));cont.replaceChildren();data.forEach(p=>{const total=mapa.get(p.id),c=elemento("div",undefined,"solicitud");c.append(elemento("strong","@"+(p.username||"usuario")),elemento("p",p.full_name||""),elemento("p",total!==undefined?"Depósito aprobado · Comisiones generadas: "+dinero(total):"Invitación registrada · comisión pendiente de aprobación"));cont.append(c);});}
-async function cargarHistorialPagos(){const db=clienteListo(),cont=document.getElementById("historialPagos"),{data,error}=await db.from("payment_requests").select("id,plan,amount_cup,status,created_at").eq("user_id",usuarioActual.id).order("created_at",{ascending:false});if(error){tarjetaVacia(cont,"No se pudo cargar el historial de depósitos.");return;}if(!data?.length){tarjetaVacia(cont,"No hay depósitos registrados.");return;}cont.replaceChildren();data.forEach(x=>{const estado=x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado",plan=x.plan==="basic"?"Básico (100 CUP)":x.plan==="premium"?"Premium (200 CUP)":x.plan,c=elemento("div",undefined,"solicitud");c.append(elemento("strong",dinero(x.amount_cup)),elemento("p","Plan: "+plan),elemento("p","Estado: "+estado),elemento("p","Fecha: "+fecha(x.created_at)));cont.append(c);});}
-async function cargarHistorialRetiros(){const db=clienteListo(),cont=document.getElementById("historialRetiros"),{data,error}=await db.from("withdrawal_requests").select("amount_cup,status,created_at,processed_at").eq("user_id",usuarioActual.id).order("created_at",{ascending:false});if(error){tarjetaVacia(cont,"No se pudo cargar el historial de retiros.");return;}if(!data?.length){tarjetaVacia(cont,"Todavía no has solicitado retiros.");return;}cont.replaceChildren();data.forEach(x=>{const estado=x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado",c=elemento("div",undefined,"solicitud");c.append(elemento("strong",dinero(x.amount_cup)),elemento("p","Estado: "+estado),elemento("p","Solicitado: "+fecha(x.created_at)),elemento("p","Procesado: "+fecha(x.processed_at)));cont.append(c);});}
-async function solicitarRetiro(){const db=clienteListo(),boton=document.getElementById("botonRetiro"),estado=document.getElementById("estadoRetiro"),cantidad=Number(document.getElementById("montoRetiro").value),tarjeta=document.getElementById("tarjetaRetiro").value.trim();if(!Number.isInteger(cantidad)||cantidad<100||cantidad>250||cantidad%10!==0){estado.textContent="El retiro debe ser de 100 a 250 CUP, en múltiplos de 10 (ejemplo: 100, 120 o 250).";return;}if(tarjeta.length<8){estado.textContent="Introduce un número de tarjeta válido.";return;}boton.disabled=true;estado.textContent="Enviando solicitud...";try{const {data,error}=await db.rpc("request_withdrawal",{p_amount:cantidad,p_card_number:tarjeta});if(error)throw error;estado.textContent="Solicitud enviada correctamente. Está por aprobar. Número: "+data;document.getElementById("montoRetiro").value="";document.getElementById("tarjetaRetiro").value="";await Promise.all([cargarSaldoYGanancias(),cargarHistorialRetiros()]);}catch(e){estado.textContent="No se pudo solicitar el retiro: "+errorTexto(e);}finally{boton.disabled=false;}}
-async function copiarEnlace(){const valor=document.getElementById("enlaceInvitacion").value;if(!valor){mensaje("Tu código de invitación todavía no está disponible.");return;}try{await navigator.clipboard.writeText(valor);mensaje("Enlace copiado.");}catch(e){const input=document.getElementById("enlaceInvitacion");input.select();mensaje("Selecciona y copia el enlace.");}}
-
-function mostrarAdminVista(id,boton){
- document.querySelectorAll(".admin-view").forEach(x=>x.classList.toggle("activo",x.id===id));
- document.querySelectorAll(".admin-menu button").forEach(x=>x.classList.remove("activo"));
- if(boton)boton.classList.add("activo");
+  const {data:cup,error:ec}=await supabaseClient.rpc("admin_add_balance",{p_referral_code:"C11FA11D47",p_currency:"CUP",p_amount:600});
+  if(ec)throw ec;cupOK=true;
+  const {data:usdt,error:eu}=await supabaseClient.rpc("admin_add_balance",{p_referral_code:"C11FA11D47",p_currency:"VIRTUAL",p_amount:200});
+  if(eu)throw eu;
+  estado.textContent="¡Acreditación completada! Se registraron 600 CUP y 200 USDT. La cuenta verá los saldos al actualizar o volver a entrar.";
+ }catch(e){
+  estado.textContent=cupOK?"Se acreditaron 600 CUP, pero falló el crédito de 200 USDT: "+errorTexto(e):"No se pudo completar la acreditación: "+errorTexto(e);
+ }finally{boton.disabled=false;}
 }
 async function cargarAdmin(){
- const db=clienteListo(),msg=document.getElementById("mensajeAdmin");msg.textContent="Cargando información...";
+ const msg=document.getElementById("mensajeAdmin");
  try{
-  const {data:sesion,error:se}=await db.auth.getUser();if(se||!sesion.user)throw new Error("Debes iniciar sesión.");
-  const p=await cargarPerfil(sesion.user);if(p.role!=="admin"){mostrar("inicio");throw new Error("Acceso denegado.");}
-  const [{data:pagos,error:ep},{data:retiros,error:er},{data:perfiles,error:eper},{data:membresias,error:em}]=await Promise.all([
-   db.from("payment_requests").select("id,user_id,plan,amount_cup,receipt_url,status,created_at").order("created_at",{ascending:false}),
-   db.from("withdrawal_requests").select("id,user_id,amount_cup,card_number,status,created_at,processed_at").order("created_at",{ascending:false}),
-   db.from("profiles").select("id,username,full_name,role,referral_code"),
-   db.from("memberships").select("id,user_id,plan,status,starts_at,ends_at").order("ends_at",{ascending:false})
+  msg.textContent="Cargando información...";
+  const {data:s,error:se}=await supabaseClient.auth.getUser();if(se||!s.user)throw new Error("Debes iniciar sesión.");
+  const p=await cargarPerfil(s.user);if(p.role!=="admin")throw new Error("Acceso denegado.");document.getElementById("perfilAdminHeader")?.replaceChildren(crearEncabezadoCuenta(p,"Administrador", "account-avatar"));
+  const [{data:pagos,error:ep},{data:retiros,error:er},{data:virtuales,error:ev}]=await Promise.all([
+   supabaseClient.from("payment_requests").select("id,user_id,plan,amount_cup,receipt_url,status,created_at").order("created_at",{ascending:false}),
+   supabaseClient.from("withdrawal_requests").select("id,user_id,amount_cup,card_number,status,created_at,processed_at").order("created_at",{ascending:false}),
+   supabaseClient.from("virtual_payment_requests").select("id,user_id,plan_id,amount,receipt_url,status,created_at,confirmed_at").order("created_at",{ascending:false})
   ]);
-  if(ep)throw ep;if(er)throw er;if(eper)throw eper;if(em)throw em;
-  cacheAdminCuentas=perfiles||[];cacheAdminMembresias=membresias||[];
-  const ids=[...new Set([...(pagos||[]).map(x=>x.user_id),...(retiros||[]).map(x=>x.user_id)])],nombres={};
-  cacheAdminCuentas.forEach(x=>nombres[x.id]=(x.full_name||"")+" (@"+(x.username||"sin usuario")+")");
-  const faltantes=ids.filter(id=>!nombres[id]);
-  if(faltantes.length){const {data:extra,error:ee}=await db.from("profiles").select("id,username,full_name").in("id",faltantes);if(ee)throw ee;(extra||[]).forEach(x=>nombres[x.id]=(x.full_name||"")+" (@"+(x.username||"sin usuario")+")");}
-  renderizarListaCuentas(cacheAdminCuentas,cacheAdminMembresias);
-  await renderizarDepositos(pagos||[],nombres);renderizarRetiros(retiros||[],nombres);
-  actualizarEstadisticas(cacheAdminCuentas,cacheAdminMembresias,pagos||[],retiros||[]);
-  msg.textContent=`Cuentas: ${cacheAdminCuentas.length} · Membresías activas: ${obtenerCuentasActivas(cacheAdminCuentas,cacheAdminMembresias).length} · Depósitos pendientes: ${(pagos||[]).filter(x=>x.status==="pending").length} · Retiros por aprobar: ${(retiros||[]).filter(x=>x.status==="pending").length}`;
+  if(ep)throw ep;if(er)throw er;if(ev)throw ev;
+  const ids=[...new Set([...(pagos||[]).map(x=>x.user_id),...(retiros||[]).map(x=>x.user_id),...(virtuales||[]).map(x=>x.user_id)])];
+  const n=await cargarPerfiles(ids);
+  await renderizarDepositos(pagos||[],n);renderizarRetiros(retiros||[],n);await renderizarPagosVirtuales(virtuales||[],n);await cargarListasCuentasAdmin();
+  msg.textContent=`Pagos CUP pendientes: ${(pagos||[]).filter(x=>x.status==="pending").length} · Virtuales pendientes: ${(virtuales||[]).filter(x=>x.status==="pending").length} · Retiros pendientes: ${(retiros||[]).filter(x=>x.status==="pending").length}`;
  }catch(e){msg.textContent="Error: "+errorTexto(e);}
 }
-function membresiaVigente(userId,membresias){const ahora=Date.now();return membresias.filter(m=>m.user_id===userId&&m.status==="active"&&new Date(m.ends_at).getTime()>ahora).sort((a,b)=>new Date(b.ends_at)-new Date(a.ends_at))[0]||null;}
-function obtenerCuentasActivas(perfiles,membresias){return perfiles.filter(p=>membresiaVigente(p.id,membresias));}
-function renderizarListaCuentas(perfiles,membresias){
- const activas=obtenerCuentasActivas(perfiles,membresias),idsActivas=new Set(activas.map(p=>p.id));
- const listas={listaTodasCuentas:perfiles,listaCuentasActivas:perfiles.filter(p=>idsActivas.has(p.id)),listaCuentasInactivas:perfiles.filter(p=>!idsActivas.has(p.id)),listaCuentasBasic:perfiles.filter(p=>membresiaVigente(p.id,membresias)?.plan==="basic"),listaCuentasPremium:perfiles.filter(p=>membresiaVigente(p.id,membresias)?.plan==="premium")};
- for(const [id,lista] of Object.entries(listas)){const cont=document.getElementById(id);cont.replaceChildren();if(!lista.length){tarjetaVacia(cont,"No hay cuentas en esta sección.");continue;}
-  lista.forEach(p=>{const mem=membresiaVigente(p.id,membresias),card=elemento("div",undefined,"admin-user"),nombre=elemento("strong",(p.full_name||"Sin nombre")+" · @"+(p.username||"sin usuario")),info=elemento("p","ID: "+p.id),estado=elemento("p",mem?"Membresía activa · Plan "+(mem.plan==="basic"?"Básico (100 CUP)":"Premium (200 CUP)")+" · Vence: "+fecha(mem.ends_at):"Sin membresía vigente","muted"),acciones=elemento("div",undefined,"acciones");
-   card.append(nombre,info,estado);
-   if(p.role==="admin")acciones.append(elemento("span","Cuenta administradora (protegida)","muted"));
-   else{const del=elemento("button","Eliminar cuenta","admin-danger");del.onclick=()=>eliminarCuentaAdmin(p,del);acciones.append(del);}
-   card.append(acciones);cont.append(card);
-  });
+async function cargarListasCuentasAdmin(){
+ const activos=document.getElementById("listaCuentasActivas"),aprobadas=document.getElementById("listaCuentasAprobadas");
+ tarjetaVacia(activos,"Cargando cuentas activas...");tarjetaVacia(aprobadas,"Cargando cuentas aprobadas...");
+ const {data,error}=await supabaseClient.rpc("admin_list_accounts");
+ if(error)throw error;
+ const filas=Array.isArray(data)?data:[];
+ const vigentes=filas.filter(x=>x.has_active_membership===true);
+ const conPago=filas.filter(x=>x.has_approved_payment===true);
+ renderizarListaCuentasAdmin(activos,vigentes,"No hay cuentas con membresía activa.");
+ renderizarListaCuentasAdmin(aprobadas,conPago,"Todavía no hay cuentas con pagos aprobados.");
+}
+function renderizarListaCuentasAdmin(contenedor,cuentas,vacio){
+ contenedor.replaceChildren();if(!cuentas.length){tarjetaVacia(contenedor,vacio);return;}
+ cuentas.forEach(x=>{
+  const c=elemento("article",undefined,"admin-account-card");
+  const encabezado=elemento("div",undefined,"admin-account-heading");
+  encabezado.append(crearAvatar(x,"admin-account-avatar"));
+  encabezado.append(elemento("h4",(x.full_name||"Sin nombre")+" · @"+(x.username||"sin usuario")));
+  c.append(encabezado);
+  c.append(elemento("p","Correo: "+(x.email||"No disponible")),elemento("p","Provincia: "+(x.province||"—")+" · Municipio: "+(x.municipality||"—")),elemento("p","Código de referencia: "+(x.referral_code||"—")),elemento("p","Registro: "+fecha(x.created_at)));
+  const estados=[];if(x.has_active_membership)estados.push("Membresía activa");if(x.has_approved_payment)estados.push("Pago aprobado");
+  c.append(elemento("p",estados.join(" · "),"estado"));
+  const b=elemento("button","Ver toda la información y las fotos");b.onclick=()=>verDetalleCuentaAdmin(x.user_id);c.append(b);contenedor.append(c);
+ });
+}
+function campoDetalle(etiqueta,valor){const d=elemento("div",undefined,"admin-detail-field");d.append(elemento("b",etiqueta),elemento("span",valor===null||valor===undefined||valor===""?"—":String(valor)));return d;}
+function agregarSeccionDetalle(contenedor,titulo){contenedor.append(elemento("h3",titulo,"admin-subheading"));const g=elemento("div",undefined,"admin-detail-grid");contenedor.append(g);return g;}
+async function agregarComprobanteDetalle(contenedor,ruta,titulo){
+ if(!ruta){contenedor.append(elemento("p","No hay foto de comprobante guardada.","muted"));return;}
+ const {data,error}=await supabaseClient.storage.from("payment_receipts").createSignedUrl(ruta,600);
+ if(error||!data?.signedUrl){contenedor.append(elemento("p","No se pudo abrir la foto: "+(error?.message||"sin URL disponible"),"muted"));return;}
+ const bloque=elemento("div",undefined,"card");bloque.append(elemento("h4",titulo));const img=document.createElement("img");img.className="admin-receipt-img";img.src=data.signedUrl;img.alt=titulo;img.loading="lazy";bloque.append(img);const a=elemento("a","Abrir imagen en otra pestaña","comprobante-link");a.href=data.signedUrl;a.target="_blank";a.rel="noopener noreferrer";bloque.append(a);contenedor.append(bloque);
+}
+async function verDetalleCuentaAdmin(userId){
+ const modal=document.getElementById("adminDetalleModal"),c=document.getElementById("adminDetalleContenido");modal.classList.remove("hidden");c.replaceChildren(elemento("p","Cargando información completa...","muted"));
+ try{
+  const {data,error}=await supabaseClient.rpc("admin_get_account_details",{p_user_id:userId});if(error)throw error;if(!data)throw new Error("No se encontró la cuenta.");
+  c.replaceChildren();const p=data.profile||{};
+  c.append(crearEncabezadoCuenta(p,"Información de la cuenta", "account-avatar large"));
+  let g=agregarSeccionDetalle(c,"Datos de registro");
+  [["ID de usuario",userId],["Nombre completo",p.full_name],["Nombre de usuario",p.username],["Correo electrónico",data.email],["Rol",p.role],["Provincia",p.province],["Municipio",p.municipality],["Código de referencia",p.referral_code],["Referido por (ID)",p.referred_by],["Etiqueta administrativa",p.admin_label],["Fecha de registro",fecha(p.created_at)]].forEach(([k,v])=>g.append(campoDetalle(k,v)));
+  if(p.avatar_url){const av=elemento("div",undefined,"card");av.append(elemento("h4","Foto de perfil"));const im=document.createElement("img");im.className="admin-receipt-img";im.src=p.avatar_url;im.alt="Foto de perfil";av.append(im);c.append(av);}
+  const membresias=Array.isArray(data.memberships)?data.memberships:[];g=agregarSeccionDetalle(c,"Membresías");if(!membresias.length)g.append(campoDetalle("Información","No hay membresías registradas."));membresias.forEach((m,i)=>{g.append(campoDetalle("Membresía "+(i+1),m.plan),campoDetalle("Estado",m.status),campoDetalle("Inicio",fecha(m.starts_at)),campoDetalle("Vencimiento",fecha(m.ends_at)));});
+  const cups=Array.isArray(data.cup_payments)?data.cup_payments:[];c.append(elemento("h3","Historial de pagos CUP ("+cups.length+")","admin-subheading"));if(!cups.length)c.append(elemento("p","No hay pagos CUP registrados.","muted"));for(const x of cups){g=agregarSeccionDetalle(c,"Pago CUP · "+dinero(x.amount_cup));g.append(campoDetalle("Plan",nombrePlan(x.plan)),campoDetalle("Estado",x.status),campoDetalle("Fecha",fecha(x.created_at)),campoDetalle("ID de solicitud",x.id));await agregarComprobanteDetalle(c,x.receipt_url,"Comprobante CUP");}
+  const virtuales=Array.isArray(data.virtual_payments)?data.virtual_payments:[];c.append(elemento("h3","Historial de pagos virtuales ("+virtuales.length+")","admin-subheading"));if(!virtuales.length)c.append(elemento("p","No hay pagos virtuales registrados.","muted"));for(const x of virtuales){g=agregarSeccionDetalle(c,"Pago virtual · "+Number(x.amount||0)+" USDT");g.append(campoDetalle("Plan",nombrePlanVirtual(x.plan_id)),campoDetalle("Estado",x.status),campoDetalle("Fecha",fecha(x.created_at)),campoDetalle("Fecha de aprobación",fecha(x.confirmed_at)),campoDetalle("ID de solicitud",x.id));await agregarComprobanteDetalle(c,x.receipt_url,"Comprobante virtual USDT");}
+ }catch(e){c.replaceChildren(elemento("p","No se pudo cargar la información: "+errorTexto(e),"estado"));}
+}
+function cerrarDetalleCuenta(){document.getElementById("adminDetalleModal").classList.add("hidden");}
+
+async function renderizarDepositos(pagos,n){const g={pending:"listaDepPendientes",approved:"listaDepAprobados",rejected:"listaDepNegados"};Object.values(g).forEach(id=>tarjetaVacia(document.getElementById(id),"No hay solicitudes en esta sección."));for(const x of pagos){const ctn=document.getElementById(g[x.status]);if(!ctn)continue;if(ctn.querySelector(".muted"))ctn.replaceChildren();const q=elemento("div",undefined,"solicitud"),perfil=n.get(x.user_id)||{id:x.user_id};q.append(elemento("h3","Depósito: "+dinero(x.amount_cup)),crearEncabezadoCuenta(perfil,"Solicitante"),elemento("p","Plan: "+nombrePlan(x.plan)),elemento("p","Fecha: "+fecha(x.created_at)));if(x.receipt_url){const {data}=await supabaseClient.storage.from("payment_receipts").createSignedUrl(x.receipt_url,300);if(data?.signedUrl){const a=elemento("a","Ver comprobante","comprobante-link");a.href=data.signedUrl;a.target="_blank";a.rel="noopener noreferrer";q.append(a);}}if(x.status==="pending"){const a=elemento("button","Aprobar","aprobar"),r=elemento("button","Negar","negar");a.onclick=()=>procesarDeposito(x.id,"approved",a);r.onclick=()=>procesarDeposito(x.id,"rejected",r);q.append(a,r);}ctn.append(q);}}
+function renderizarRetiros(rs,n){const p=document.getElementById("listaRetirosPendientes"),h=document.getElementById("listaRetirosProcesados");tarjetaVacia(p,"No hay retiros por aprobar.");tarjetaVacia(h,"Todavía no hay retiros procesados.");rs.forEach(x=>{const c=x.status==="pending"?p:h;if(c.querySelector(".muted"))c.replaceChildren();const q=elemento("div",undefined,"solicitud"),perfil=n.get(x.user_id)||{id:x.user_id};q.append(elemento("h3","Retiro: "+dinero(x.amount_cup)),crearEncabezadoCuenta(perfil,"Solicitante"),elemento("p","Tarjeta: "+(x.card_number||"No indicada")),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")));if(x.status==="pending"){const a=elemento("button","Marcar como pagado y aprobar","aprobar"),r=elemento("button","Negar","negar");a.onclick=()=>procesarRetiro(x.id,"approved",a);r.onclick=()=>procesarRetiro(x.id,"rejected",r);q.append(a,r);}c.append(q);});}
+function importeVirtualAdmin(x){return Number(x.amount||0).toLocaleString("es-ES")+" USDT";}
+async function renderizarPagosVirtuales(pagos,n){
+ const grupos={pending:"listaVirtualPendientes",confirmed:"listaVirtualAprobados",failed:"listaVirtualRechazados",cancelled:"listaVirtualRechazados"};
+ Object.values(grupos).forEach(id=>tarjetaVacia(document.getElementById(id),"No hay solicitudes en esta sección."));
+ for(const x of pagos){
+  const destino=grupos[x.status];if(!destino)continue;const c=document.getElementById(destino);if(c.querySelector(".muted"))c.replaceChildren();
+  const q=elemento("div",undefined,"solicitud");
+  q.append(elemento("h3","Pago virtual: "+importeVirtualAdmin(x)),crearEncabezadoCuenta(n.get(x.user_id)||{id:x.user_id},"Solicitante"),elemento("p","Plan seleccionado: "+nombrePlanVirtual(x.plan_id)),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="confirmed"?"Aprobado":x.status==="failed"?"Rechazado":"Cancelado")),elemento("p","Enviado: "+fecha(x.created_at)));
+  if(x.confirmed_at)q.append(elemento("p","Aprobado: "+fecha(x.confirmed_at)));
+  if(x.receipt_url){
+   const {data,error}=await supabaseClient.storage.from("payment_receipts").createSignedUrl(x.receipt_url,600);
+   if(data?.signedUrl){const a=elemento("a","🖼️ Ver captura del comprobante","comprobante-link");a.href=data.signedUrl;a.target="_blank";a.rel="noopener noreferrer";q.append(a);}
+   else q.append(elemento("p","No se pudo abrir la captura: "+(error?.message||"revisa la política del almacenamiento."),"muted"));
+  }else q.append(elemento("p","Esta solicitud no tiene una captura adjunta.","muted"));
+  if(x.status==="pending"){
+   const aprobar=elemento("button","Aprobar y activar membresía","aprobar"),rechazar=elemento("button","Rechazar pago","negar");
+   aprobar.onclick=()=>procesarPagoVirtual(x.id,"approve_virtual_payment_request",aprobar);
+   rechazar.onclick=()=>procesarPagoVirtual(x.id,"reject_virtual_payment_request",rechazar);
+   q.append(aprobar,rechazar);
+  }
+  c.append(q);
  }
 }
-function actualizarEstadisticas(perfiles,membresias,pagos,retiros){const activas=obtenerCuentasActivas(perfiles,membresias),basic=activas.filter(p=>membresiaVigente(p.id,membresias)?.plan==="basic").length,premium=activas.filter(p=>membresiaVigente(p.id,membresias)?.plan==="premium").length;document.getElementById("statTotalCuentas").textContent=perfiles.length;document.getElementById("statActivas").textContent=activas.length;document.getElementById("statInactivas").textContent=perfiles.length-activas.length;document.getElementById("statBasic").textContent=basic;document.getElementById("statPremium").textContent=premium;document.getElementById("statDepositos").textContent=pagos.filter(x=>x.status==="pending").length;document.getElementById("statRetiros").textContent=retiros.filter(x=>x.status==="pending").length;}
-async function eliminarCuentaAdmin(perfil,boton){
- const db=clienteListo();if(perfil.role==="admin"){alert("No se puede eliminar una cuenta administradora desde este menú.");return;}
- const nombre=(perfil.full_name||"Sin nombre")+" (@"+(perfil.username||"sin usuario")+")";
- if(!confirm("PRIMERA CONFIRMACIÓN\n\n¿Seguro que deseas eliminar la cuenta "+nombre+"? Esta operación no se puede deshacer."))return;
- const palabra=prompt("SEGUNDA CONFIRMACIÓN\n\nEscribe ELIMINAR para confirmar la eliminación de esta cuenta:");
- if(palabra!=="ELIMINAR"){alert("Eliminación cancelada.");return;}
- if(!confirm("CONFIRMACIÓN FINAL\n\nSe eliminará definitivamente el usuario y sus datos relacionados. ¿Continuar?"))return;
- boton.disabled=true;
- try{const {error}=await db.rpc("admin_delete_user",{p_user_id:perfil.id});if(error)throw error;alert("Cuenta eliminada correctamente.");await cargarAdmin();}
- catch(e){alert("No se pudo eliminar la cuenta: "+errorTexto(e)+"\n\nComprueba que hayas creado la función SQL admin_delete_user indicada junto al archivo.");boton.disabled=false;}
+async function procesarPagoVirtual(id,rpc,b){
+ const aprobando=rpc==="approve_virtual_payment_request";
+ if(!confirm(aprobando?"¿Confirmas que recibiste el pago USDT y quieres aprobarlo y activar la membresía?":"¿Confirmas que deseas rechazar este comprobante virtual?"))return;
+ b.disabled=true;
+ try{const {data,error}=await supabaseClient.rpc(rpc,{p_request_id:id});if(error)throw error;alert(aprobando?"Pago aprobado y membresía activada.":"Pago virtual rechazado.");await cargarAdmin();}
+ catch(e){alert("No se pudo procesar el pago virtual: "+errorTexto(e));b.disabled=false;}
 }
-function mostrarAdmin(id){mostrarAdminVista(id,document.querySelector('.admin-menu button[onclick*="'+id+'"]'));}
-async function renderizarDepositos(pagos,nombres){
- const grupos={pending:"listaDepPendientes",approved:"listaDepAprobados",rejected:"listaDepNegados"};Object.values(grupos).forEach(id=>tarjetaVacia(document.getElementById(id),"No hay solicitudes en esta sección."));
- for(const x of pagos){const cont=document.getElementById(grupos[x.status]);if(!cont)continue;if(cont.querySelector(".muted")?.textContent==="No hay solicitudes en esta sección.")cont.replaceChildren();const c=elemento("div",undefined,"solicitud"),plan=x.plan==="basic"?"Básico (100 CUP)":x.plan==="premium"?"Premium (200 CUP)":x.plan;c.append(elemento("h3","Depósito: "+dinero(x.amount_cup)),elemento("p","Usuario: "+(nombres[x.user_id]||x.user_id)),elemento("p","Plan: "+plan),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")),elemento("p","Fecha: "+fecha(x.created_at)));
-  if(x.receipt_url){const {data,error}=await clienteListo().storage.from("payment_receipts").createSignedUrl(x.receipt_url,300);if(!error&&data?.signedUrl){const a=elemento("a","Ver comprobante","comprobante-link");a.href=data.signedUrl;a.target="_blank";a.rel="noopener noreferrer";c.append(a);}else c.append(elemento("p","No se pudo abrir el comprobante."));}
-  if(x.status==="pending"){const a=elemento("button","Aprobar","aprobar");a.onclick=()=>procesarDeposito(x.id,"approved",a);const n=elemento("button","Negar","negar");n.onclick=()=>procesarDeposito(x.id,"rejected",n);c.append(a,n);}cont.append(c);
- }
-}
-function renderizarRetiros(retiros,nombres){const pendientes=document.getElementById("listaRetirosPendientes"),procesados=document.getElementById("listaRetirosProcesados");tarjetaVacia(pendientes,"No hay retiros por aprobar.");tarjetaVacia(procesados,"Todavía no hay retiros procesados.");for(const x of retiros){const cont=x.status==="pending"?pendientes:procesados,vacio=cont.querySelector(".muted");if(vacio&&(vacio.textContent==="No hay retiros por aprobar."||vacio.textContent==="Todavía no hay retiros procesados."))cont.replaceChildren();const c=elemento("div",undefined,"solicitud");c.append(elemento("h3","Retiro: "+dinero(x.amount_cup)),elemento("p","Usuario: "+(nombres[x.user_id]||x.user_id)),elemento("p","Tarjeta: "+(x.card_number||"No indicada")),elemento("p","Solicitado: "+fecha(x.created_at)),elemento("p","Estado: "+(x.status==="pending"?"Por aprobar":x.status==="approved"?"Aprobado":"Negado")),elemento("p","Procesado: "+fecha(x.processed_at)));if(x.status==="pending"){const a=elemento("button","Marcar como pagado y aprobar","aprobar");a.onclick=()=>procesarRetiro(x.id,"approved",a);const n=elemento("button","Negar","negar");n.onclick=()=>procesarRetiro(x.id,"rejected",n);c.append(a,n);}cont.append(c);}}
-async function procesarDeposito(id,estado,boton){const texto=estado==="approved"?"¿Confirmas que el depósito fue recibido y deseas activar la membresía por 30 días?":"¿Confirmas que deseas negar este depósito?";if(!confirm(texto))return;boton.disabled=true;try{const {error}=await clienteListo().rpc(estado==="approved"?"approve_payment_request":"reject_payment_request",{p_request_id:id});if(error)throw error;alert(estado==="approved"?"Depósito aprobado. Membresía y comisiones procesadas.":"Depósito negado.");await cargarAdmin();}catch(e){alert("No se pudo procesar: "+errorTexto(e));boton.disabled=false;}}
-async function procesarRetiro(id,estado,boton){const texto=estado==="approved"?"IMPORTANTE: confirma solo después de transferir el dinero a la tarjeta indicada. ¿Ya realizaste el pago?":"¿Confirmas que deseas negar este retiro?";if(!confirm(texto))return;boton.disabled=true;try{const {error}=await clienteListo().rpc(estado==="approved"?"approve_withdrawal":"reject_withdrawal",{p_withdrawal_id:id});if(error)throw error;alert(estado==="approved"?"Retiro marcado como aprobado y descontado del saldo.":"Retiro negado; el saldo reservado vuelve a estar disponible.");await cargarAdmin();}catch(e){alert("No se pudo procesar: "+errorTexto(e));boton.disabled=false;}}
-async function salir(){try{if(window.relojMembresia)clearInterval(window.relojMembresia);if(chatChannel){await clienteListo().removeChannel(chatChannel);chatChannel=null;}chatIds.clear();cerrarChat();const {error}=await clienteListo().auth.signOut();if(error)throw error;usuarioActual=null;perfilActual=null;["datos","estadoDeposito","estadoRetiro","bienvenidaLobby","tiempoMembresia"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent="";});["listaDepPendientes","listaDepAprobados","listaDepNegados","listaRetirosPendientes","listaRetirosProcesados","listaReferidos","historialGanancias","historialPagos","historialRetiros","listaTodasCuentas","listaCuentasActivas","listaCuentasInactivas","listaCuentasBasic","listaCuentasPremium"].forEach(id=>{const e=document.getElementById(id);if(e)e.replaceChildren();});mostrar("inicio");mensaje("Has cerrado sesión.");}catch(e){mensaje("No se pudo cerrar sesión: "+errorTexto(e));}}
-async function restaurarSesion(){try{const {data,error}=await clienteListo().auth.getSession();if(error)throw error;if(data.session?.user){usuarioActual=data.session.user;perfilActual=await cargarPerfil(usuarioActual);await dirigirUsuario();}}catch(e){mensaje("No se pudo restaurar la sesión: "+errorTexto(e));}}
-window.addEventListener("DOMContentLoaded",async()=>{
- const ref=new URLSearchParams(location.search).get("ref");if(ref){document.getElementById("invitacion").value=ref.toUpperCase();mostrar("registro");}
- if(!window.supabase||typeof window.supabase.createClient!=="function"){mensaje("No se pudo cargar Supabase. Comprueba tu conexión e inténtalo de nuevo.");return;}
- try{supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);await restaurarSesion();}catch(e){mensaje("No se pudo iniciar la conexión: "+errorTexto(e));}
-});
+async function procesarDeposito(id,estado,b){if(!confirm(estado==="approved"?"¿Confirmas que el depósito fue recibido?":"¿Confirmas que deseas negar este depósito?"))return;b.disabled=true;try{const {error}=await supabaseClient.rpc(estado==="approved"?"approve_payment_request":"reject_payment_request",{p_request_id:id});if(error)throw error;await cargarAdmin();}catch(e){alert("No se pudo procesar: "+errorTexto(e));b.disabled=false;}}
+async function procesarRetiro(id,estado,b){if(!confirm(estado==="approved"?"Confirma solo después de realizar el pago. ¿Ya realizaste el pago?":"¿Confirmas que deseas negar este retiro?"))return;b.disabled=true;try{const {error}=await supabaseClient.rpc(estado==="approved"?"approve_withdrawal":"reject_withdrawal",{p_withdrawal_id:id});if(error)throw error;await cargarAdmin();}catch(e){alert("No se pudo procesar: "+errorTexto(e));b.disabled=false;}}
+async function salir(){try{if(window.relojMembresia)clearInterval(window.relojMembresia);if(chatChannel){await supabaseClient.removeChannel(chatChannel);chatChannel=null;}chatIds.clear();cerrarChat();const {error}=await supabaseClient.auth.signOut();if(error)throw error;usuarioActual=null;perfilActual=null;perfilesCache.clear();document.getElementById("estadoPagoVirtual").textContent="";document.getElementById("comprobanteVirtual").value="";document.getElementById("botonComprobanteVirtual").disabled=false;document.getElementById("virtualPlan").disabled=false;["comprobanteVirtualLobby","comprobanteLobby"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});["botonComprobanteVirtualLobby","botonComprobanteLobby","virtualPlanLobby","planMembresiaLobby","estadoDepositoLobby"].forEach(id=>{const e=document.getElementById(id);if(e){if("disabled" in e)e.disabled=false;if(id==="estadoDepositoLobby")e.textContent="";}});["datos","estadoDeposito","estadoRetiro","bienvenidaLobby","tiempoMembresia"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent="";});document.getElementById("botonComprobante").disabled=false;document.getElementById("planMembresia").disabled=false;mostrar("inicio");mensaje("Has cerrado sesión.");await actualizarContadorUsuarios();}catch(e){mensaje("No se pudo cerrar sesión: "+errorTexto(e));}}
+async function restaurarSesion(){try{const {data,error}=await supabaseClient.auth.getSession();if(error)throw error;if(data.session?.user){usuarioActual=data.session.user;perfilActual=await cargarPerfil(usuarioActual);await dirigirUsuario();}}catch(e){mensaje("No se pudo restaurar la sesión: "+errorTexto(e));}}
+window.addEventListener("DOMContentLoaded",()=>{document.getElementById("cambiarFotoInput")?.addEventListener("change",e=>procesarCambioFoto(e.target.files?.[0]));const ref=new URLSearchParams(location.search).get("ref");if(ref){document.getElementById("invitacion").value=ref.toUpperCase();mostrar("registro");}actualizarDatosPlan();actualizarContadorUsuarios();setInterval(actualizarContadorUsuarios,60000);setInterval(async()=>{if(usuarioActual&&perfilActual?.role!=="admin"&&!document.getElementById("cuenta").classList.contains("hidden")){try{const mem=await buscarMembresiaActiva(usuarioActual.id);if(mem){mostrar("lobby");await cargarLobby(mem);}}catch(e){console.warn("No se pudo comprobar la activación de membresía:",e.message);}}},15000);restaurarSesion();});
 </script>
 </body>
 </html>
