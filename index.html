@@ -352,7 +352,47 @@ const municipiosPorProvincia={"Pinar del Río":["Pinar del Río","Consolación d
 function cargarMunicipios(){const p=document.getElementById("provincia").value,s=document.getElementById("municipio");s.innerHTML='<option value="">Selecciona tu municipio</option>';(municipiosPorProvincia[p]||[]).forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;s.appendChild(o);});s.disabled=!(municipiosPorProvincia[p]||[]).length;}
 async function registrar(){const b=document.getElementById("botonRegistro"),full_name=document.getElementById("nombre").value.trim(),province=document.getElementById("provincia").value,municipality=document.getElementById("municipio").value,username=document.getElementById("usuario").value.trim().toLowerCase(),email=document.getElementById("correo").value.trim(),password=document.getElementById("clave").value,referral_code=document.getElementById("invitacion").value.trim().toUpperCase(),foto=document.getElementById("fotoRegistro").files[0];if(!full_name||!province||!municipality||!username||!email||!password||!referral_code||!foto){mensaje("Todos los campos son obligatorios, incluida tu foto de perfil.");return;}if(!["image/jpeg","image/png","image/webp"].includes(foto.type)||foto.size>5*1024*1024){mensaje("La foto debe ser JPG, PNG o WEBP y pesar máximo 5 MB.");return;}if(!/^[a-z0-9_]{3,20}$/.test(username)||password.length<6){mensaje("Revisa el usuario y la contraseña.");return;}b.disabled=true;try{const {data:d,error:eu}=await supabaseClient.rpc("check_username_available",{p_username:username});if(eu)throw eu;if(!d?.[0]?.available)throw new Error("Ese nombre de usuario ya está ocupado.");const {data:r,error:re}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});if(re)throw re;if(r!==true)throw new Error("El código de referencia no existe.");const {data:signup,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:"https://goldrewards.github.io/goldrewards/",data:{full_name,username,province,municipality,referral_code,avatar_required:true}}});if(error)throw error;if(signup.session){usuarioActual=signup.user;perfilActual=await cargarPerfil(signup.user);await subirArchivoFotoPerfil(foto);perfilActual=await cargarPerfil(signup.user);}else{mensaje("Cuenta creada. Confirma tu correo y luego inicia sesión: el sistema te pedirá guardar la foto seleccionada antes de activar la membresía.");} ["nombre","usuario","correo","clave","invitacion"].forEach(id=>document.getElementById(id).value="");document.getElementById("fotoRegistro").value="";document.getElementById("provincia").value="";cargarMunicipios();if(signup.session)mostrar("cuenta");else mostrar("login");if(signup.session)mensaje("Cuenta creada y foto de perfil guardada. Ahora selecciona tu membresía.");await actualizarContadorUsuarios();}catch(e){mensaje("No se pudo completar el registro: "+errorTexto(e));}finally{b.disabled=false;}}
 async function cargarPerfil(u){const {data,error}=await supabaseClient.from("profiles").select("id,full_name,username,role,referral_code,avatar_url,province,municipality,created_at").eq("id",u.id).maybeSingle();if(error)throw error;if(!data)throw new Error("No se encontró tu perfil.");return data;}
-async function entrar(){const b=document.getElementById("botonLogin"),email=document.getElementById("correoLogin").value.trim(),password=document.getElementById("claveLogin").value;if(!email||!password){mensaje("Escribe tu correo y contraseña.");return;}b.disabled=true;try{const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;usuarioActual=data.user;perfilActual=await cargarPerfil(data.user);await dirigirUsuario();}catch(e){mensaje("No se pudo iniciar sesión: "+errorTexto(e));}finally{b.disabled=false;}}
+async function entrar(){
+
+ const b=document.getElementById("botonLogin");
+ const email=document.getElementById("correoLogin").value.trim();
+ const password=document.getElementById("claveLogin").value;
+
+ if(!email||!password){
+  mensaje("Escribe tu correo y contraseña.");
+  return;
+ }
+
+ b.disabled=true;
+
+ try{
+
+  const {data,error}=await supabaseClient.auth.signInWithPassword({
+   email,
+   password
+  });
+
+  if(error)throw error;
+
+  usuarioActual=data.user;
+
+  perfilActual=await cargarPerfil(data.user);
+
+  iniciarControlInactividad();
+
+  await dirigirUsuario();
+
+ }catch(e){
+
+  mensaje("No se pudo iniciar sesión: "+errorTexto(e));
+
+ }finally{
+
+  b.disabled=false;
+
+ }
+
+}
 async function dirigirUsuario(){if(!usuarioActual||!perfilActual)return;if(perfilActual.role!=="admin"&&usuarioActual.user_metadata?.avatar_required&&!perfilActual.avatar_url){mostrar("cuenta");document.getElementById("fotoObligatoriaCuenta").classList.remove("hidden");document.querySelectorAll("#cuenta > :not(.logout-top):not(h2):not(#fotoObligatoriaCuenta)").forEach(x=>{x.dataset.fotoGate="1";x.classList.add("hidden");});return;}if(perfilActual.role==="admin"){mostrar("panelAdmin");document.getElementById("mensajeAdmin").textContent="Bienvenido al panel de administración.";await cargarAdmin();return;}const mem=await buscarMembresiaActiva(usuarioActual.id);if(mem){mostrar("lobby");await cargarLobby(mem);}else{mostrar("cuenta");await cargarCuenta();}}
 async function cargarCuenta(){document.getElementById("perfilCuentaHeader").replaceChildren(crearEncabezadoCuenta(perfilActual,"Tu perfil", "account-avatar large"));document.getElementById("datos").textContent="Nombre: "+(perfilActual.full_name||"")+"\nUsuario: @"+(perfilActual.username||"")+"\nCódigo de invitación: "+(perfilActual.referral_code||"En preparación");const {data,error}=await supabaseClient.from("payment_requests").select("status,plan,amount_cup,created_at").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();const e=document.getElementById("estadoDeposito"),b=document.getElementById("botonComprobante");if(error){e.textContent="No se pudo consultar tu depósito: "+errorTexto(error);return;}if(data){e.textContent="Tienes una solicitud de "+nombrePlan(data.plan)+" ("+dinero(data.amount_cup)+") pendiente. Cuando sea aprobada podrás comprar cualquier otra membresía.";b.disabled=true;document.getElementById("planMembresia").disabled=true;}else{e.textContent="Puedes comprar cualquier membresía. Cada compra requiere aprobación individual.";b.disabled=false;document.getElementById("planMembresia").disabled=false;}actualizarDatosPlan();await cargarEstadoPagoVirtual();}
 function actualizarDatosPlanLobby(){const p=document.getElementById("planMembresiaLobby").value;document.getElementById("detallePlanLobby").textContent=p==="premium"?"Premium: 200 CUP por 30 días. Comisiones: 15 CUP directo y 5 CUP segundo nivel.":"Básica: 100 CUP por 30 días. Comisiones: 10 CUP directo y 2 CUP segundo nivel.";}
