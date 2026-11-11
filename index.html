@@ -405,7 +405,16 @@ async function cargarSaldoYGanancias(){
  ]);
  if(eg)throw eg;if(er)throw er;if(ea)throw ea;if(et)throw et;
  const comisiones=(g||[]).reduce((s,x)=>s+Number(x.amount_cup||0),0);
- const ajustes=(a||[]).reduce((s,x)=>s+Number(x.amount||0),0);
+ const ajustes=(a||[]).reduce((s,x)=>{
+ const cantidad=Number(x.amount||0);
+ const descripcion=(x.description||"").toLowerCase();
+
+ return s+(
+  descripcion.startsWith("ajuste administrativo cup: retirado")
+   ? -cantidad
+   : cantidad
+ );
+},0);
  const entradas=(t||[]).filter(x=>x.recipient_user_id===id).reduce((s,x)=>s+Number(x.amount||0),0);
  const salidas=(t||[]).filter(x=>x.sender_user_id===id).reduce((s,x)=>s+Number(x.amount||0)+Number(x.fee||0),0);
  const usados=(r||[]).filter(x=>x.status==="approved"||x.status==="pending").reduce((s,x)=>s+Number(x.amount_cup||0),0);
