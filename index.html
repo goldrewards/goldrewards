@@ -771,6 +771,74 @@ async function administrarSaldoVirtualDesdePanel(){
   }
 }
   
+async function administrarSaldoCUP() {
+  const codigo = document.getElementById('codigoAjusteCUP').value.trim();
+  const cantidad = Number(document.getElementById('cantidadAjusteCUP').value);
+  const operacion = document.getElementById('operacionAjusteCUP').value;
+  const estado = document.getElementById('estadoAdministrarCUP');
+
+  if (!codigo || !Number.isFinite(cantidad) || cantidad <= 0) {
+    estado.textContent = 'Introduce un código y una cantidad válida.';
+    return;
+  }
+
+  if (!confirm(`¿Confirmas ${operacion === 'add' ? 'agregar' : 'quitar'} ${cantidad} CUP a la cuenta ${codigo}?`)) return;
+
+  estado.textContent = 'Procesando ajuste...';
+
+  try {
+    const { data, error } = await supabaseClient.rpc(
+      'admin_adjust_cup_balance',
+      {
+        p_referral_code: codigo,
+        p_amount: cantidad,
+        p_operation: operacion
+      }
+    );
+
+    if (error) throw error;
+
+    estado.textContent =
+      `Ajuste realizado. Saldo anterior: ${data.saldo_anterior} CUP. Nuevo saldo: ${data.saldo_nuevo} CUP.`;
+  } catch (error) {
+    estado.textContent = 'Error: ' + error.message;
+  }
+}
+
+async function administrarSaldoUSDT() {
+  const codigo = document.getElementById('codigoAjusteUSDT').value.trim();
+  const cantidad = Number(document.getElementById('cantidadAjusteUSDT').value);
+  const operacion = document.getElementById('operacionAjusteUSDT').value;
+  const estado = document.getElementById('estadoAdministrarUSDT');
+
+  if (!codigo || !Number.isFinite(cantidad) || cantidad <= 0) {
+    estado.textContent = 'Introduce un código y una cantidad válida.';
+    return;
+  }
+
+  if (!confirm(`¿Confirmas ${operacion === 'add' ? 'agregar' : 'quitar'} ${cantidad} USDT a la cuenta ${codigo}?`)) return;
+
+  estado.textContent = 'Procesando ajuste...';
+
+  try {
+    const { data, error } = await supabaseClient.rpc(
+      'admin_adjust_virtual_balance',
+      {
+        p_referral_code: codigo,
+        p_amount: cantidad,
+        p_operation: operacion
+      }
+    );
+
+    if (error) throw error;
+
+    estado.textContent =
+      `Ajuste realizado. Saldo anterior: ${data.saldo_anterior} USDT. Nuevo saldo: ${data.saldo_nuevo} USDT.`;
+  } catch (error) {
+    estado.textContent = 'Error: ' + error.message;
+  }
+}
+  
 </script>
 </body>
 </html>
