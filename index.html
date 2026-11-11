@@ -88,12 +88,17 @@ label{display:block;margin-top:8px;color:var(--muted)}
 #adminDetalleModal .modal-panel{width:min(780px,100%)}
 @media(max-width:420px){.admin-menu-btn{top:9px;right:9px}.admin-account-card{padding:12px}}
 
+
+.language-picker{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto 14px;max-width:250px;text-align:left}
+.language-picker label{margin:0;color:var(--oro2);font-size:.88rem;white-space:nowrap}
+.language-picker select{width:auto;min-width:145px;margin:0;padding:9px 11px;border-color:rgba(246,207,85,.55);font-size:14px}
 </style>
 </head>
 <body>
 <header><h1>GoldRewards</h1><p>Gana, comparte y crece</p></header>
 
 <div class="container hero" id="inicio">
+  <div class="language-picker"><label for="selectorIdioma">🌐 Idioma</label><select id="selectorIdioma" onchange="cambiarIdioma(this.value)" aria-label="Seleccionar idioma"><option value="es">🇪🇸 Español</option><option value="en">🇺🇸 English</option><option value="fr">🇫🇷 Français</option><option value="pt">🇧🇷 Português</option></select></div>
   <div class="hero-emblem">🪙</div><p class="eyebrow">COMUNIDAD EXCLUSIVA</p><h2 class="hero-title">Bienvenido a GoldRewards</h2><p class="hero-copy">Gana, comparte y crece</p><div class="gold-divider"><span>✦</span></div><p class="muted">Una comunidad para compartir invitaciones y obtener recompensas.</p><div class="contador-usuarios" title="Usuarios de la comunidad"><span class="ojo">👁️</span><span id="contadorUsuarios">Cargando...</span></div><p class="small muted">Miembros en la comunidad</p><button class="boton-principal" onclick="mostrar('registro')">Crear mi cuenta</button><button class="secundario" onclick="mostrar('login')">Iniciar sesión</button><button class="boton-reglas" onclick="abrirReglas()">📜 Leer reglas</button><div class="decoracion-oro">◆　🪙　◆</div>
 </div>
 
@@ -326,11 +331,11 @@ async function subirArchivoFotoPerfil(archivo){if(!archivo)throw new Error("Sele
 async function subirFotoCuenta(){const input=document.getElementById("fotoCuentaInput"),estado=document.getElementById("estadoFotoCuenta"),boton=document.getElementById("guardarFotoCuentaBtn");boton.disabled=true;try{await subirArchivoFotoPerfil(input.files[0]);document.getElementById("fotoObligatoriaCuenta").classList.add("hidden");document.querySelectorAll("#cuenta [data-foto-gate]").forEach(x=>x.classList.remove("hidden"));estado.textContent="Foto guardada correctamente.";await dirigirUsuario();}catch(e){estado.textContent="No se pudo guardar la foto: "+errorTexto(e);}finally{boton.disabled=false;}}
 async function cambiarFotoPerfil(){const input=document.getElementById("cambiarFotoInput");input.click();}
 async function procesarCambioFoto(archivo){const estado=document.getElementById("estadoCambiarFoto");if(!archivo)return;estado.textContent="Guardando foto...";try{await subirArchivoFotoPerfil(archivo);const row=document.getElementById("perfilLobbyHeader");row.replaceChildren();const wrap=elemento("div",undefined,"avatar-edit-wrap");wrap.append(crearEncabezadoCuenta(perfilActual,"Tu cuenta", "account-avatar large"));const btn=elemento("button","Cambiar foto","avatar-edit-btn secundario");btn.type="button";btn.onclick=cambiarFotoPerfil;wrap.append(btn);row.append(wrap);estado.textContent="Foto de perfil actualizada.";}catch(e){estado.textContent="No se pudo cambiar la foto: "+errorTexto(e);}}
-async function cargarPerfiles(ids){const unicos=[...new Set((ids||[]).filter(Boolean).map(String))].filter(id=>!perfilesCache.has(id));if(unicos.length){try{const {data,error}=await supabaseClient.from("profiles").select("id,full_name,username,avatar_url,role").in("id",unicos);if(error)throw error;(data||[]).forEach(p=>perfilesCache.set(String(p.id),p));}catch(e){console.warn("No se pudieron cargar algunas fotos de perfil; se mostrarán iniciales si hace falta.",e);}}return new Map((ids||[]).map(id=>[id,perfilesCache.get(String(id))||{id}]));}
+async function cargarPerfiles(ids){const unicos=[...new Set((ids||[]).filter(Boolean).map(String))].filter(id=>!perfilesCache.has(id));if(unicos.length){try{const {data,error}=await supabaseClient.from("profiles").select("id,full_name,username,avatar_url,role,referral_code").in("id",unicos);if(error)throw error;(data||[]).forEach(p=>perfilesCache.set(String(p.id),p));}catch(e){console.warn("No se pudieron cargar algunas fotos de perfil; se mostrarán iniciales si hace falta.",e);}}return new Map((ids||[]).map(id=>[id,perfilesCache.get(String(id))||{id}]));}
 function mostrar(id){document.querySelectorAll(".container").forEach(x=>x.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");document.getElementById("message").textContent="";}
 function mensaje(t){document.getElementById("message").textContent=t;}
 function dinero(v){return `${Number(v||0).toLocaleString("es-ES")} CUP`;}
-function fecha(v){return v?new Date(v).toLocaleString("es-ES"):"—";}
+function fecha(v){const lang=localStorage.getItem("goldrewards_idioma")||"es";const locale={es:"es-ES",en:"en-US",fr:"fr-FR",pt:"pt-BR"}[lang]||"es-ES";return v?new Date(v).toLocaleString(locale):"—";}
 function elemento(tag,texto,clase){const e=document.createElement(tag);if(texto!==undefined)e.textContent=texto;if(clase)e.className=clase;return e;}
 function tarjetaVacia(c,t){c.replaceChildren(elemento("p",t,"muted"));}
 function errorTexto(e){return e?.message||"Ocurrió un error inesperado."}
@@ -760,7 +765,43 @@ async function transferirSaldo(){
  await Promise.all([cargarSaldoYGanancias(),cargarSaldoMonedasVirtuales(),cargarHistorialTransferencias()]);
  }catch(e){estado.textContent="No se pudo realizar la transferencia: "+errorTexto(e);}finally{boton.disabled=false;}
 }
-async function cargarHistorialTransferencias(){const c=document.getElementById("historialTransferencias");if(!c||!usuarioActual)return;const {data,error}=await supabaseClient.from("balance_transfers").select("id,sender_user_id,recipient_user_id,currency,amount,fee,created_at").or(`sender_user_id.eq.${usuarioActual.id},recipient_user_id.eq.${usuarioActual.id}`).order("created_at",{ascending:false}).limit(50);if(error){tarjetaVacia(c,"No se pudo cargar el historial de transferencias: "+errorTexto(error));return;}if(!data?.length){tarjetaVacia(c,"Todavía no tienes transferencias.");return;}const ids=data.map(x=>x.sender_user_id===usuarioActual.id?x.recipient_user_id:x.sender_user_id);await cargarPerfiles(ids);c.replaceChildren();data.forEach(x=>{const saliente=x.sender_user_id===usuarioActual.id,otroId=saliente?x.recipient_user_id:x.sender_user_id,perfil=perfilesCache.get(String(otroId))||{id:otroId},unidad=x.currency==="CUP"?"CUP":"USDT",q=elemento("div",undefined,"solicitud");q.append(crearEncabezadoCuenta(perfil,saliente?"Destinatario":"Remitente"),elemento("strong",(saliente?"−":"+")+Number(x.amount).toLocaleString("es-ES",{maximumFractionDigits:2})+" "+unidad),elemento("p",saliente?"Comisión cobrada: "+Number(x.fee).toLocaleString("es-ES")+" "+unidad:"Recibiste esta transferencia"),elemento("p","Fecha: "+fecha(x.created_at)));c.append(q);});}
+async function cargarHistorialTransferencias(){
+ const c=document.getElementById("historialTransferencias");
+ if(!c||!usuarioActual)return;
+ const {data,error}=await supabaseClient.from("balance_transfers")
+  .select("id,sender_user_id,recipient_user_id,currency,amount,fee,created_at")
+  .or(`sender_user_id.eq.${usuarioActual.id},recipient_user_id.eq.${usuarioActual.id}`)
+  .order("created_at",{ascending:false}).limit(50);
+ if(error){tarjetaVacia(c,"No se pudo cargar el historial de transferencias: "+errorTexto(error));return;}
+ if(!data?.length){tarjetaVacia(c,"Todavía no tienes transferencias.");return;}
+ const ids=data.flatMap(x=>[x.sender_user_id,x.recipient_user_id]);
+ await cargarPerfiles(ids);
+ c.replaceChildren();
+ data.forEach(x=>{
+  const saliente=x.sender_user_id===usuarioActual.id;
+  const otroId=saliente?x.recipient_user_id:x.sender_user_id;
+  const perfil=perfilesCache.get(String(otroId))||{id:otroId};
+  const codigoPropio=perfilActual?.referral_code||"No disponible";
+  const codigoOtro=perfil?.referral_code||"No disponible";
+  const unidad=x.currency==="CUP"?"CUP":"USDT";
+  const cantidad=Number(x.amount)||0;
+  const comision=saliente?(Number(x.fee)||0):0;
+  const q=elemento("article",undefined,"solicitud");
+  q.append(
+   elemento("h3",(saliente?"📤 Transferencia enviada":"📥 Transferencia recibida")+" · "+unidad),
+   crearEncabezadoCuenta(perfil,saliente?"Destinatario":"Remitente"),
+   elemento("p","Estado: Completada","estado"),
+   elemento("p","Código de referencia del usuario: "+codigoOtro),
+   elemento("p","Tu código de referencia: "+codigoPropio),
+   elemento("p","Cantidad transferida: "+cantidad.toLocaleString("es-ES",{minimumFractionDigits:unidad==="USDT"?2:0,maximumFractionDigits:2})+" "+unidad),
+   elemento("p",saliente?"Comisión cobrada: "+comision.toLocaleString("es-ES",{minimumFractionDigits:2,maximumFractionDigits:2})+" "+unidad:"Comisión pagada por el remitente: "+(Number(x.fee)||0).toLocaleString("es-ES",{minimumFractionDigits:2,maximumFractionDigits:2})+" "+unidad),
+   elemento("p","Fecha de transferencia: "+fecha(x.created_at)),
+   elemento("p","Fecha de procesamiento: "+fecha(x.created_at)),
+   elemento("p","Referencia de operación: "+x.id,"small muted")
+  );
+  c.append(q);
+ });
+}
 
 
 async function cargarReferidos(){const c=document.getElementById("listaReferidos"),{data,error}=await supabaseClient.rpc("get_my_referrals");if(error){tarjetaVacia(c,"No se pudo mostrar la lista de invitados.");return;}if(!data?.length){tarjetaVacia(c,"Todavía no tienes personas invitadas.");return;}const {data:g}=await supabaseClient.from("referral_earnings").select("referred_user_id,amount_cup").eq("earner_user_id",usuarioActual.id).eq("referral_level",1),m=new Map((g||[]).map(x=>[x.referred_user_id,x]));await cargarPerfiles(data.map(x=>x.id));c.replaceChildren();data.forEach(p=>{const x=m.get(p.id),q=elemento("div",undefined,"solicitud"),perfil=perfilesCache.get(String(p.id))||p;q.append(crearEncabezadoCuenta({...perfil,...p},"Referido"),elemento("p",x?"Depósito aprobado · "+dinero(x.amount_cup):"Invitación registrada · comisión pendiente"));c.append(q);});}
@@ -1159,6 +1200,45 @@ async function restaurarSesion(){
 }
 
 restaurarSesion();  
+</script>
+
+<script>
+// Selector de idioma persistente para GoldRewards.
+const DICCIONARIO_IDIOMAS={
+ en:{
+  "Idioma":"Language","COMUNIDAD EXCLUSIVA":"EXCLUSIVE COMMUNITY","Bienvenido a GoldRewards":"Welcome to GoldRewards","Gana, comparte y crece":"Earn, share and grow","Una comunidad para compartir invitaciones y obtener recompensas.":"A community to share invitations and earn rewards.","Miembros en la comunidad":"Community members","Crear mi cuenta":"Create account","Iniciar sesión":"Log in","📜 Leer reglas":"📜 Read rules","Crear cuenta":"Create account","Nombre completo":"Full name","Provincia":"Province","Municipio":"Municipality","Selecciona tu provincia":"Select your province","Primero selecciona tu provincia":"Select your province first","Nombre de usuario":"Username","Comprobar usuario":"Check username","Correo electrónico":"Email address","Contraseña (mínimo 6 caracteres)":"Password (at least 6 characters)","Código de referencia de quien te invitó (obligatorio)":"Referrer's referral code (required)","Introduce el código de referencia":"Enter referral code","Foto de perfil (obligatoria)":"Profile photo (required)","Sube una foto JPG, PNG o WEBP de máximo 5 MB.":"Upload a JPG, PNG or WEBP photo up to 5 MB.","Volver":"Back","Entrar":"Sign in","Cerrar sesión":"Log out","Historial de transferencias":"Transfer history","Transferir saldo a otro usuario":"Transfer balance to another user","Envía saldo usando el código de referido. Los saldos CUP y USDT se mantienen separados.":"Send balance using the referral code. CUP and USDT balances remain separate.","Tipo de saldo":"Balance type","Saldo CUP":"CUP balance","Saldo virtual (USDT)":"Virtual balance (USDT)","Código de referido del destinatario":"Recipient referral code","Cantidad que recibirá":"Amount recipient will receive","Cantidad a transferir":"Amount to transfer","Continuar transferencia":"Continue transfer","Historial de retiros":"Withdrawal history","Estado: Completada":"Status: Completed","Código de referencia del usuario: ":"User referral code: ","Tu código de referencia: ":"Your referral code: ","Cantidad transferida: ":"Transferred amount: ","Comisión cobrada: ":"Fee charged: ","Comisión pagada por el remitente: ":"Fee paid by sender: ","Fecha de transferencia: ":"Transfer date: ","Fecha de procesamiento: ":"Processing date: ","Referencia de operación: ":"Transaction reference: ","Transferencia enviada":"Outgoing transfer","Transferencia recibida":"Incoming transfer","Destinatario":"Recipient","Remitente":"Sender","Cargando...":"Loading...","No se encontró ningún usuario con ese código.":"No user found with that code.","No disponible":"Unavailable","Todavía no tienes transferencias.":"You have no transfers yet.","No se pudo cargar el historial de transferencias: ":"Could not load transfer history: ","Retiro CUP":"CUP withdrawal","Retiro USDT":"USDT withdrawal","Estado: ":"Status: ","Tarjeta: ":"Card: ","Billetera de destino: ":"Destination wallet: ","Cantidad solicitada: ":"Requested amount: ","Descuento: ":"Deduction: ","Fecha de solicitud: ":"Request date: ","Pendiente":"Pending","En proceso de aprobación":"Awaiting approval","Aprobada":"Approved","Rechazada":"Rejected","Hash de transacción: ":"Transaction hash: ","📤 Transferencia enviada":"📤 Outgoing transfer","📥 Transferencia recibida":"📥 Incoming transfer"
+ },
+ fr:{
+  "Idioma":"Langue","COMUNIDAD EXCLUSIVA":"COMMUNAUTÉ EXCLUSIVE","Bienvenido a GoldRewards":"Bienvenue sur GoldRewards","Gana, comparte y crece":"Gagnez, partagez et grandissez","Una comunidad para compartir invitaciones y obtener recompensas.":"Une communauté pour partager des invitations et gagner des récompenses.","Miembros en la comunidad":"Membres de la communauté","Crear mi cuenta":"Créer mon compte","Iniciar sesión":"Se connecter","📜 Leer reglas":"📜 Lire les règles","Crear cuenta":"Créer un compte","Nombre completo":"Nom complet","Provincia":"Province","Municipio":"Municipalité","Selecciona tu provincia":"Sélectionnez votre province","Primero selecciona tu provincia":"Sélectionnez d'abord votre province","Nombre de usuario":"Nom d'utilisateur","Comprobar usuario":"Vérifier le nom d'utilisateur","Correo electrónico":"Adresse e-mail","Contraseña (mínimo 6 caracteres)":"Mot de passe (6 caractères minimum)","Código de referencia de quien te invitó (obligatorio)":"Code de parrainage (obligatoire)","Introduce el código de referencia":"Saisissez le code de parrainage","Foto de perfil (obligatoria)":"Photo de profil (obligatoire)","Sube una foto JPG, PNG o WEBP de máximo 5 MB.":"Téléversez une photo JPG, PNG ou WEBP de 5 Mo maximum.","Volver":"Retour","Entrar":"Connexion","Cerrar sesión":"Se déconnecter","Historial de transferencias":"Historique des transferts","Transferir saldo a otro usuario":"Transférer du solde à un autre utilisateur","Envía saldo usando el código de referido. Los saldos CUP y USDT se mantienen separados.":"Envoyez un solde avec le code de parrainage. Les soldes CUP et USDT restent séparés.","Tipo de saldo":"Type de solde","Saldo CUP":"Solde CUP","Saldo virtual (USDT)":"Solde virtuel (USDT)","Código de referido del destinatario":"Code de parrainage du destinataire","Cantidad que recibirá":"Montant reçu","Cantidad a transferir":"Montant à transférer","Continuar transferencia":"Continuer le transfert","Historial de retiros":"Historique des retraits","Estado: Completada":"Statut : Terminé","Código de referencia del usuario: ":"Code de parrainage de l'utilisateur : ","Tu código de referencia: ":"Votre code de parrainage : ","Cantidad transferida: ":"Montant transféré : ","Comisión cobrada: ":"Frais facturés : ","Comisión pagada por el remitente: ":"Frais payés par l'expéditeur : ","Fecha de transferencia: ":"Date du transfert : ","Fecha de procesamiento: ":"Date de traitement : ","Referencia de operación: ":"Référence de l'opération : ","Transferencia enviada":"Transfert envoyé","Transferencia recibida":"Transfert reçu","Destinatario":"Destinataire","Remitente":"Expéditeur","Cargando...":"Chargement...","No se encontró ningún usuario con ese código.":"Aucun utilisateur trouvé avec ce code.","No disponible":"Indisponible","Todavía no tienes transferencias.":"Vous n'avez pas encore de transferts.","No se pudo cargar el historial de transferencias: ":"Impossible de charger l'historique des transferts : ","Retiro CUP":"Retrait CUP","Retiro USDT":"Retrait USDT","Estado: ":"Statut : ","Tarjeta: ":"Carte : ","Billetera de destino: ":"Portefeuille de destination : ","Cantidad solicitada: ":"Montant demandé : ","Descuento: ":"Déduction : ","Fecha de solicitud: ":"Date de la demande : ","Pendiente":"En attente","En proceso de aprobación":"En attente d'approbation","Aprobada":"Approuvée","Rechazada":"Refusée","Hash de transacción: ":"Hash de transaction : ","📤 Transferencia enviada":"📤 Transfert envoyé","📥 Transferencia recibida":"📥 Transfert reçu"
+ },
+ pt:{
+  "Idioma":"Idioma","COMUNIDAD EXCLUSIVA":"COMUNIDADE EXCLUSIVA","Bienvenido a GoldRewards":"Bem-vindo ao GoldRewards","Gana, comparte y crece":"Ganhe, compartilhe e cresça","Una comunidad para compartir invitaciones y obtener recompensas.":"Uma comunidade para compartilhar convites e ganhar recompensas.","Miembros en la comunidad":"Membros da comunidade","Crear mi cuenta":"Criar minha conta","Iniciar sesión":"Entrar","📜 Leer reglas":"📜 Ler regras","Crear cuenta":"Criar conta","Nombre completo":"Nome completo","Provincia":"Província","Municipio":"Município","Selecciona tu provincia":"Selecione sua província","Primero selecciona tu provincia":"Primeiro selecione sua província","Nombre de usuario":"Nome de usuário","Comprobar usuario":"Verificar usuário","Correo electrónico":"E-mail","Contraseña (mínimo 6 caracteres)":"Senha (mínimo 6 caracteres)","Código de referencia de quien te invitó (obligatorio)":"Código de indicação de quem convidou (obrigatório)","Introduce el código de referencia":"Digite o código de indicação","Foto de perfil (obligatoria)":"Foto de perfil (obrigatória)","Sube una foto JPG, PNG o WEBP de máximo 5 MB.":"Envie uma foto JPG, PNG ou WEBP de até 5 MB.","Volver":"Voltar","Entrar":"Entrar","Cerrar sesión":"Sair","Historial de transferencias":"Histórico de transferências","Transferir saldo a otro usuario":"Transferir saldo para outro usuário","Envía saldo usando el código de referido. Los saldos CUP y USDT se mantienen separados.":"Envie saldo usando o código de indicação. Os saldos CUP e USDT permanecem separados.","Tipo de saldo":"Tipo de saldo","Saldo CUP":"Saldo CUP","Saldo virtual (USDT)":"Saldo virtual (USDT)","Código de referido del destinatario":"Código de indicação do destinatário","Cantidad que recibirá":"Valor que receberá","Cantidad a transferir":"Valor a transferir","Continuar transferencia":"Continuar transferência","Historial de retiros":"Histórico de saques","Estado: Completada":"Status: Concluída","Código de referencia del usuario: ":"Código de indicação do usuário: ","Tu código de referencia: ":"Seu código de indicação: ","Cantidad transferida: ":"Valor transferido: ","Comisión cobrada: ":"Taxa cobrada: ","Comisión pagada por el remitente: ":"Taxa paga pelo remetente: ","Fecha de transferencia: ":"Data da transferência: ","Fecha de procesamiento: ":"Data do processamento: ","Referencia de operación: ":"Referência da operação: ","Transferencia enviada":"Transferência enviada","Transferencia recibida":"Transferência recebida","Destinatario":"Destinatário","Remitente":"Remetente","Cargando...":"Carregando...","No se encontró ningún usuario con ese código.":"Nenhum usuário encontrado com esse código.","No disponible":"Indisponível","Todavía no tienes transferencias.":"Você ainda não tem transferências.","No se pudo cargar el historial de transferencias: ":"Não foi possível carregar o histórico de transferências: ","Retiro CUP":"Saque CUP","Retiro USDT":"Saque USDT","Estado: ":"Status: ","Tarjeta: ":"Cartão: ","Billetera de destino: ":"Carteira de destino: ","Cantidad solicitada: ":"Valor solicitado: ","Descuento: ":"Desconto: ","Fecha de solicitud: ":"Data da solicitação: ","Pendiente":"Pendente","En proceso de aprobación":"Aguardando aprovação","Aprobada":"Aprovada","Rechazada":"Rejeitada","Hash de transacción: ":"Hash da transação: ","📤 Transferencia enviada":"📤 Transferência enviada","📥 Transferencia recibida":"📥 Transferência recebida"
+ }
+};
+const nodosIdiomaOriginales=new WeakMap();
+function traducirNodoTexto(nodo,idioma){
+ if(!nodo||nodo.nodeType!==Node.TEXT_NODE)return;
+ if(!nodosIdiomaOriginales.has(nodo))nodosIdiomaOriginales.set(nodo,nodo.nodeValue);
+ const original=nodosIdiomaOriginales.get(nodo),texto=original.trim();
+ const dic=DICCIONARIO_IDIOMAS[idioma]||{};
+ let traduccion=dic[texto];
+ if(!traduccion){
+  const clave=Object.keys(dic).filter(k=>k.length>8&&texto.startsWith(k)).sort((a,b)=>b.length-a.length)[0];
+  if(clave)traduccion=dic[clave]+texto.slice(clave.length);
+ }
+ if(traduccion){const inicio=original.match(/^\s*/)?.[0]||"",fin=original.match(/\s*$/)?.[0]||"";nodo.nodeValue=inicio+traduccion+fin;}
+ else nodo.nodeValue=original;
+}
+function traducirPagina(idioma){
+ document.documentElement.lang=idioma;
+ const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+ let nodo;while((nodo=walker.nextNode()))traducirNodoTexto(nodo,idioma);
+ document.querySelectorAll("input[placeholder],textarea[placeholder],button[title],[aria-label]").forEach(el=>{
+  ["placeholder","title","aria-label"].forEach(attr=>{if(!el.hasAttribute(attr))return;const key="__lang_"+attr;if(!el.dataset[key])el.dataset[key]=el.getAttribute(attr);const original=el.dataset[key];el.setAttribute(attr,DICCIONARIO_IDIOMAS[idioma]?.[original]||original);});
+ });
+}
+function cambiarIdioma(idioma){if(!["es","en","fr","pt"].includes(idioma))idioma="es";localStorage.setItem("goldrewards_idioma",idioma);traducirPagina(idioma);}
+(function iniciarSelectorIdioma(){const idioma=localStorage.getItem("goldrewards_idioma")||"es";const selector=document.getElementById("selectorIdioma");if(selector)selector.value=idioma;traducirPagina(idioma);const observador=new MutationObserver(cambios=>{const actual=localStorage.getItem("goldrewards_idioma")||"es";for(const cambio of cambios){for(const nodo of cambio.addedNodes||[]){if(nodo.nodeType===Node.TEXT_NODE)traducirNodoTexto(nodo,actual);else if(nodo.nodeType===Node.ELEMENT_NODE){const walker=document.createTreeWalker(nodo,NodeFilter.SHOW_TEXT);let t;while((t=walker.nextNode()))traducirNodoTexto(t,actual);}}}});observador.observe(document.body,{childList:true,subtree:true});})();
 </script>
 </body>
 </html>
