@@ -156,7 +156,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
     <section class="lobby-section hidden" id="lobbyReferidosUSDT"><h3>🪙 Referidos con cuenta USDT</h3><div id="listaReferidosUSDT"><p class="muted">Cargando...</p></div></section>
     <section class="lobby-section hidden" id="lobbyGananciasCUP"><h3>📈 Ganancias e historial CUP</h3><div id="historialGanancias"></div></section>
     <section class="lobby-section hidden" id="lobbyGananciasUSDT"><h3>📈 Ganancias e historial USDT</h3><div id="historialMonedasVirtuales"><p class="muted">Cargando...</p></div></section>
-    <section class="lobby-section hidden" id="lobbyTransferencias"><div class="card transfer-card"><h3>🔁 Transferir saldo a otro usuario</h3><p class="muted">Envía saldo usando el código de referido. Los saldos CUP y USDT se mantienen separados.</p><label for="monedaTransferencia">Tipo de saldo</label><select id="monedaTransferencia" onchange="actualizarInfoTransferencia()"><option value="CUP">Saldo CUP</option><option value="VIRTUAL">Saldo virtual (USDT)</option></select><label for="codigoDestinatario">Código de referido del destinatario</label><input id="codigoDestinatario" type="text" maxlength="80" placeholder="Introduce el código de referido"><label for="montoTransferencia">Cantidad que recibirá</label><input id="montoTransferencia" type="number" min="1" step="1" placeholder="Cantidad a transferir"><p id="infoComisionTransferencia" class="muted">Comisión: 5 CUP. Se descontarán la cantidad y la comisión.</p><button id="botonTransferencia" onclick="transferirSaldo()">Continuar transferencia</button><p id="estadoTransferencia" class="estado" aria-live="polite"></p><h3>Historial de transferencias</h3><div id="historialTransferencias"><p class="muted">Cargando...</p></div></div></section>
+    <section class="lobby-section hidden" id="lobbyTransferencias"><div class="card transfer-card"><h3>🔁 Transferir saldo a otro usuario</h3><p class="muted">Envía saldo usando el código de referido. Los saldos CUP y USDT se mantienen separados.</p><label for="monedaTransferencia">Tipo de saldo</label><select id="monedaTransferencia" onchange="actualizarInfoTransferencia()"><option value="CUP">Saldo CUP</option><option value="VIRTUAL">Saldo virtual (USDT)</option></select><label for="codigoDestinatario">Código de referido del destinatario</label><input id="codigoDestinatario" type="text" maxlength="80" placeholder="Introduce el código de referido" oninput="buscarDestinatarioTransferencia()"><small id="nombreDestinatarioTransferencia" class="muted" style="display:block;min-height:18px;margin-top:4px;font-size:12px" aria-live="polite"></small><label for="montoTransferencia">Cantidad que recibirá</label><input id="montoTransferencia" type="number" min="1" step="1" placeholder="Cantidad a transferir"><p id="infoComisionTransferencia" class="muted">Comisión: 5 CUP. Se descontarán la cantidad y la comisión.</p><button id="botonTransferencia" onclick="transferirSaldo()">Continuar transferencia</button><p id="estadoTransferencia" class="estado" aria-live="polite"></p><h3>Historial de transferencias</h3><div id="historialTransferencias"><p class="muted">Cargando...</p></div></div></section>
     <section class="lobby-section hidden" id="lobbyHistorialMembresias"><h3>📋 Historial de membresías y depósitos</h3><div id="historialPagos"></div></section>
     <section class="lobby-section hidden" id="lobbyHistorialRetiros"><h3>📋 Historial de retiros</h3><div id="historialRetiros"></div></section>
     <section class="lobby-section hidden" id="lobbyPlanes"><h3>🏆 Activa o renueva tus planes</h3><p class="muted">Puedes comprar cualquier plan. Cada compra nueva requiere aprobación individual del administrador.</p>
@@ -710,6 +710,39 @@ if(gv){
 }
   
 function actualizarInfoTransferencia(){const moneda=document.getElementById("monedaTransferencia")?.value||"CUP",info=document.getElementById("infoComisionTransferencia"),monto=document.getElementById("montoTransferencia");if(!info||!monto)return;if(moneda==="CUP"){info.textContent="Comisión: 5 CUP. Se descontarán la cantidad y 5 CUP adicionales.";monto.step="1";monto.min="1";monto.placeholder="Cantidad entera de CUP";}else{info.textContent="Comisión: 1 USDT. Se descontarán la cantidad y 1 USDT adicional.";monto.step="0.01";monto.min="0.01";monto.placeholder="Cantidad virtual (máximo 2 decimales)";}}
+let temporizadorBusquedaDestinatario=null;
+async function buscarDestinatarioTransferencia(){
+ const campo=document.getElementById("codigoDestinatario");
+ const aviso=document.getElementById("nombreDestinatarioTransferencia");
+ if(!campo||!aviso)return;
+ const codigo=campo.value.trim().toUpperCase();
+ clearTimeout(temporizadorBusquedaDestinatario);
+ if(!codigo){aviso.textContent="";aviso.style.color="";return;}
+ aviso.textContent="Buscando usuario...";
+ aviso.style.color="";
+ temporizadorBusquedaDestinatario=setTimeout(async()=>{
+  try{
+   const {data,error}=await supabaseClient.from("profiles")
+    .select("full_name,username,referral_code")
+    .eq("referral_code",codigo).maybeSingle();
+   if(error)throw error;
+   if(campo.value.trim().toUpperCase()!==codigo)return;
+   if(!data){
+    aviso.textContent="No se encontró ningún usuario con ese código.";
+    aviso.style.color="#dc2626";
+    return;
+   }
+   const nombre=data.full_name||data.username||"Usuario";
+   aviso.textContent="✓ Código pertenece a: "+nombre;
+   aviso.style.color="#16a34a";
+  }catch(e){
+   if(campo.value.trim().toUpperCase()===codigo){
+    aviso.textContent="No se pudo verificar el código. Comprueba antes de transferir.";
+    aviso.style.color="#dc2626";
+   }
+  }
+ },350);
+}
 async function transferirSaldo(){
  const boton=document.getElementById("botonTransferencia"),estado=document.getElementById("estadoTransferencia"),codigo=document.getElementById("codigoDestinatario").value.trim(),moneda=document.getElementById("monedaTransferencia").value,montoTexto=document.getElementById("montoTransferencia").value.trim(),monto=Number(montoTexto);
  if(!codigo){estado.textContent="Introduce el código de referido del destinatario.";return;}
@@ -722,6 +755,7 @@ async function transferirSaldo(){
  try{const {data,error}=await supabaseClient.rpc("transfer_balance",{p_recipient_referral_code:codigo,p_currency:moneda,p_amount:monto});if(error)throw error;if(!data?.success)throw new Error("No se pudo confirmar la transferencia.");
  estado.textContent="¡Transferencia realizada! Destinatario: "+(data.recipient_name||"Usuario")+". Enviado: "+Number(data.amount).toLocaleString("es-ES")+" "+unidad+". Comisión: "+Number(data.fee).toLocaleString("es-ES")+" "+unidad+".";
  document.getElementById("codigoDestinatario").value="";document.getElementById("montoTransferencia").value="";
+ const avisoDestinatario=document.getElementById("nombreDestinatarioTransferencia");if(avisoDestinatario){avisoDestinatario.textContent="";avisoDestinatario.style.color="";}
  await Promise.all([cargarSaldoYGanancias(),cargarSaldoMonedasVirtuales(),cargarHistorialTransferencias()]);
  }catch(e){estado.textContent="No se pudo realizar la transferencia: "+errorTexto(e);}finally{boton.disabled=false;}
 }
