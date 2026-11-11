@@ -502,11 +502,27 @@ async function cargarSaldoMonedasVirtuales(){
  saldo.textContent=fmt(total)+" USDT";
 
  const comisiones=(g||[]).reduce(
-  (s,x)=>s+Number(x.amount||0),0
- );
+ (s,x)=>s+Number(x.amount||0),0
+);
 
- const gv=document.getElementById("gananciasVirtuales");
- if(gv)gv.textContent=fmt(Math.max(0,comisiones))+" USDT";
+const ajustesRetirados=(l||[])
+ .filter(x=>
+  (x.description||"")
+   .toLowerCase()
+   .includes("ajuste administrativo usdt retirado")
+ )
+ .reduce((s,x)=>s+Number(x.amount||0),0);
+
+const gananciasSinRetirar=Math.max(
+ 0,
+ comisiones+ajustesRetirados
+);
+
+const gv=document.getElementById("gananciasVirtuales");
+
+if(gv){
+ gv.textContent=fmt(gananciasSinRetirar)+" USDT";
+}
 
  const cv=document.getElementById("cantidadReferidosUSDT");
  if(cv){
