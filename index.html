@@ -583,12 +583,12 @@ async function cargarSaldoMonedasVirtuales(){
    .order("created_at",{ascending:false}),
 
   supabaseClient.from("virtual_wallet_ledger")
-   .select("amount,movement_type,description,created_at")
+   .select("amount,movement_type,description,created_at,reference_id")
    .eq("user_id",id)
    .order("created_at",{ascending:false}),
 
   supabaseClient.from("virtual_withdrawal_requests")
-   .select("amount,status,created_at")
+   .select("id,amount,status,created_at")
    .eq("user_id",id)
  ]);
 
@@ -601,9 +601,9 @@ async function cargarSaldoMonedasVirtuales(){
  }
 
  // Replica el cálculo del saldo USDT del servidor:
- // ledger (incluye débitos negativos por retiros aprobados)
- // + ajustes + transferencias recibidas - enviadas y su comisión
- // - retiros que todavía están pendientes.
+ // El ledger ya incluye la reserva negativa de los retiros nuevos,
+ // incluso cuando siguen pendientes. Solo se descuentan aparte las
+ // solicitudes pendientes antiguas que todavía no tienen movimiento contable.
  const saldoLedger=(l||[]).reduce((s,x)=>s+Number(x.amount||0),0);
  const saldoAjustes=(a||[]).reduce((s,x)=>s+Number(x.amount||0),0);
  const transferenciasRecibidas=(t||[])
@@ -612,11 +612,17 @@ async function cargarSaldoMonedasVirtuales(){
  const transferenciasEnviadas=(t||[])
   .filter(x=>x.sender_user_id===id)
   .reduce((s,x)=>s+Number(x.amount||0)+Number(x.fee||0),0);
- const retirosPendientes=(r||[])
+ const retirosPendientesAntiguos=(r||[])
   .filter(x=>String(x.status||"").toLowerCase()==="pending")
-  .reduce((s,x)=>s+Number(x.amount||0),0);
+  .filter(x=>!(l||[]).some(m=>
+   m.reference_id===x.id && m.movement_type==="withdrawal"
+  ))
+  .reduce((s,x)=>{
+   const importe=Number(x.amount||0);
+   return s+importe+Math.round((importe*0.03+Number.EPSILON)*100)/100;
+  },0);
  const total=saldoLedger+saldoAjustes+transferenciasRecibidas-
-  transferenciasEnviadas-retirosPendientes;
+  transferenciasEnviadas-retirosPendientesAntiguos;
 
  const fmt=n=>Number(n||0).toLocaleString("es-ES",{
   minimumFractionDigits:0,
@@ -1356,4 +1362,4 @@ function cambiarIdioma(idioma){if(!['es','en','fr','pt'].includes(idioma))idioma
 
 </body>
 </html>
-olicitação de saque CUP:", "38. Límite de retiro:": "38. Limite de saque:", "39. Cantidades permitidas para retirar:": "39. Valores permitidos para saque:", "40. Saldo disponible para retiros:": "40. Saldo disponível para saques:", "41. Datos para recibir el retiro:": "41. Dados para receber o saque:", "42. Revisión del retiro:": "42. Análise do saque:", "43. Lobby y funciones de miembros:": "43. Lobby e funções dos membros:", "44. Chat GoldRewards:": "44. Chat GoldRewards:", "45. Cierre de sesión:": "45. Encerramento da sessão:", "46. Cuentas duplicadas y manipulación:": "46. Contas duplicadas e manipulação
+olicitação de saque CUP:", "38. Límite de retiro:": "38. Limite de saque:", "39. Cantidades permitidas para retirar:": "39. Valores permitidos para saque:", "40. Saldo disponible para retiros:": "40. Saldo disponível para saques:", "41. Datos para recibir el retiro:": "41. Dados para receber o saque:", "42. Revisión del retiro:": "42. Análise do saque:", "43.
