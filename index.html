@@ -824,53 +824,7 @@ function iniciarControlInactividad(){
 }
 
 
-  if(campo.value === "" || !Number.isFinite(nuevoSaldo) || nuevoSaldo < 0){
-    estado.textContent = "Introduce un saldo válido.";
-    return;
-  }
 
-  if(!confirm("¿Establecer " + nuevoSaldo + " USDT para " + usuario + "?")){
-    return;
-  }
-
-  estado.textContent = "Procesando...";
-
-  try{
-    const {data: perfil, error: errorPerfil} = await supabaseClient
-      .from("profiles")
-      .select("id,username")
-      .eq("username", usuario)
-      .maybeSingle();
-
-    if(errorPerfil) throw errorPerfil;
-    if(!perfil) throw new Error("Usuario no encontrado.");
-
-    const {data, error} = await supabaseClient.rpc(
-      "admin_set_virtual_balance",
-      {
-        p_user_id: perfil.id,
-        p_target_balance: nuevoSaldo
-      }
-    );
-
-    if(error) throw error;
-
-    estado.textContent =
-      "Saldo actualizado: " + Number(data.saldo_nuevo).toFixed(2) +
-      " USDT. Ajuste realizado: " + Number(data.ajuste).toFixed(2) + " USDT.";
-
-    if(usuarioActual?.id === perfil.id){
-      await cargarSaldoMonedasVirtuales();
-    }
-
-    campo.value = "";
-
-  }catch(error){
-    console.error(error);
-    estado.textContent = "Error: " + error.message;
-  }
-}
-  
 async function administrarSaldoCUP() {
   const codigo = document.getElementById('codigoAjusteCUP').value.trim();
   const cantidad = Number(document.getElementById('cantidadAjusteCUP').value);
@@ -983,58 +937,6 @@ async function salir(porInactividad=false){
  }
 
 }
-// CONTROL DE INACTIVIDAD: 60 SEGUNDOS
-
-let temporizadorInactividad=null;
-let eventosInactividadRegistrados=false;
-
-function detenerControlInactividad(){
- if(temporizadorInactividad!==null){
-  clearTimeout(temporizadorInactividad);
-  temporizadorInactividad=null;
- }
-}
-
-function reiniciarControlInactividad(){
- if(!usuarioActual)return;
-
- detenerControlInactividad();
-
- temporizadorInactividad=setTimeout(()=>{
-  if(usuarioActual){
-   salir(true);
-  }
- },60000);
-}
-
-function iniciarControlInactividad(){
-
- if(!eventosInactividadRegistrados){
-
-  const eventos=[
-   "pointerdown",
-   "pointermove",
-   "keydown",
-   "scroll",
-   "touchstart",
-   "click"
-  ];
-
-  eventos.forEach(evento=>{
-   document.addEventListener(
-    evento,
-    reiniciarControlInactividad,
-    {passive:true}
-   );
-  });
-
-  eventosInactividadRegistrados=true;
- }
-
- reiniciarControlInactividad();
-}
-
-
 // RESTAURAR SESIÓN AL ABRIR LA PÁGINA
 
 async function restaurarSesion(){
