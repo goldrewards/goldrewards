@@ -939,6 +939,51 @@ async function administrarSaldoUSDT() {
     estado.textContent = 'Error: ' + error.message;
   }
 }
+  // CERRAR SESIÓN
+
+async function salir(porInactividad=false){
+
+ detenerControlInactividad();
+
+ try{
+
+  if(window.relojMembresia){
+   clearInterval(window.relojMembresia);
+  }
+
+  if(chatChannel){
+   await supabaseClient.removeChannel(chatChannel);
+   chatChannel=null;
+  }
+
+  chatIds.clear();
+  cerrarChat();
+
+  const {error}=await supabaseClient.auth.signOut();
+
+  if(error)throw error;
+
+  usuarioActual=null;
+  perfilActual=null;
+  perfilesCache.clear();
+
+  mostrar("inicio");
+
+  if(porInactividad){
+   mensaje("Sesión cerrada automáticamente por 1 minuto de inactividad.");
+  }else{
+   mensaje("Has cerrado sesión.");
+  }
+
+  await actualizarContadorUsuarios();
+
+ }catch(e){
+
+  mensaje("No se pudo cerrar sesión: "+errorTexto(e));
+
+ }
+
+}
 // CONTROL DE INACTIVIDAD: 60 SEGUNDOS
 
 let temporizadorInactividad=null;
