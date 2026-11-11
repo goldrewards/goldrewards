@@ -283,7 +283,36 @@ function tarjetaVacia(c,t){c.replaceChildren(elemento("p",t,"muted"));}
 function errorTexto(e){return e?.message||"Ocurrió un error inesperado."}
 function nombrePlan(p){return p==="premium"?"Premium":p==="basic"?"Básica":String(p||"Sin plan");}
 function generarNombreArchivo(ext){const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a).map(v=>v.toString(16).padStart(2,"0")).join("")+"."+ext;}
-async function actualizarContadorUsuarios(){const c=document.getElementById("contadorUsuarios");if(!c)return;try{const {data,error}=await supabaseClient.rpc("get_public_user_counter");if(error)throw error;let total=0;if(Array.isArray(data)){const f=data[0]||{};total=Number(f.total_cuentas??f.total??f.count??0);}else if(typeof data==="object"&&data!==null)total=Number(data.total_cuentas??data.total??data.count??0);else total=Number(data||0);c.textContent=(total*2).toLocaleString("es-ES");}catch(e){console.error(e);c.textContent="—";}}
+async function actualizarContadorUsuarios(){
+ const c=document.getElementById("contadorUsuarios");
+ if(!c)return;
+ c.textContent="Cargando...";
+ try{
+  const {data,error}=await supabaseClient.rpc("get_public_user_counter");
+  if(error)throw error;
+  let total=0;
+  if(Array.isArray(data)){
+   const f=data[0]||{};
+   total=Number(f.total_cuentas??f.total??f.count??f.users??0);
+  }else if(typeof data==="object"&&data!==null){
+   total=Number(data.total_cuentas??data.total??data.count??data.users??0);
+  }else{
+   total=Number(data||0);
+  }
+  if(!Number.isFinite(total)||total<0)throw new Error("El contador devolvió un valor no válido.");
+  c.textContent=Math.floor(total).toLocaleString("es-ES");
+ }catch(e){
+  console.error("Error cargando contador de usuarios:",e);
+  try{
+   const {count,error}=await supabaseClient.from("profiles").select("id",{count:"exact",head:true});
+   if(error)throw error;
+   c.textContent=Number(count||0).toLocaleString("es-ES");
+  }catch(e2){
+   console.error("Error en respaldo del contador:",e2);
+   c.textContent="No disponible";
+  }
+ }
+}
 let paqueteSeleccionado=null;
 function mostrarPaginaPaquete(tipo,plan,sufijo=""){
  const lobby=sufijo==="Lobby";
