@@ -184,6 +184,24 @@ label{display:block;margin-top:8px;color:var(--muted)}
     <button id="botonAjusteC11" onclick="acreditarCuentaC11()">Acreditar ambos saldos</button>
     <p id="estadoAjusteC11" class="estado"></p>
   </div>
+  
+<div class="seccion-admin" id="administrarSaldosUSDT">
+  <h3>💰 Administrar saldos USDT</h3>
+  <p>Busca una cuenta y establece su nuevo saldo total.</p>
+
+  <label>Nombre de usuario</label>
+  <input type="text" id="usuarioAjusteUSDT" placeholder="Ejemplo: darien">
+
+  <label>Nuevo saldo USDT</label>
+  <input type="number" id="nuevoSaldoUSDT" min="0" step="0.01" placeholder="Ejemplo: 30">
+
+  <button type="button" onclick="administrarSaldoVirtualDesdePanel()">
+    Guardar nuevo saldo
+  </button>
+
+  <p id="estadoAdministrarUSDT" class="estado"></p>
+</div>
+
   <div class="seccion-admin hidden" id="cuentasActivas"><h3>🟢 Cuentas con membresía activa</h3><p class="muted">Usuarios con membresía vigente en este momento.</p><div id="listaCuentasActivas"></div></div>
   <div class="seccion-admin hidden" id="cuentasAprobadas"><h3>✅ Cuentas con pagos aprobados</h3><p class="muted">Usuarios que tienen al menos un pago CUP aprobado o un pago virtual confirmado.</p><div id="listaCuentasAprobadas"></div></div>
 </div>
