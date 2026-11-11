@@ -36,7 +36,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
 .boton-principal{min-width:180px}.boton-reglas{display:block;margin:12px auto 0;background:transparent;color:var(--oro2);border:1px solid rgba(246,207,85,.45);box-shadow:none}.decoracion-oro{margin-top:18px;color:rgba(246,207,85,.68);letter-spacing:5px}
 .chat-launch{background:linear-gradient(135deg,#33270f,#171512);color:var(--oro2);border:1px solid rgba(246,207,85,.55);box-shadow:0 0 22px rgba(246,207,85,.08)}
 .contador-usuarios{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 4px;padding:10px 18px;border-radius:999px;background:rgba(246,207,85,.10);border:1px solid rgba(246,207,85,.38);color:var(--oro2);font-weight:bold;box-shadow:0 0 22px rgba(246,207,85,.08)}
-.contador-usuarios .ojo{font-size:1.25rem}.logout-top{position:absolute;top:14px;right:14px;margin:0;z-index:20;padding:9px 13px;font-size:.82rem}#cuenta,#lobby,#panelAdmin{position:relative}
+.contador-usuarios .ojo{font-size:1.25rem}.logout-top{position:absolute;top:14px;right:14px;margin:0;z-index:20;padding:9px 13px;font-size:.82rem}.lobby-logout-top{position:absolute;top:12px;right:14px;margin:0;z-index:1101;padding:9px 13px;font-size:.82rem}#cuenta,#lobby,#panelAdmin{position:relative}
 .modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(8px)}.modal.hidden{display:none!important}
 .modal-panel{position:relative;width:min(650px,100%);max-height:88vh;overflow:auto;text-align:left;padding:25px 20px 22px;border:1px solid rgba(246,207,85,.55);border-radius:18px;background:linear-gradient(145deg,#282116,#111114 72%);box-shadow:0 25px 80px rgba(0,0,0,.7),0 0 35px rgba(246,207,85,.10)}
 .modal-panel h2{text-align:center;color:var(--oro2)}.modal-panel>.muted{text-align:center}.modal-close{position:absolute;right:9px;top:8px;margin:0;padding:8px 12px;background:rgba(255,255,255,.08);color:white;border:1px solid rgba(255,255,255,.16);box-shadow:none}.modal-icon{text-align:center;font-size:30px}
@@ -113,6 +113,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
 </div>
 
 <div class="container hidden" id="lobby">
+  <button class="lobby-logout-top secundario" type="button" onclick="salir()">Cerrar sesión</button>
   <button class="lobby-menu-btn" type="button" onclick="toggleLobbyMenu()" aria-label="Abrir menú" aria-expanded="false">☰</button>
   <h2>🏆 Lobby GoldRewards</h2>
   <div id="perfilLobbyHeader"></div>
