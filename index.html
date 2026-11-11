@@ -156,7 +156,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
   <div id="lobbySections" class="lobby-sections">
     <section class="lobby-section hidden" id="lobbyInvitacion"><h3>🔗 Tu invitación</h3><p>Código: <strong id="miCodigo" class="code">—</strong></p><p class="small muted">Comparte tu enlace. La comisión se genera cuando el depósito o plan de la persona invitada es aprobado.</p><input id="enlaceInvitacion" readonly><button onclick="copiarEnlace()">Copiar enlace</button></section>
     <section class="lobby-section hidden" id="lobbyRetiros"><h3>💸 Solicitar retiro CUP</h3><p class="muted">Mínimo 250 CUP · Máximo 1000 CUP por solicitud · Solo números enteros, sin decimales. Máximo 2 solicitudes diarias.</p><input id="montoRetiro" type="number" min="250" max="1000" step="1" inputmode="numeric" placeholder="Cantidad entera (ej. 250, 456, 1000)"><input id="tarjetaRetiro" type="text" inputmode="numeric" maxlength="40" placeholder="Número de tarjeta para recibir el pago"><button id="botonRetiro" onclick="solicitarRetiro()">Enviar solicitud de retiro</button><p id="estadoRetiro" class="estado"></p></section>
-    <section class="lobby-section hidden" id="lobbyRetirosUSDT"><h3>💵 Solicitar retiro USDT</h3><p class="muted">Introduce la cantidad de USDT que deseas retirar y los datos de destino configurados para recibirlos.</p><input id="montoRetiroUSDT" type="number" min="0.01" step="0.01" placeholder="Cantidad de USDT"><input id="destinoRetiroUSDT" type="text" maxlength="200" placeholder="Dirección o datos para recibir los USDT"><button id="botonRetiroUSDT" onclick="solicitarRetiroUSDT()">Enviar solicitud de retiro USDT</button><p id="estadoRetiroUSDT" class="estado"></p></section>
+    <section class="lobby-section hidden" id="lobbyRetirosUSDT"><h3>💵 Solicitar retiro USDT</h3><p class="muted">Mínimo 100 USDT · Máximo 500 USDT por solicitud · Hasta 2 solicitudes por día.</p><input id="montoRetiroUSDT" type="number" min="100" max="500" step="0.01" inputmode="decimal" placeholder="Cantidad de USDT (100–500)"><input id="destinoRetiroUSDT" type="text" maxlength="200" placeholder="Dirección o datos para recibir los USDT"><button id="botonRetiroUSDT" onclick="solicitarRetiroUSDT()">Enviar solicitud de retiro USDT</button><p id="estadoRetiroUSDT" class="estado"></p></section>
     <section class="lobby-section hidden" id="lobbyReferidosCUP"><h3>👥 Referidos con cuenta CUP</h3><div id="listaReferidos"><p class="muted">Cargando...</p></div></section>
     <section class="lobby-section hidden" id="lobbyReferidosUSDT"><h3>🪙 Referidos con cuenta USDT</h3><div id="listaReferidosUSDT"><p class="muted">Cargando...</p></div></section>
     <section class="lobby-section hidden" id="lobbyGananciasCUP"><h3>📈 Ganancias e historial CUP</h3><div id="historialGanancias"></div></section>
@@ -590,7 +590,6 @@ async function cargarSaldoMonedasVirtuales(){
   supabaseClient.from("virtual_withdrawal_requests")
    .select("amount,status,created_at")
    .eq("user_id",id)
-   .eq("status","pending")
  ]);
 
  if(eg||ea||et||el||er){
@@ -614,6 +613,7 @@ async function cargarSaldoMonedasVirtuales(){
   .filter(x=>x.sender_user_id===id)
   .reduce((s,x)=>s+Number(x.amount||0)+Number(x.fee||0),0);
  const retirosPendientes=(r||[])
+  .filter(x=>String(x.status||"").toLowerCase()==="pending")
   .reduce((s,x)=>s+Number(x.amount||0),0);
  const total=saldoLedger+saldoAjustes+transferenciasRecibidas-
   transferenciasEnviadas-retirosPendientes;
@@ -637,9 +637,13 @@ const ajustesRetirados=(l||[])
  )
  .reduce((s,x)=>s+Number(x.amount||0),0);
 
+const retirosAprobados=(r||[])
+ .filter(x=>String(x.status||"").toLowerCase()==="approved")
+ .reduce((s,x)=>s+Number(x.amount||0),0);
+
 const gananciasSinRetirar=Math.max(
  0,
- comisiones+ajustesRetirados
+ comisiones+ajustesRetirados-retirosAprobados
 );
 
 const gv=document.getElementById("gananciasVirtuales");
@@ -853,7 +857,64 @@ async function cargarHistorialRetiros(){
  });
 }
 async function solicitarRetiro(){const b=document.getElementById("botonRetiro"),e=document.getElementById("estadoRetiro"),cantidad=Number(document.getElementById("montoRetiro").value),tarjeta=document.getElementById("tarjetaRetiro").value.trim();if(!Number.isInteger(cantidad)||cantidad<250||cantidad>1000){e.textContent="El retiro debe ser un número entero entre 250 y 1000 CUP, sin decimales.";return;}if(tarjeta.length<8){e.textContent="Introduce un número de tarjeta válido.";return;}b.disabled=true;try{const {data,error}=await supabaseClient.rpc("request_withdrawal",{p_amount:cantidad,p_card_number:tarjeta});if(error)throw error;e.textContent="Solicitud enviada correctamente. Número: "+data;document.getElementById("montoRetiro").value="";document.getElementById("tarjetaRetiro").value="";await Promise.all([cargarSaldoYGanancias(),cargarHistorialRetiros()]);}catch(x){e.textContent="No se pudo solicitar: "+errorTexto(x);}finally{b.disabled=false;}}
-async function solicitarRetiroUSDT(){const b=document.getElementById("botonRetiroUSDT"),e=document.getElementById("estadoRetiroUSDT"),cantidad=Number(document.getElementById("montoRetiroUSDT").value),destino=document.getElementById("destinoRetiroUSDT").value.trim();if(!Number.isFinite(cantidad)||cantidad<=0){e.textContent="Introduce una cantidad válida de USDT.";return;}if(!destino){e.textContent="Introduce los datos de destino para recibir los USDT.";return;}b.disabled=true;e.textContent="";try{const {data,error}=await supabaseClient.rpc("request_virtual_withdrawal",{p_amount:cantidad,p_wallet_address:destino});if(error)throw error;e.textContent="Solicitud de retiro USDT enviada correctamente.";document.getElementById("montoRetiroUSDT").value="";document.getElementById("destinoRetiroUSDT").value="";await cargarSaldoMonedasVirtuales();}catch(x){e.textContent="No se pudo solicitar el retiro USDT: "+errorTexto(x);}finally{b.disabled=false;}}
+async function solicitarRetiroUSDT(){
+ const b=document.getElementById("botonRetiroUSDT");
+ const e=document.getElementById("estadoRetiroUSDT");
+ const cantidad=Number(document.getElementById("montoRetiroUSDT").value);
+ const destino=document.getElementById("destinoRetiroUSDT").value.trim();
+
+ if(!Number.isFinite(cantidad)||Math.round(cantidad*100)!==cantidad*100||cantidad<100||cantidad>500){
+  e.textContent="El retiro debe ser de 100 a 500 USDT, con un máximo de 2 decimales.";
+  return;
+ }
+ if(!destino){
+  e.textContent="Introduce los datos de destino para recibir los USDT.";
+  return;
+ }
+ if(!usuarioActual?.id){
+  e.textContent="Tu sesión ha expirado. Inicia sesión nuevamente.";
+  return;
+ }
+
+ b.disabled=true;
+ e.textContent="Verificando el límite diario...";
+ try{
+  const ahora=new Date();
+  const inicioDia=new Date(ahora);
+  inicioDia.setHours(0,0,0,0);
+  const finDia=new Date(inicioDia);
+  finDia.setDate(finDia.getDate()+1);
+
+  const {data:solicitudes,error:errorConteo}=await supabaseClient
+   .from("virtual_withdrawal_requests")
+   .select("id")
+   .eq("user_id",usuarioActual.id)
+   .gte("created_at",inicioDia.toISOString())
+   .lt("created_at",finDia.toISOString());
+
+  if(errorConteo)throw errorConteo;
+  if((solicitudes||[]).length>=2){
+   e.textContent="Ya alcanzaste el máximo de 2 solicitudes de retiro USDT por día.";
+   return;
+  }
+
+  e.textContent="Enviando solicitud...";
+  const {data,error}=await supabaseClient.rpc("request_virtual_withdrawal",{
+   p_amount:cantidad,
+   p_wallet_address:destino
+  });
+  if(error)throw error;
+
+  e.textContent="Solicitud de retiro USDT enviada correctamente.";
+  document.getElementById("montoRetiroUSDT").value="";
+  document.getElementById("destinoRetiroUSDT").value="";
+  await cargarSaldoMonedasVirtuales();
+ }catch(x){
+  e.textContent="No se pudo solicitar el retiro USDT: "+errorTexto(x);
+ }finally{
+  b.disabled=false;
+ }
+}
 async function copiarEnlace(){const v=document.getElementById("enlaceInvitacion").value;if(!v){mensaje("Tu código todavía no está disponible.");return;}try{await navigator.clipboard.writeText(v);mensaje("Enlace copiado.");}catch(e){document.getElementById("enlaceInvitacion").select();mensaje("Selecciona y copia el enlace.");}}
 
 const ADMIN_SECCIONES=["depPendientes","depAprobados","depNegados","virtualPendientes","virtualAprobados","virtualRechazados","retirosPendientes","retirosProcesados","ajusteSaldoAdmin","cuentasActivas","cuentasAprobadas"];
@@ -1295,3 +1356,4 @@ function cambiarIdioma(idioma){if(!['es','en','fr','pt'].includes(idioma))idioma
 
 </body>
 </html>
+olicitação de saque CUP:", "38. Límite de retiro:": "38. Limite de saque:", "39. Cantidades permitidas para retirar:": "39. Valores permitidos para saque:", "40. Saldo disponible para retiros:": "40. Saldo disponível para saques:", "41. Datos para recibir el retiro:": "41. Dados para receber o saque:", "42. Revisión del retiro:": "42. Análise do saque:", "43. Lobby y funciones de miembros:": "43. Lobby e funções dos membros:", "44. Chat GoldRewards:": "44. Chat GoldRewards:", "45. Cierre de sesión:": "45. Encerramento da sessão:", "46. Cuentas duplicadas y manipulación:": "46. Contas duplicadas e manipulação
