@@ -226,6 +226,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
     <button class="drawer-link" onclick="mostrarAdmin('retirosPendientes')">🟡 Retiros pendientes</button>
     <button class="drawer-link" onclick="mostrarAdmin('retirosProcesados')">📋 Historial de retiros</button>
     <button class="drawer-link" onclick="mostrarAdmin('ajusteSaldoAdmin')">💳 Ajustar saldo</button>
+    <button class="drawer-link" onclick="mostrarAdmin('administrarSaldosUSDT')">💰 Administrar saldos USDT</button>
   </div>
 </aside>
 <div id="adminDetalleModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="adminDetalleTitulo"><div class="modal-panel"><button class="modal-close" onclick="cerrarDetalleCuenta()" aria-label="Cerrar">✕</button><h2 id="adminDetalleTitulo">Información de la cuenta</h2><div id="adminDetalleContenido"><p class="muted">Cargando información...</p></div></div></div>
@@ -687,6 +688,65 @@ async function procesarRetiro(id,estado,b){if(!confirm(estado==="approved"?"Conf
 async function salir(){try{if(window.relojMembresia)clearInterval(window.relojMembresia);if(chatChannel){await supabaseClient.removeChannel(chatChannel);chatChannel=null;}chatIds.clear();cerrarChat();const {error}=await supabaseClient.auth.signOut();if(error)throw error;usuarioActual=null;perfilActual=null;perfilesCache.clear();document.getElementById("estadoPagoVirtual").textContent="";document.getElementById("comprobanteVirtual").value="";document.getElementById("botonComprobanteVirtual").disabled=false;document.getElementById("virtualPlan").disabled=false;["comprobanteVirtualLobby","comprobanteLobby"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});["botonComprobanteVirtualLobby","botonComprobanteLobby","virtualPlanLobby","planMembresiaLobby","estadoDepositoLobby"].forEach(id=>{const e=document.getElementById(id);if(e){if("disabled" in e)e.disabled=false;if(id==="estadoDepositoLobby")e.textContent="";}});["datos","estadoDeposito","estadoRetiro","bienvenidaLobby","tiempoMembresia"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent="";});document.getElementById("botonComprobante").disabled=false;document.getElementById("planMembresia").disabled=false;mostrar("inicio");mensaje("Has cerrado sesión.");await actualizarContadorUsuarios();}catch(e){mensaje("No se pudo cerrar sesión: "+errorTexto(e));}}
 async function restaurarSesion(){try{const {data,error}=await supabaseClient.auth.getSession();if(error)throw error;if(data.session?.user){usuarioActual=data.session.user;perfilActual=await cargarPerfil(usuarioActual);await dirigirUsuario();}}catch(e){mensaje("No se pudo restaurar la sesión: "+errorTexto(e));}}
 window.addEventListener("DOMContentLoaded",()=>{document.getElementById("cambiarFotoInput")?.addEventListener("change",e=>procesarCambioFoto(e.target.files?.[0]));const ref=new URLSearchParams(location.search).get("ref");if(ref){document.getElementById("invitacion").value=ref.toUpperCase();mostrar("registro");}actualizarDatosPlan();actualizarContadorUsuarios();setInterval(actualizarContadorUsuarios,60000);setInterval(async()=>{if(usuarioActual&&perfilActual?.role!=="admin"&&!document.getElementById("cuenta").classList.contains("hidden")){try{const mem=await buscarMembresiaActiva(usuarioActual.id);if(mem){mostrar("lobby");await cargarLobby(mem);}}catch(e){console.warn("No se pudo comprobar la activación de membresía:",e.message);}}},15000);restaurarSesion();});
+  
+async function administrarSaldoVirtualDesdePanel(){
+  const usuario = document.getElementById("usuarioAjusteUSDT").value.trim();
+  const campo = document.getElementById("nuevoSaldoUSDT");
+  const estado = document.getElementById("estadoAdministrarUSDT");
+  const nuevoSaldo = Number(campo.value);
+
+  if(!usuario){
+    estado.textContent = "Escribe el nombre de usuario.";
+    return;
+  }
+
+  if(campo.value === "" || !Number.isFinite(nuevoSaldo) || nuevoSaldo < 0){
+    estado.textContent = "Introduce un saldo válido.";
+    return;
+  }
+
+  if(!confirm("¿Establecer " + nuevoSaldo + " USDT para " + usuario + "?")){
+    return;
+  }
+
+  estado.textContent = "Procesando...";
+
+  try{
+    const {data: perfil, error: errorPerfil} = await supabaseClient
+      .from("profiles")
+      .select("id,username")
+      .eq("username", usuario)
+      .maybeSingle();
+
+    if(errorPerfil) throw errorPerfil;
+    if(!perfil) throw new Error("Usuario no encontrado.");
+
+    const {data, error} = await supabaseClient.rpc(
+      "admin_set_virtual_balance",
+      {
+        p_user_id: perfil.id,
+        p_target_balance: nuevoSaldo
+      }
+    );
+
+    if(error) throw error;
+
+    estado.textContent =
+      "Saldo actualizado: " + Number(data.saldo_nuevo).toFixed(2) +
+      " USDT. Ajuste realizado: " + Number(data.ajuste).toFixed(2) + " USDT.";
+
+    if(usuarioActual?.id === perfil.id){
+      await cargarSaldoMonedasVirtuales();
+    }
+
+    campo.value = "";
+
+  }catch(error){
+    console.error(error);
+    estado.textContent = "Error: " + error.message;
+  }
+}
+  
 </script>
 </body>
 </html>
