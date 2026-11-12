@@ -823,7 +823,16 @@ async function entrar(){
  }
 
 }
-async function dirigirUsuario(){if(!usuarioActual||!perfilActual)return;if(perfilActual.role!=="admin"&&!perfilActual.recovery_key_hash){await prepararLlaveCuentaAntigua();return;}if(perfilActual.role!=="admin"&&usuarioActual.user_metadata?.avatar_required&&!perfilActual.avatar_url){mostrar("cuenta");document.getElementById("fotoObligatoriaCuenta").classList.remove("hidden");document.querySelectorAll("#cuenta > :not(.logout-top):not(h2):not(#fotoObligatoriaCuenta)").forEach(x=>{x.dataset.fotoGate="1";x.classList.add("hidden");});return;}if(perfilActual.role==="admin"){mostrar("panelAdmin");document.getElementById("mensajeAdmin").textContent="Bienvenido al panel de administración.";await cargarAdmin();return;}const mem=await buscarMembresiaActiva(usuarioActual.id);if(mem){mostrar("lobby");await cargarLobby(mem);}else{mostrar("cuenta");await cargarCuenta();}}
+async function dirigirUsuario(){
+ if(!usuarioActual||!perfilActual)return;
+ if(perfilActual.role!=="admin"&&!perfilActual.recovery_key_hash){await prepararLlaveCuentaAntigua();return;}
+ if(perfilActual.role==="admin"){
+  mostrar("panelAdmin");document.getElementById("mensajeAdmin").textContent="Bienvenido al panel de administración.";await cargarAdmin();return;
+ }
+ // Todos los usuarios entran al Lobby. La membresía solo habilita el chat y los beneficios que correspondan.
+ const mem=await buscarMembresiaActiva(usuarioActual.id);
+ mostrar("lobby");await cargarLobby(mem||null);
+}
 async function cargarCuenta(){document.getElementById("perfilCuentaHeader").replaceChildren(crearEncabezadoCuenta(perfilActual,"Tu perfil", "account-avatar large"));document.getElementById("datos").textContent="Nombre: "+(perfilActual.full_name||"")+"\nUsuario: @"+(perfilActual.username||"")+"\nCódigo de invitación: "+(perfilActual.referral_code||"En preparación");const {data,error}=await supabaseClient.from("payment_requests").select("status,plan,amount_cup,created_at").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();const e=document.getElementById("estadoDeposito"),b=document.getElementById("botonComprobante");if(error){e.textContent="No se pudo consultar tu depósito: "+errorTexto(error);return;}if(data){e.textContent="Tienes una solicitud de "+nombrePlan(data.plan)+" ("+dinero(data.amount_cup)+") pendiente. Cuando sea aprobada podrás comprar cualquier otra membresía.";b.disabled=true;document.getElementById("planMembresia").disabled=false;}else{e.textContent="Puedes comprar con saldo o mediante transferencia. Las transferencias requieren aprobación individual.";b.disabled=false;document.getElementById("planMembresia").disabled=false;}actualizarDatosPlan();await cargarEstadoPagoVirtual();}
 function actualizarDatosPlanLobby(){const p=document.getElementById("planMembresiaLobby").value,d=datosPlanCUP(p);if(d)document.getElementById("detallePlanLobby").textContent=`${d.nombre}: ${d.precio} CUP por 30 días. Comisión directa: ${d.directo} CUP (10%). Comisión indirecta: ${d.indirecto} CUP (1%).`;}
 async function cargarEstadoPagoCUPLobby(){
@@ -864,7 +873,31 @@ function cerrarLobbyMenu(){document.getElementById("lobbyDrawer")?.classList.rem
 function mostrarLobbySeccion(id){LOBBY_SECCIONES.forEach(x=>document.getElementById(x)?.classList.toggle("hidden",x!==id));cerrarLobbyMenu();document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"});}
 
 function actualizarFondoLobby(){const lobby=document.getElementById("lobby");if(!lobby)return;const url=perfilActual?.avatar_url;if(url){lobby.style.backgroundImage='linear-gradient(rgba(12,12,14,.84),rgba(12,12,14,.90)),url('+JSON.stringify(String(url))+')';}else{lobby.style.backgroundImage="linear-gradient(145deg,rgba(35,31,23,.96),rgba(18,18,21,.97))";}lobby.style.backgroundSize="cover";lobby.style.backgroundPosition="center";lobby.style.backgroundRepeat="no-repeat";lobby.style.backgroundAttachment="scroll";}
-async function cargarLobby(mem){actualizarFondoLobby();const header=document.getElementById("perfilLobbyHeader"),wrap=elemento("div",undefined,"avatar-edit-wrap");wrap.append(crearEncabezadoCuenta(perfilActual,"Tu cuenta", "account-avatar large"));const edit=elemento("button","Cambiar foto","avatar-edit-btn secundario");edit.type="button";edit.onclick=cambiarFotoPerfil;wrap.append(edit);header.replaceChildren(wrap);document.getElementById("bienvenidaLobby").textContent="¡Bienvenido, "+(perfilActual.full_name||perfilActual.username||"usuario")+"!";aplicarColorMembresiaActiva(mem);const nombreMembresia=mem.membership_type==="virtual"?nombrePlanVirtual(mem.plan_id):nombrePlan(mem.plan);document.getElementById("nombreMembresiaActiva").textContent=nombreMembresia;document.getElementById("tiempoMembresia").textContent="";actualizarTiempoMembresia(mem.ends_at);if(perfilActual.referral_code){document.getElementById("miCodigo").textContent=perfilActual.referral_code;const l=new URL("https://goldrewards.github.io/goldrewards/");l.searchParams.set("ref",perfilActual.referral_code);document.getElementById("enlaceInvitacion").value=l.toString();}await Promise.all([cargarSaldoYGanancias(),cargarSaldoMonedasVirtuales(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos(),cargarReferidosUSDT(),cargarEstadoPagoVirtual(),cargarEstadoPagoCUPLobby(),cargarHistorialTransferencias()]);actualizarInfoTransferencia();}
+async function cargarLobby(mem){
+ actualizarFondoLobby();
+ const header=document.getElementById("perfilLobbyHeader"),wrap=elemento("div",undefined,"avatar-edit-wrap");
+ wrap.append(crearEncabezadoCuenta(perfilActual,"Tu cuenta", "account-avatar large"));
+ const edit=elemento("button","Cambiar foto","avatar-edit-btn secundario");edit.type="button";edit.onclick=cambiarFotoPerfil;wrap.append(edit);header.replaceChildren(wrap);
+ document.getElementById("bienvenidaLobby").textContent="¡Bienvenido, "+(perfilActual.full_name||perfilActual.username||"usuario")+"!";
+ aplicarColorMembresiaActiva(mem);
+ const card=document.getElementById("membresiaActivaCard"),chat=document.querySelector("#lobby .chat-launch");
+ if(mem){
+  card.classList.remove("hidden");
+  const nombreMembresia=mem.membership_type==="virtual"?nombrePlanVirtual(mem.plan_id):nombrePlan(mem.plan);
+  document.getElementById("nombreMembresiaActiva").textContent=nombreMembresia;
+  document.getElementById("tiempoMembresia").textContent="";actualizarTiempoMembresia(mem.ends_at);
+  if(chat){chat.disabled=false;chat.textContent="💬 Chat GoldRewards";chat.title="Chat para miembros activos";}
+ }else{
+  card.classList.remove("hidden");card.classList.add("membership-active-card");
+  document.getElementById("nombreMembresiaActiva").textContent="Sin plan activo";
+  document.getElementById("tiempoMembresia").textContent="Elige una membresía para desbloquear el chat.";
+  if(window.relojMembresia){clearInterval(window.relojMembresia);window.relojMembresia=null;}
+  if(chat){chat.disabled=false;chat.textContent="🔒 Chat GoldRewards · Activa un plan";chat.title="Compra una membresía para desbloquear el chat";}
+ }
+ if(perfilActual.referral_code){document.getElementById("miCodigo").textContent=perfilActual.referral_code;const l=new URL("https://goldrewards.github.io/goldrewards/");l.searchParams.set("ref",perfilActual.referral_code);document.getElementById("enlaceInvitacion").value=l.toString();}
+ await Promise.all([cargarSaldoYGanancias(),cargarSaldoMonedasVirtuales(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos(),cargarReferidosUSDT(),cargarEstadoPagoVirtual(),cargarEstadoPagoCUPLobby(),cargarHistorialTransferencias()]);
+ actualizarInfoTransferencia();
+}
 
 function aplicarColorMembresiaActiva(mem){
  const tarjeta=document.getElementById("membresiaActivaCard");
