@@ -445,16 +445,29 @@ async function cargarPerfiles(ids){const unicos=[...new Set((ids||[]).filter(Boo
 const codigoReferidoEnlace=(()=>{try{return (new URLSearchParams(window.location.search).get("ref")||new URLSearchParams(window.location.search).get("referral_code")||"").trim().toUpperCase();}catch(_){return "";}})();
 function aplicarCodigoReferidoEnlace(){
  const campo=document.getElementById("invitacion");
- if(!campo||!codigoReferidoEnlace)return;
- campo.value=codigoReferidoEnlace;
+ if(!campo)return;
+ // El campo siempre está bloqueado. Solo se rellena si la URL trae ?ref=CODIGO.
+ campo.value=codigoReferidoEnlace||"";
  campo.readOnly=true;
+ campo.setAttribute("readonly","readonly");
  campo.setAttribute("aria-readonly","true");
- campo.title="Este código viene del enlace de invitación y no se puede cambiar.";
+ campo.title=codigoReferidoEnlace
+  ?"Código asignado automáticamente por el enlace de invitación."
+  :"Para registrarte, abre el enlace personal que te compartió otro usuario.";
  campo.classList.add("referral-locked");
  const etiqueta=document.querySelector('label[for="invitacion"]');
- if(etiqueta)etiqueta.textContent="Código de referencia de quien te invitó (asignado automáticamente)";
+ if(etiqueta)etiqueta.textContent=codigoReferidoEnlace
+  ?"Código de referencia (asignado por invitación)"
+  :"Código de referencia (se completa al entrar por un enlace)";
 }
-function mostrar(id){document.querySelectorAll(".container").forEach(x=>x.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");document.getElementById("message").textContent="";if(id==="registro"){aplicarCodigoReferidoEnlace();inicializarUbicacionRegistro();}}
+function mostrar(id){
+ document.querySelectorAll(".container").forEach(x=>x.classList.add("hidden"));
+ const destino=document.getElementById(id);
+ if(!destino)return;
+ destino.classList.remove("hidden");
+ const msg=document.getElementById("message");if(msg)msg.textContent="";
+ if(id==="registro"){aplicarCodigoReferidoEnlace();inicializarUbicacionRegistro();}
+}
 function mensaje(t){const el=document.getElementById("message");if(el)el.textContent=t;notificarPremium(t,"info");}
 function dinero(v){return `${Number(v||0).toLocaleString("es-ES")} CUP`;}
 function fecha(v){const lang=localStorage.getItem("goldrewards_idioma")||"es";const locale={es:"es-ES",en:"en-US",fr:"fr-FR",pt:"pt-BR"}[lang]||"es-ES";return v?new Date(v).toLocaleString(locale):"—";}
@@ -633,67 +646,100 @@ function seleccionarDatalist(inputId,hiddenId,listId){const input=document.getEl
 // Los nombres de países ya están incluidos en el HTML; no dependemos de
 // una segunda consulta remota para convertir el código ISO en nombre.
 
-async function llamadaGeoAPI(endpoint,params){
- // Usar las rutas GET /q: las rutas POST antiguas de CountriesNow pueden
- // fallar por redirecciones del servidor y provocar el aviso de lista vacía.
- const query=new URLSearchParams(params||{}).toString();
- const url="https://countriesnow.space/api/v0.1/countries/"+endpoint+"/q?"+query;
- const controller=new AbortController();
- const timer=setTimeout(()=>controller.abort(),15000);
- try{
-  const r=await fetch(url,{method:"GET",headers:{"Accept":"application/json"},cache:"no-store",signal:controller.signal});
-  if(!r.ok)throw new Error("El catálogo geográfico respondió HTTP "+r.status);
-  const d=await r.json();
-  if(d.error)throw new Error(d.msg||"No hay datos geográficos disponibles");
-  return d.data;
- }finally{clearTimeout(timer);}
-}
-async function nombrePaisAPI(code){
- return paisesRegistro.find(x=>String(x.code).toUpperCase()===String(code).toUpperCase())?.name||code;
-}
+// Catálogo geográfico: se consulta directamente la base de datos de GoldRewards.
+// Esquema existente: gr_paises(codigo,nombre),
+// gr_regiones(id,codigo_pais,nombre), gr_ciudades(region_id,nombre).
+let regionesRegistroCache = [];
+let regionRegistroActualId = null;
+
 async function cambiarPaisRegistro(){
  const code=document.getElementById("pais").value;
  paisRegistroActual=code;
- const provincia=document.getElementById("provinciaBusqueda"),municipio=document.getElementById("municipioBusqueda");
- provincia.value="";municipio.value="";provincia.disabled=true;municipio.disabled=true;
- document.getElementById("provincia").value="";document.getElementById("municipio").value="";
- llenarSelect("provinciaBusqueda",[],"Cargando provincias / estados...");llenarSelect("municipioBusqueda",[],"Primero selecciona una provincia / región");
- if(!code){llenarSelect("provinciaBusqueda",[],"Primero selecciona tu país");return;}
+ regionRegistroActualId=null;
+ regionesRegistroCache=[];
+ const provincia=document.getElementById("provinciaBusqueda");
+ const municipio=document.getElementById("municipioBusqueda");
+ provincia.value="";
+ municipio.value="";
+ provincia.disabled=true;
+ municipio.disabled=true;
+ document.getElementById("provincia").value="";
+ document.getElementById("municipio").value="";
+ llenarSelect("provinciaBusqueda",[],"Cargando provincias / estados...");
+ llenarSelect("municipioBusqueda",[],"Primero selecciona una provincia / región");
+
+ if(!code){
+  llenarSelect("provinciaBusqueda",[],"Primero selecciona tu país");
+  return;
+ }
+
  try{
-  let regiones=[];
-  if(code==="CU")regiones=Object.keys(municipiosPorProvincia);
-  else{
-   const pais=await nombrePaisAPI(code);
-   const data=await llamadaGeoAPI("states",{country:pais});
-   regiones=(data?.states||[]).map(x=>typeof x==="string"?x:x.name).filter(Boolean);
+  const {data,error}=await supabaseClient
+   .from("gr_regiones")
+   .select("id,nombre")
+   .eq("codigo_pais",code)
+   .order("nombre",{ascending:true});
+
+  if(error)throw error;
+  regionesRegistroCache=Array.isArray(data)?data:[];
+  if(!regionesRegistroCache.length){
+   throw new Error("No hay provincias o regiones cargadas para el país "+code);
   }
-  regiones=[...new Set(regiones)].sort((a,b)=>a.localeCompare(b,"es"));
-  if(!regiones.length)throw new Error("Este país no tiene regiones disponibles en el catálogo");
-  llenarSelect("provinciaBusqueda",regiones,"Selecciona una provincia / estado / región");provincia.disabled=false;
+
+  provincia.replaceChildren(new Option("Selecciona una provincia / estado / región",""));
+  regionesRegistroCache.forEach(r=>{
+   provincia.add(new Option(r.nombre,String(r.id)));
+  });
+  provincia.value="";
+  provincia.disabled=false;
  }catch(e){
-  console.error(e);llenarSelect("provinciaBusqueda",[],"No se pudieron cargar las regiones");
-  mensaje("No se pudo cargar la lista de provincias/estados de ese país. Comprueba tu conexión e inténtalo de nuevo.");
+  console.error("ERROR CARGANDO REGIONES DESDE SUPABASE:",e);
+  llenarSelect("provinciaBusqueda",[],"No se pudieron cargar las regiones");
+  mensaje("No se pudo cargar la lista de provincias/estados. Comprueba que las tablas gr_regiones tengan datos y permitan lectura pública. Detalle: "+errorTexto(e));
  }
 }
+
 async function cargarMunicipios(){
- const p=document.getElementById("provinciaBusqueda").value.trim(),code=document.getElementById("pais").value;
- const provincia=document.getElementById("provinciaBusqueda"),municipio=document.getElementById("municipioBusqueda");
- document.getElementById("provincia").value=p;document.getElementById("municipio").value="";
- llenarSelect("municipioBusqueda",[],p?"Cargando ciudades / municipios...":"Primero selecciona una provincia / región");municipio.disabled=true;
- if(!p)return;
+ const provincia=document.getElementById("provinciaBusqueda");
+ const municipio=document.getElementById("municipioBusqueda");
+ const regionId=provincia.value;
+ const region=regionesRegistroCache.find(r=>String(r.id)===String(regionId));
+
+ regionRegistroActualId=region?region.id:null;
+ document.getElementById("provincia").value=region?.nombre||"";
+ document.getElementById("municipio").value="";
+ llenarSelect("municipioBusqueda",[],region?"Cargando ciudades / municipios...":"Primero selecciona una provincia / región");
+ municipio.disabled=true;
+
+ if(!region)return;
+
  try{
-  let ciudades=[];
-  if(code==="CU")ciudades=municipiosPorProvincia[p]||[];
-  else{const pais=await nombrePaisAPI(code);const data=await llamadaGeoAPI("state/cities",{country:pais,state:p});ciudades=Array.isArray(data)?data:[];}
-  ciudades=[...new Set(ciudades.map(x=>String(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es"));
-  if(!ciudades.length)throw new Error("No hay ciudades o municipios en esta región");
-  llenarSelect("municipioBusqueda",ciudades,"Selecciona una ciudad / municipio");municipio.disabled=false;
+  const {data,error}=await supabaseClient
+   .from("gr_ciudades")
+   .select("nombre")
+   .eq("region_id",region.id)
+   .order("nombre",{ascending:true});
+
+  if(error)throw error;
+  const ciudades=[...new Set((data||[]).map(x=>String(x.nombre||"").trim()).filter(Boolean))];
+
+  if(!ciudades.length){
+   throw new Error("No hay ciudades cargadas para la región "+region.nombre);
+  }
+
+  llenarSelect("municipioBusqueda",ciudades,"Selecciona una ciudad / municipio");
+  municipio.disabled=false;
  }catch(e){
-  console.error(e);llenarSelect("municipioBusqueda",[],"No hay ciudades disponibles para esta región");
-  mensaje("No se pudo cargar la lista de ciudades/municipios. Prueba seleccionando nuevamente la región.");
+  console.error("ERROR CARGANDO CIUDADES DESDE SUPABASE:",e);
+  llenarSelect("municipioBusqueda",[],"No hay ciudades disponibles para esta región");
+  mensaje("No se pudo cargar la lista de ciudades/municipios. Comprueba la tabla gr_ciudades y sus permisos de lectura. Detalle: "+errorTexto(e));
  }
 }
-function buscarMunicipios(){document.getElementById("municipio").value=document.getElementById("municipioBusqueda").value.trim();}
+
+function buscarMunicipios(){
+ document.getElementById("municipio").value=
+  document.getElementById("municipioBusqueda").value.trim();
+}
 let ubicacionRegistroInicializada=false;
 async function inicializarUbicacionRegistro(){
  if(ubicacionRegistroInicializada)return;
@@ -723,37 +769,93 @@ function mostrarDatosRecuperacion(email,codigo,llave){
 function cerrarDatosRecuperacion(){document.getElementById("datosRecuperacionModal").classList.add("hidden");}
 async function copiarClaveRecuperacion(){const v=document.getElementById("datoRecuperacionLlave").value;try{await navigator.clipboard.writeText(v);mensaje("Clave de recuperación copiada.");}catch(e){document.getElementById("datoRecuperacionLlave").select();document.execCommand("copy");}}
 async function registrar(){
-const b=document.getElementById("botonRegistro"),full_name=document.getElementById("nombre").value.trim(),country_code=document.getElementById("pais").value,country_name=paisesRegistro.find(x=>x.code===country_code)?.name||country_code,province=document.getElementById("provinciaBusqueda").value.trim(),municipality=document.getElementById("municipioBusqueda").value.trim(),username=document.getElementById("usuario").value.trim().toLowerCase(),email=document.getElementById("correo").value.trim(),password=document.getElementById("clave").value,referral_code=document.getElementById("invitacion").value.trim().toUpperCase(),foto=document.getElementById("fotoRegistro").files[0];
-if(!full_name||!country_code||!province||!municipality||!username||!email||!password||!referral_code||!foto){mensaje("Completa todos los campos obligatorios, incluida tu ubicación y foto de perfil.");return;}
-if(!['image/jpeg','image/png','image/webp'].includes(foto.type)||foto.size>5*1024*1024){mensaje("La foto debe ser JPG, PNG o WEBP y pesar máximo 5 MB.");return;}
-if(!/^[a-z0-9_]{3,20}$/.test(username)||password.length<6){mensaje("Revisa el usuario y la contraseña.");return;}
-b.disabled=true;
-try{
- const {data:d,error:eu}=await supabaseClient.rpc("check_username_available",{p_username:username});if(eu)throw eu;if(!d?.[0]?.available)throw new Error("Ese nombre de usuario ya está ocupado.");
- const {data:r,error:re}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});if(re)throw re;if(r!==true)throw new Error("El código de referencia no existe.");
- const recoveryKey=generarClaveRecuperacion();
- const recoveryHash=await sha256Hex(normalizarClaveRecuperacion(recoveryKey));
- const {data,error}=await supabaseClient.functions.invoke("registrar-usuario",{body:{
+ const b=document.getElementById("botonRegistro");
+ const full_name=document.getElementById("nombre").value.trim();
+ const country_code=document.getElementById("pais").value;
+ const country_name=paisesRegistro.find(x=>x.code===country_code)?.name||country_code;
+ const province=document.getElementById("provinciaBusqueda").value.trim();
+ const municipality=document.getElementById("municipioBusqueda").value.trim();
+ const username=document.getElementById("usuario").value.trim().toLowerCase();
+ const email=document.getElementById("correo").value.trim().toLowerCase();
+ const password=document.getElementById("clave").value;
+ const referral_code=codigoReferidoEnlace;
+ const foto=document.getElementById("fotoRegistro").files[0];
+
+ if(!referral_code){
+  mensaje("Para crear una cuenta necesitas abrir el enlace personal de invitación de otro usuario.");
+  return;
+ }
+ if(!full_name||!country_code||!province||!municipality||!username||!email||!password||!foto){
+  mensaje("Completa todos los campos obligatorios, incluida tu ubicación y foto de perfil.");return;
+ }
+ if(!['image/jpeg','image/png','image/webp'].includes(foto.type)||foto.size>5*1024*1024){
+  mensaje("La foto debe ser JPG, PNG o WEBP y pesar máximo 5 MB.");return;
+ }
+ if(!/^[a-z0-9_]{3,20}$/.test(username)||password.length<6){
+  mensaje("Revisa el usuario y la contraseña.");return;
+ }
+
+ b.disabled=true;
+ try{
+  const {data:d,error:eu}=await supabaseClient.rpc("check_username_available",{p_username:username});
+  if(eu)throw eu;
+  if(!d?.[0]?.available)throw new Error("Ese nombre de usuario ya está ocupado.");
+
+  const {data:r,error:re}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});
+  if(re)throw re;
+  if(r!==true)throw new Error("El enlace de invitación no es válido. Pide uno nuevo.");
+
+  const recoveryKey=generarClaveRecuperacion();
+  const recoveryHash=await sha256Hex(normalizarClaveRecuperacion(recoveryKey));
+
+  const {data,error}=await supabaseClient.functions.invoke("registrar-usuario",{body:{
    email,password,full_name,username,
    referral_code:null,
    referred_by:referral_code,
    country:country_name,country_code,province,municipality,
    recovery_key_hash:recoveryHash
- }});
- if(error)throw error;
- if(!data?.success)throw new Error(data?.error||"No se pudo completar el registro.");
- const {data:loginData,error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
- if(loginError)throw new Error("La cuenta fue creada correctamente, pero no se pudo iniciar sesión: "+loginError.message);
- usuarioActual=loginData.user;
- perfilActual=await cargarPerfil(usuarioActual);
- await subirArchivoFotoPerfil(foto);
- perfilActual=await cargarPerfil(usuarioActual);
- ["nombre","usuario","correo","clave","invitacion","provinciaBusqueda","municipioBusqueda"].forEach(id=>document.getElementById(id).value="");document.getElementById("fotoRegistro").value="";document.getElementById("pais").value="";
- mostrarDatosRecuperacion(email,perfilActual?.referral_code||"Tu código personal",recoveryKey);
- mostrar("cuenta");mensaje("Cuenta creada correctamente. Guarda tu información de recuperación antes de continuar.");await actualizarContadorUsuarios();
-}catch(e){mensaje("No se pudo completar el registro: "+errorTexto(e));}
-finally{b.disabled=false;}
+  }});
+  if(error)throw error;
+  if(!data?.success)throw new Error(data?.error||"No se pudo completar el registro.");
+
+  // La función Edge debe devolver success solo después de crear Auth y perfil.
+  const {data:loginData,error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(loginError){
+   mensaje("La cuenta se creó, pero no se pudo iniciar sesión automáticamente. Entra con tu correo y contraseña. "+loginError.message);
+   mostrar("login");document.getElementById("correoLogin").value=email;return;
+  }
+
+  usuarioActual=loginData.user;
+  perfilActual=await cargarPerfil(usuarioActual);
+  try{
+   await subirArchivoFotoPerfil(foto);
+   perfilActual=await cargarPerfil(usuarioActual);
+  }catch(errorFoto){
+   console.warn("No se pudo subir la foto en este momento:",errorFoto);
+  }
+
+  ["nombre","usuario","correo","clave","invitacion","provinciaBusqueda","municipioBusqueda"].forEach(id=>{
+   const campo=document.getElementById(id);if(campo)campo.value="";
+  });
+  document.getElementById("fotoRegistro").value="";
+  document.getElementById("pais").value="";
+  mostrarDatosRecuperacion(email,perfilActual?.referral_code||"Tu código personal",recoveryKey);
+  mostrar("cuenta");
+  if(!perfilActual?.avatar_url){
+   document.getElementById("fotoObligatoriaCuenta").classList.remove("hidden");
+   mensaje("Cuenta creada. Completa la foto de perfil y guarda tu clave de recuperación.");
+  }else{
+   mensaje("Cuenta creada correctamente. Guarda tu información de recuperación.");
+  }
+  await actualizarContadorUsuarios();
+ }catch(e){
+  const detalle=errorTexto(e);
+  mensaje("No se pudo completar el registro: "+detalle+". Si aparece que el correo ya está registrado, la función registrar-usuario debe revertir la creación incompleta en Supabase; el HTML por sí solo no puede borrar usuarios de Auth de forma segura.");
+ }finally{
+  b.disabled=false;
+ }
 }
+
 function abrirRecuperacionPassword(){document.getElementById("recuperarPasswordModal").classList.remove("hidden");document.getElementById("estadoRecuperarPassword").textContent="";}
 function cerrarRecuperacionPassword(){document.getElementById("recuperarPasswordModal").classList.add("hidden");}
 function cerrarNuevaPassword(){document.getElementById("nuevaPasswordModal").classList.add("hidden");sessionStorage.removeItem("grRecoveryToken");}
@@ -1408,7 +1510,8 @@ async function copiarEnlace(){const v=document.getElementById("enlaceInvitacion"
 // Mensajes visuales uniformes y año dinámico.
 document.addEventListener("DOMContentLoaded",()=>{
  const y=document.getElementById("grYear");if(y)y.textContent=new Date().getFullYear();
- if(codigoReferidoEnlace){aplicarCodigoReferidoEnlace();mostrar("registro");}
+ aplicarCodigoReferidoEnlace();
+ if(codigoReferidoEnlace)mostrar("registro");
 });
 function notificarPremium(texto,tipo="info"){
  const region=document.getElementById("grToastRegion");if(!region){mensaje(texto);return;}
