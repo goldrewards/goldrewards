@@ -766,7 +766,7 @@ function mostrarDatosRecuperacion(email,codigo,llave){
  document.getElementById("datoRecuperacionLlave").value=llave;
  document.getElementById("datosRecuperacionModal").classList.remove("hidden");
 }
-function cerrarDatosRecuperacion(){document.getElementById("datosRecuperacionModal").classList.add("hidden");}
+function cerrarDatosRecuperacion(){document.getElementById("datosRecuperacionModal").classList.add("hidden");actualizarDatosRecibirSaldo();}
 async function copiarClaveRecuperacion(){const v=document.getElementById("datoRecuperacionLlave").value;try{await navigator.clipboard.writeText(v);mensaje("Clave de recuperación copiada.");}catch(e){document.getElementById("datoRecuperacionLlave").select();document.execCommand("copy");}}
 async function registrar(){
  const b=document.getElementById("botonRegistro");
@@ -841,6 +841,8 @@ async function registrar(){
   document.getElementById("pais").value="";
   mostrarDatosRecuperacion(email,perfilActual?.referral_code||"Tu código personal",recoveryKey);
   mostrar("cuenta");
+  // Al entrar por primera vez a la pantalla de compra, rellenar enlace y código propios.
+  actualizarDatosRecibirSaldo();
   if(!perfilActual?.avatar_url){
    document.getElementById("fotoObligatoriaCuenta").classList.remove("hidden");
    mensaje("Cuenta creada. Completa la foto de perfil y guarda tu clave de recuperación.");
