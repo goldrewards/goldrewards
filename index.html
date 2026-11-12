@@ -437,7 +437,7 @@ async function subirFotoCuenta(){const input=document.getElementById("fotoCuenta
 async function cambiarFotoPerfil(){const input=document.getElementById("cambiarFotoInput");input.click();}
 async function procesarCambioFoto(archivo){const estado=document.getElementById("estadoCambiarFoto");if(!archivo)return;estado.textContent="Guardando foto...";try{await subirArchivoFotoPerfil(archivo);actualizarFondoLobby();const row=document.getElementById("perfilLobbyHeader");row.replaceChildren();const wrap=elemento("div",undefined,"avatar-edit-wrap");wrap.append(crearEncabezadoCuenta(perfilActual,"Tu cuenta", "account-avatar large"));const btn=elemento("button","Cambiar foto","avatar-edit-btn secundario");btn.type="button";btn.onclick=cambiarFotoPerfil;wrap.append(btn);row.append(wrap);estado.textContent="Foto de perfil actualizada.";}catch(e){estado.textContent="No se pudo cambiar la foto: "+errorTexto(e);}}
 async function cargarPerfiles(ids){const unicos=[...new Set((ids||[]).filter(Boolean).map(String))].filter(id=>!perfilesCache.has(id));if(unicos.length){try{const {data,error}=await supabaseClient.from("profiles").select("id,full_name,username,avatar_url,role,referral_code").in("id",unicos);if(error)throw error;(data||[]).forEach(p=>perfilesCache.set(String(p.id),p));}catch(e){console.warn("No se pudieron cargar algunas fotos de perfil; se mostrarán iniciales si hace falta.",e);}}return new Map((ids||[]).map(id=>[id,perfilesCache.get(String(id))||{id}]));}
-function mostrar(id){document.querySelectorAll(".container").forEach(x=>x.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");document.getElementById("message").textContent="";}
+function mostrar(id){document.querySelectorAll(".container").forEach(x=>x.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");document.getElementById("message").textContent="";if(id==="registro")inicializarUbicacionRegistro();}
 function mensaje(t){const el=document.getElementById("message");if(el)el.textContent=t;notificarPremium(t,"info");}
 function dinero(v){return `${Number(v||0).toLocaleString("es-ES")} CUP`;}
 function fecha(v){const lang=localStorage.getItem("goldrewards_idioma")||"es";const locale={es:"es-ES",en:"en-US",fr:"fr-FR",pt:"pt-BR"}[lang]||"es-ES";return v?new Date(v).toLocaleString(locale):"—";}
@@ -677,11 +677,18 @@ async function cargarMunicipios(){
  }
 }
 function buscarMunicipios(){document.getElementById("municipio").value=document.getElementById("municipioBusqueda").value.trim();}
-document.addEventListener("DOMContentLoaded",()=>{
- document.getElementById("provinciaBusqueda").addEventListener("change",cargarMunicipios);
- document.getElementById("municipioBusqueda").addEventListener("change",buscarMunicipios);
- cargarPaisesRegistro();
-});
+let ubicacionRegistroInicializada=false;
+async function inicializarUbicacionRegistro(){
+ if(ubicacionRegistroInicializada)return;
+ ubicacionRegistroInicializada=true;
+ const provincia=document.getElementById("provinciaBusqueda");
+ const municipio=document.getElementById("municipioBusqueda");
+ if(provincia)provincia.addEventListener("change",cargarMunicipios);
+ if(municipio)municipio.addEventListener("change",buscarMunicipios);
+ // La detección del país y la consulta de regiones solo comienzan
+ // cuando el visitante abre explícitamente el formulario de registro.
+ await cargarPaisesRegistro();
+}
 function generarClaveRecuperacion(){
  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
  const bytes=new Uint8Array(24);crypto.getRandomValues(bytes);
