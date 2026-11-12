@@ -363,6 +363,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <div id="datosRecuperacionModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="datosRecuperacionTitulo"><div class="modal-panel"><h2 id="datosRecuperacionTitulo">🔐 Guarda tus datos de recuperación</h2><p class="muted">Esta información es personal. No la compartas con nadie. La clave secreta se muestra ahora para que puedas guardarla.</p><div class="card" style="text-align:left"><p><strong>📧 Correo:</strong> <span id="datoRecuperacionCorreo"></span></p><p><strong>🆔 Código de referencia:</strong> <span id="datoRecuperacionCodigo"></span></p><p><strong>🔑 Clave de recuperación:</strong></p><input id="datoRecuperacionLlave" readonly style="font-family:monospace;font-weight:bold"><button type="button" class="secundario" onclick="copiarClaveRecuperacion()">📋 Copiar clave</button></div><p class="estado">⚠️ Guarda estos datos en un lugar seguro. La clave no debe compartirse con otras personas.</p><button type="button" onclick="cerrarDatosRecuperacion()">Entendido, ya la guardé</button></div></div>
 
+<div id="activarLlaveAntiguaModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="activarLlaveAntiguaTitulo"><div class="modal-panel"><h2 id="activarLlaveAntiguaTitulo">🔐 Protege tu cuenta con una llave de recuperación</h2><p class="muted">Tu cuenta fue creada antes de activar la recuperación. Generamos una llave nueva para ti. Esta información es personal: no la compartas con nadie y guárdala en un lugar seguro. Se mostrará ahora; después no podremos volver a mostrarla.</p><div class="card" style="text-align:left"><p><strong>📧 Correo:</strong> <span id="llaveAntiguaCorreo"></span></p><p><strong>🆔 Código de referencia:</strong> <span id="llaveAntiguaCodigo"></span></p><p><strong>🔑 Tu nueva llave:</strong></p><input id="llaveAntiguaValor" readonly style="font-family:monospace;font-weight:bold"><button type="button" class="secundario" onclick="copiarLlaveAntigua()">📋 Copiar llave</button></div><p id="estadoLlaveAntigua" class="estado">Guarda la llave antes de continuar.</p><button id="botonGuardarLlaveAntigua" type="button" onclick="guardarLlaveAntigua()">Guardar llave y continuar</button></div></div>
+
 <div id="adminDetalleModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="adminDetalleTitulo"><div class="modal-panel"><button class="modal-close" onclick="cerrarDetalleCuenta()" aria-label="Cerrar">✕</button><h2 id="adminDetalleTitulo">Información de la cuenta</h2><div id="adminDetalleContenido"><p class="muted">Cargando información...</p></div></div></div>
 
 <div id="paqueteModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel"><button class="modal-close" onclick="cerrarPaquete()" aria-label="Cerrar">✕</button><div class="modal-icon">💳</div><h2 id="paqueteTitulo">Información del paquete</h2><div id="paqueteDetalle" class="card"></div><div id="paquetePago"></div><div class="payment-methods"><button type="button" id="botonPagarSaldoPaquete" style="display:block;width:100%" onclick="pagarConSaldoPaquete()">Pagar con saldo de mi cuenta</button><p id="estadoPagoSaldoPaquete" class="estado" aria-live="polite"></p><button type="button" class="secundario" style="display:block;width:100%" onclick="continuarPagoPaquete()">Pagar por transferencia y subir comprobante</button><p class="muted" style="text-align:center">El pago por transferencia queda pendiente hasta la aprobación del administrador. El pago con saldo se procesa automáticamente.</p></div></div></div>
@@ -700,7 +702,33 @@ async function guardarNuevaPassword(){
  b.disabled=true;estado.textContent="Guardando nueva contraseña...";
  try{const {data,error}=await supabaseClient.functions.invoke("recover-password",{body:{action:"reset",recovery_token:token,new_password:nueva}});if(error)throw error;if(!data?.ok)throw new Error(data?.error||"No se pudo actualizar la contraseña.");sessionStorage.removeItem("grRecoveryToken");document.getElementById("nuevaPassword").value="";document.getElementById("confirmarNuevaPassword").value="";estado.textContent="✅ Contraseña actualizada correctamente. Ya puedes iniciar sesión.";setTimeout(()=>{document.getElementById("nuevaPasswordModal").classList.add("hidden");mostrar("login");},1200);}catch(e){estado.textContent="No se pudo actualizar: "+errorTexto(e);}finally{b.disabled=false;}
 }
-async function cargarPerfil(u){const {data,error}=await supabaseClient.from("profiles").select("id,full_name,username,role,referral_code,avatar_url,country,country_code,province,municipality,created_at").eq("id",u.id).maybeSingle();if(error)throw error;if(!data)throw new Error("No se encontró tu perfil.");return data;}
+async function cargarPerfil(u){const {data,error}=await supabaseClient.from("profiles").select("id,full_name,username,role,referral_code,avatar_url,country,country_code,province,municipality,created_at,recovery_key_hash").eq("id",u.id).maybeSingle();if(error)throw error;if(!data)throw new Error("No se encontró tu perfil.");return data;}
+let llaveAntiguaPendiente="";
+async function prepararLlaveCuentaAntigua(){
+ llaveAntiguaPendiente=generarClaveRecuperacion();
+ document.getElementById("llaveAntiguaCorreo").textContent=usuarioActual?.email||"";
+ document.getElementById("llaveAntiguaCodigo").textContent=perfilActual?.referral_code||"";
+ document.getElementById("llaveAntiguaValor").value=llaveAntiguaPendiente;
+ document.getElementById("estadoLlaveAntigua").textContent="Guarda esta llave. Debes pulsar Guardar llave y continuar para entrar a tu cuenta.";
+ document.getElementById("activarLlaveAntiguaModal").classList.remove("hidden");
+}
+async function copiarLlaveAntigua(){const el=document.getElementById("llaveAntiguaValor");try{await navigator.clipboard.writeText(el.value);document.getElementById("estadoLlaveAntigua").textContent="Llave copiada. Guárdala en un lugar seguro y pulsa Guardar llave y continuar.";}catch(e){el.select();document.execCommand("copy");document.getElementById("estadoLlaveAntigua").textContent="Selecciona y copia la llave; después pulsa Guardar llave y continuar.";}}
+async function guardarLlaveAntigua(){
+ const b=document.getElementById("botonGuardarLlaveAntigua"),estado=document.getElementById("estadoLlaveAntigua");
+ if(!usuarioActual||!perfilActual||!llaveAntiguaPendiente){estado.textContent="No se pudo preparar la llave. Cierra sesión e inicia sesión nuevamente.";return;}
+ b.disabled=true;estado.textContent="Guardando tu llave de recuperación...";
+ try{
+  const hash=await sha256Hex(normalizarClaveRecuperacion(llaveAntiguaPendiente));
+  const {error}=await supabaseClient.from("profiles").update({recovery_key_hash:hash}).eq("id",usuarioActual.id);
+  if(error)throw error;
+  perfilActual.recovery_key_hash=hash;
+  llaveAntiguaPendiente="";
+  document.getElementById("activarLlaveAntiguaModal").classList.add("hidden");
+  document.getElementById("llaveAntiguaValor").value="";
+  await dirigirUsuario();
+ }catch(e){estado.textContent="No se pudo guardar la llave: "+errorTexto(e)+". No cierres esta pantalla; inténtalo nuevamente.";}finally{b.disabled=false;}
+}
+
 async function entrar(){
 
  const b=document.getElementById("botonLogin");
@@ -742,7 +770,7 @@ async function entrar(){
  }
 
 }
-async function dirigirUsuario(){if(!usuarioActual||!perfilActual)return;if(perfilActual.role!=="admin"&&usuarioActual.user_metadata?.avatar_required&&!perfilActual.avatar_url){mostrar("cuenta");document.getElementById("fotoObligatoriaCuenta").classList.remove("hidden");document.querySelectorAll("#cuenta > :not(.logout-top):not(h2):not(#fotoObligatoriaCuenta)").forEach(x=>{x.dataset.fotoGate="1";x.classList.add("hidden");});return;}if(perfilActual.role==="admin"){mostrar("panelAdmin");document.getElementById("mensajeAdmin").textContent="Bienvenido al panel de administración.";await cargarAdmin();return;}const mem=await buscarMembresiaActiva(usuarioActual.id);if(mem){mostrar("lobby");await cargarLobby(mem);}else{mostrar("cuenta");await cargarCuenta();}}
+async function dirigirUsuario(){if(!usuarioActual||!perfilActual)return;if(perfilActual.role!=="admin"&&!perfilActual.recovery_key_hash){await prepararLlaveCuentaAntigua();return;}if(perfilActual.role!=="admin"&&usuarioActual.user_metadata?.avatar_required&&!perfilActual.avatar_url){mostrar("cuenta");document.getElementById("fotoObligatoriaCuenta").classList.remove("hidden");document.querySelectorAll("#cuenta > :not(.logout-top):not(h2):not(#fotoObligatoriaCuenta)").forEach(x=>{x.dataset.fotoGate="1";x.classList.add("hidden");});return;}if(perfilActual.role==="admin"){mostrar("panelAdmin");document.getElementById("mensajeAdmin").textContent="Bienvenido al panel de administración.";await cargarAdmin();return;}const mem=await buscarMembresiaActiva(usuarioActual.id);if(mem){mostrar("lobby");await cargarLobby(mem);}else{mostrar("cuenta");await cargarCuenta();}}
 async function cargarCuenta(){document.getElementById("perfilCuentaHeader").replaceChildren(crearEncabezadoCuenta(perfilActual,"Tu perfil", "account-avatar large"));document.getElementById("datos").textContent="Nombre: "+(perfilActual.full_name||"")+"\nUsuario: @"+(perfilActual.username||"")+"\nCódigo de invitación: "+(perfilActual.referral_code||"En preparación");const {data,error}=await supabaseClient.from("payment_requests").select("status,plan,amount_cup,created_at").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();const e=document.getElementById("estadoDeposito"),b=document.getElementById("botonComprobante");if(error){e.textContent="No se pudo consultar tu depósito: "+errorTexto(error);return;}if(data){e.textContent="Tienes una solicitud de "+nombrePlan(data.plan)+" ("+dinero(data.amount_cup)+") pendiente. Cuando sea aprobada podrás comprar cualquier otra membresía.";b.disabled=true;document.getElementById("planMembresia").disabled=false;}else{e.textContent="Puedes comprar con saldo o mediante transferencia. Las transferencias requieren aprobación individual.";b.disabled=false;document.getElementById("planMembresia").disabled=false;}actualizarDatosPlan();await cargarEstadoPagoVirtual();}
 function actualizarDatosPlanLobby(){const p=document.getElementById("planMembresiaLobby").value,d=datosPlanCUP(p);if(d)document.getElementById("detallePlanLobby").textContent=`${d.nombre}: ${d.precio} CUP por 30 días. Comisión directa: ${d.directo} CUP (10%). Comisión indirecta: ${d.indirecto} CUP (1%).`;}
 async function cargarEstadoPagoCUPLobby(){
