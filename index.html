@@ -357,7 +357,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <button class="drawer-link" onclick="mostrarAdmin('auditoriaAdmin');cargarAuditoriaAdmin()">🧾 Registro de auditoría</button>
     </div>
 </aside>
-<div id="recuperarPasswordModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="recuperarPasswordTitulo"><div class="modal-panel"><button class="modal-close" onclick="cerrarRecuperacionPassword()" aria-label="Cerrar">✕</button><h2 id="recuperarPasswordTitulo">Recuperar contraseña</h2><p class="muted">Introduce tu código de referencia y el correo con el que registraste la cuenta. Te enviaremos un enlace seguro para crear una contraseña nueva.</p><label for="recuperarCodigo">Código de referencia</label><input id="recuperarCodigo" placeholder="Ejemplo: ABC123" autocomplete="off"><label for="recuperarCorreo">Correo electrónico registrado</label><input id="recuperarCorreo" type="email" placeholder="tu@correo.com" autocomplete="email"><button id="botonRecuperarPassword" onclick="solicitarRecuperacionPassword()">Solicitar recuperación</button><p id="estadoRecuperarPassword" class="estado"></p></div></div>
+<div id="recuperarPasswordModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="recuperarPasswordTitulo"><div class="modal-panel"><button class="modal-close" onclick="cerrarRecuperacionPassword()" aria-label="Cerrar">✕</button><h2 id="recuperarPasswordTitulo">🔐 Recuperar contraseña</h2><p class="muted">Introduce exactamente los tres datos personales que recibiste al crear tu cuenta. No se enviará ningún correo.</p><label for="recuperarCorreo">Correo electrónico registrado</label><input id="recuperarCorreo" type="email" placeholder="tu@correo.com" autocomplete="email"><label for="recuperarCodigo">Código de referencia</label><input id="recuperarCodigo" placeholder="Ejemplo: ABC123" autocomplete="off"><label for="recuperarLlave">Clave de recuperación</label><input id="recuperarLlave" placeholder="GR-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off"><button id="botonRecuperarPassword" onclick="verificarRecuperacionPassword()">Continuar</button><p id="estadoRecuperarPassword" class="estado"></p></div></div>
+
+<div id="nuevaPasswordModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="nuevaPasswordTitulo"><div class="modal-panel"><button class="modal-close" onclick="cerrarNuevaPassword()" aria-label="Cerrar">✕</button><h2 id="nuevaPasswordTitulo">🔒 Crear nueva contraseña</h2><p class="muted">Tu identidad fue verificada. Escribe y confirma tu nueva contraseña.</p><label for="nuevaPassword">Nueva contraseña</label><input id="nuevaPassword" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"><label for="confirmarNuevaPassword">Confirmar nueva contraseña</label><input id="confirmarNuevaPassword" type="password" placeholder="Repite la nueva contraseña" autocomplete="new-password"><button id="botonGuardarNuevaPassword" onclick="guardarNuevaPassword()">💾 Guardar nueva contraseña</button><p id="estadoNuevaPassword" class="estado"></p></div></div>
+
+<div id="datosRecuperacionModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="datosRecuperacionTitulo"><div class="modal-panel"><h2 id="datosRecuperacionTitulo">🔐 Guarda tus datos de recuperación</h2><p class="muted">Esta información es personal. No la compartas con nadie. La clave secreta se muestra ahora para que puedas guardarla.</p><div class="card" style="text-align:left"><p><strong>📧 Correo:</strong> <span id="datoRecuperacionCorreo"></span></p><p><strong>🆔 Código de referencia:</strong> <span id="datoRecuperacionCodigo"></span></p><p><strong>🔑 Clave de recuperación:</strong></p><input id="datoRecuperacionLlave" readonly style="font-family:monospace;font-weight:bold"><button type="button" class="secundario" onclick="copiarClaveRecuperacion()">📋 Copiar clave</button></div><p class="estado">⚠️ Guarda estos datos en un lugar seguro. La clave no debe compartirse con otras personas.</p><button type="button" onclick="cerrarDatosRecuperacion()">Entendido, ya la guardé</button></div></div>
 
 <div id="adminDetalleModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="adminDetalleTitulo"><div class="modal-panel"><button class="modal-close" onclick="cerrarDetalleCuenta()" aria-label="Cerrar">✕</button><h2 id="adminDetalleTitulo">Información de la cuenta</h2><div id="adminDetalleContenido"><p class="muted">Cargando información...</p></div></div></div>
 
@@ -639,6 +643,22 @@ document.addEventListener("DOMContentLoaded",()=>{
  document.getElementById("provinciaBusqueda").addEventListener("change",cargarMunicipios);document.getElementById("provinciaBusqueda").addEventListener("input",buscarProvincias);
  document.getElementById("municipioBusqueda").addEventListener("input",buscarMunicipios);cargarPaisesRegistro();
 });
+function generarClaveRecuperacion(){
+ const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+ const bytes=new Uint8Array(24);crypto.getRandomValues(bytes);
+ let raw="";for(let i=0;i<bytes.length;i++)raw+=chars[bytes[i]%chars.length];
+ return "GR-"+raw.match(/.{1,4}/g).join("-");
+}
+async function sha256Hex(text){const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");}
+function normalizarClaveRecuperacion(v){return v.trim().toUpperCase().replace(/\s+/g,"");}
+function mostrarDatosRecuperacion(email,codigo,llave){
+ document.getElementById("datoRecuperacionCorreo").textContent=email;
+ document.getElementById("datoRecuperacionCodigo").textContent=codigo;
+ document.getElementById("datoRecuperacionLlave").value=llave;
+ document.getElementById("datosRecuperacionModal").classList.remove("hidden");
+}
+function cerrarDatosRecuperacion(){document.getElementById("datosRecuperacionModal").classList.add("hidden");}
+async function copiarClaveRecuperacion(){const v=document.getElementById("datoRecuperacionLlave").value;try{await navigator.clipboard.writeText(v);mensaje("Clave de recuperación copiada.");}catch(e){document.getElementById("datoRecuperacionLlave").select();document.execCommand("copy");}}
 async function registrar(){
 const b=document.getElementById("botonRegistro"),full_name=document.getElementById("nombre").value.trim(),country_code=document.getElementById("pais").value,country_name=paisesRegistro.find(x=>x.code===country_code)?.name||country_code,province=document.getElementById("provinciaBusqueda").value.trim(),municipality=document.getElementById("municipioBusqueda").value.trim(),username=document.getElementById("usuario").value.trim().toLowerCase(),email=document.getElementById("correo").value.trim(),password=document.getElementById("clave").value,referral_code=document.getElementById("invitacion").value.trim().toUpperCase(),foto=document.getElementById("fotoRegistro").files[0];
 if(!full_name||!country_code||!province||!municipality||!username||!email||!password||!referral_code||!foto){mensaje("Completa todos los campos obligatorios, incluida tu ubicación y foto de perfil.");return;}
@@ -647,37 +667,38 @@ if(!/^[a-z0-9_]{3,20}$/.test(username)||password.length<6){mensaje("Revisa el us
 b.disabled=true;try{
 const {data:d,error:eu}=await supabaseClient.rpc("check_username_available",{p_username:username});if(eu)throw eu;if(!d?.[0]?.available)throw new Error("Ese nombre de usuario ya está ocupado.");
 const {data:r,error:re}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});if(re)throw re;if(r!==true)throw new Error("El código de referencia no existe.");
+const recoveryKey=generarClaveRecuperacion();const recoveryHash=await sha256Hex(normalizarClaveRecuperacion(recoveryKey));
 const locationData={full_name,username,province,municipality,country:country_name,country_code,referral_code,avatar_required:true};
 const {data:signup,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:"https://goldrewards.github.io/goldrewards/",data:locationData}});if(error)throw error;
-if(signup.session){usuarioActual=signup.user;const {error:locError}=await supabaseClient.from("profiles").update({country:country_name,country_code,province,municipality}).eq("id",signup.user.id);if(locError)throw new Error("La cuenta fue creada, pero debes ejecutar la migración de ubicación en Supabase: "+locError.message);perfilActual=await cargarPerfil(signup.user);await subirArchivoFotoPerfil(foto);perfilActual=await cargarPerfil(signup.user);}
-else{mensaje("Cuenta creada. Confirma tu correo y luego inicia sesión. La ubicación queda guardada en los datos de registro.");}
-["nombre","usuario","correo","clave","invitacion","provinciaBusqueda","municipioBusqueda"].forEach(id=>document.getElementById(id).value="");document.getElementById("fotoRegistro").value="";document.getElementById("pais").value="";if(signup.session)mostrar("cuenta");else mostrar("login");if(signup.session)mensaje("Cuenta creada, ubicación y foto de perfil guardadas. Ahora selecciona tu membresía.");await actualizarContadorUsuarios();
+if(!signup.session||!signup.user)throw new Error("La cuenta fue creada, pero debes confirmar el correo antes de continuar. Para usar la recuperación sin correo, desactiva Confirm email en Authentication → Sign In / Providers o vuelve a iniciar sesión y configura una clave de recuperación.");
+usuarioActual=signup.user;
+const {error:locError}=await supabaseClient.from("profiles").update({country:country_name,country_code,province,municipality,recovery_key_hash:recoveryHash}).eq("id",signup.user.id);if(locError)throw new Error("La cuenta fue creada, pero no se pudo guardar la clave de recuperación: "+locError.message);
+perfilActual=await cargarPerfil(signup.user);await subirArchivoFotoPerfil(foto);perfilActual=await cargarPerfil(signup.user);
+["nombre","usuario","correo","clave","invitacion","provinciaBusqueda","municipioBusqueda"].forEach(id=>document.getElementById(id).value="");document.getElementById("fotoRegistro").value="";document.getElementById("pais").value="";
+mostrarDatosRecuperacion(email,perfilActual?.referral_code||"Tu código personal",recoveryKey);
+mostrar("cuenta");mensaje("Cuenta creada. Guarda tu información de recuperación antes de continuar.");await actualizarContadorUsuarios();
 }catch(e){mensaje("No se pudo completar el registro: "+errorTexto(e));}finally{b.disabled=false;}}
 function abrirRecuperacionPassword(){document.getElementById("recuperarPasswordModal").classList.remove("hidden");document.getElementById("estadoRecuperarPassword").textContent="";}
 function cerrarRecuperacionPassword(){document.getElementById("recuperarPasswordModal").classList.add("hidden");}
-async function solicitarRecuperacionPassword(){
- const codigo=document.getElementById("recuperarCodigo").value.trim().toUpperCase();
- const email=document.getElementById("recuperarCorreo").value.trim().toLowerCase();
+function cerrarNuevaPassword(){document.getElementById("nuevaPasswordModal").classList.add("hidden");sessionStorage.removeItem("grRecoveryToken");}
+async function verificarRecuperacionPassword(){
+ const email=document.getElementById("recuperarCorreo").value.trim().toLowerCase();const codigo=document.getElementById("recuperarCodigo").value.trim().toUpperCase();const llave=document.getElementById("recuperarLlave").value.trim();
  const estado=document.getElementById("estadoRecuperarPassword"),b=document.getElementById("botonRecuperarPassword");
- if(!codigo||!email){estado.textContent="Escribe tu código de referencia y el correo registrado.";return;}
+ if(!email||!codigo||!llave){estado.textContent="Completa correo, código de referencia y clave de recuperación.";return;}
  b.disabled=true;estado.textContent="Verificando información...";
  try{
-  const {data:ok,error:ve}=await supabaseClient.rpc("verify_account_recovery",{p_referral_code:codigo,p_email:email});
-  if(ve)throw ve;
-  if(ok!==true)throw new Error("Los datos no coinciden con una cuenta registrada.");
-  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:"https://goldrewards.github.io/goldrewards/"});
-  if(error)throw error;
-  estado.textContent="Solicitud enviada. Revisa tu correo y abre el enlace para crear una contraseña nueva.";
- }catch(e){estado.textContent="No se pudo iniciar la recuperación: "+errorTexto(e);}finally{b.disabled=false;}
+  const key_hash=await sha256Hex(normalizarClaveRecuperacion(llave));
+  const {data,error}=await supabaseClient.functions.invoke("recover-password",{body:{action:"verify",email,referral_code:codigo,recovery_key_hash:key_hash}});
+  if(error)throw error;if(!data?.ok||!data?.recovery_token)throw new Error(data?.error||"No fue posible verificar los datos.");
+  sessionStorage.setItem("grRecoveryToken",data.recovery_token);
+  cerrarRecuperacionPassword();document.getElementById("nuevaPasswordModal").classList.remove("hidden");
+ }catch(e){estado.textContent="No se pudo verificar: "+errorTexto(e);}finally{b.disabled=false;}
 }
-// Cuando Supabase abre la página mediante un enlace de recuperación, permite guardar la nueva contraseña.
-async function finalizarNuevaPassword(){
- const nueva=prompt("Introduce tu nueva contraseña (mínimo 6 caracteres):");
- if(nueva===null)return;
- if(nueva.length<6){mensaje("La nueva contraseña debe tener al menos 6 caracteres.");return;}
- const {error}=await supabaseClient.auth.updateUser({password:nueva});
- if(error){mensaje("No se pudo actualizar la contraseña: "+errorTexto(error));return;}
- mensaje("Contraseña actualizada correctamente. Ya puedes iniciar sesión con la nueva contraseña.");
+async function guardarNuevaPassword(){
+ const nueva=document.getElementById("nuevaPassword").value;const confirmar=document.getElementById("confirmarNuevaPassword").value;const token=sessionStorage.getItem("grRecoveryToken");const estado=document.getElementById("estadoNuevaPassword"),b=document.getElementById("botonGuardarNuevaPassword");
+ if(!token){estado.textContent="La verificación expiró. Vuelve a iniciar la recuperación.";return;}if(nueva.length<6){estado.textContent="La contraseña debe tener al menos 6 caracteres.";return;}if(nueva!==confirmar){estado.textContent="Las contraseñas no coinciden.";return;}
+ b.disabled=true;estado.textContent="Guardando nueva contraseña...";
+ try{const {data,error}=await supabaseClient.functions.invoke("recover-password",{body:{action:"reset",recovery_token:token,new_password:nueva}});if(error)throw error;if(!data?.ok)throw new Error(data?.error||"No se pudo actualizar la contraseña.");sessionStorage.removeItem("grRecoveryToken");document.getElementById("nuevaPassword").value="";document.getElementById("confirmarNuevaPassword").value="";estado.textContent="✅ Contraseña actualizada correctamente. Ya puedes iniciar sesión.";setTimeout(()=>{document.getElementById("nuevaPasswordModal").classList.add("hidden");mostrar("login");},1200);}catch(e){estado.textContent="No se pudo actualizar: "+errorTexto(e);}finally{b.disabled=false;}
 }
 async function cargarPerfil(u){const {data,error}=await supabaseClient.from("profiles").select("id,full_name,username,role,referral_code,avatar_url,country,country_code,province,municipality,created_at").eq("id",u.id).maybeSingle();if(error)throw error;if(!data)throw new Error("No se encontró tu perfil.");return data;}
 async function entrar(){
