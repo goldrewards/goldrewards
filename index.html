@@ -55,6 +55,25 @@ label{display:block;margin-top:8px;color:var(--muted)}
 .plan-usdt.plan-plata{--usdt-accent:#dce4ed;color:#dce4ed;border-color:#aeb9c6;background:linear-gradient(145deg,rgba(192,202,214,.22),rgba(0,0,0,.2))}
 .plan-usdt.plan-oro{--usdt-accent:#ffd45c;color:#ffd45c;border-color:#d6a928;background:linear-gradient(145deg,rgba(214,169,40,.25),rgba(0,0,0,.2))}
 .plan-usdt.plan-diamante{--usdt-accent:#76e5f5;color:#76e5f5;border-color:#43c7df;background:linear-gradient(145deg,rgba(67,199,223,.23),rgba(0,0,0,.2))}
+/* El cuadro de membresía activa adopta el color del plan vigente del usuario */
+
+.membership-card-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:1}
+.membership-card-heading h3{margin:0;min-width:0}
+.membership-plan-badge{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;max-width:48%;padding:5px 9px;border:1px solid color-mix(in srgb,var(--membership-accent) 78%,transparent);border-radius:999px;background:color-mix(in srgb,var(--membership-accent) 16%,#101014);color:var(--membership-accent);font-size:.76rem;font-weight:800;letter-spacing:.035em;line-height:1.2;text-align:center;white-space:normal;box-shadow:0 2px 10px color-mix(in srgb,var(--membership-accent) 12%,transparent)}
+@media(max-width:420px){.membership-card-heading{gap:7px}.membership-plan-badge{font-size:.68rem;padding:4px 7px;max-width:46%}}
+.membership-active-card{--membership-accent:#f6cf55;position:relative;overflow:hidden;border:1px solid color-mix(in srgb,var(--membership-accent) 78%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--membership-accent) 23%,#171717),rgba(12,12,15,.96));box-shadow:0 10px 28px color-mix(in srgb,var(--membership-accent) 13%,transparent),inset 0 1px rgba(255,255,255,.07);transition:background .25s,border-color .25s,box-shadow .25s}
+.membership-active-card:before{content:"";position:absolute;inset:0 0 auto;height:5px;background:var(--membership-accent);box-shadow:0 0 16px color-mix(in srgb,var(--membership-accent) 55%,transparent)}
+.membership-active-card h3,.membership-active-card #tiempoMembresia{color:var(--membership-accent)!important;text-shadow:0 1px 10px color-mix(in srgb,var(--membership-accent) 24%,transparent)}
+.membership-active-card.membership-blanco{--membership-accent:#f4f4f4}
+.membership-active-card.membership-verde{--membership-accent:#55ed96}
+.membership-active-card.membership-azul{--membership-accent:#69b8ff}
+.membership-active-card.membership-dorado{--membership-accent:#ffd66b}
+.membership-active-card.membership-rojo{--membership-accent:#ff8585}
+.membership-active-card.membership-bronce{--membership-accent:#e6a15a}
+.membership-active-card.membership-plata{--membership-accent:#dce4ed}
+.membership-active-card.membership-oro{--membership-accent:#ffd45c}
+.membership-active-card.membership-diamante{--membership-accent:#76e5f5}
+
 
 .virtual-box{margin-top:18px;padding:16px;border:1px solid rgba(246,207,85,.42);border-radius:16px;background:linear-gradient(145deg,rgba(52,42,20,.72),rgba(18,18,21,.96));text-align:left}.virtual-box h3{color:var(--oro2);text-align:center}.virtual-steps{font-size:.9rem;color:var(--muted);line-height:1.55}.virtual-address{font-size:.92rem;word-break:break-all;text-align:center;padding:12px;border-radius:10px;background:#09090c;border:1px dashed var(--borde);color:var(--oro2)}.virtual-status{margin-top:10px;color:var(--oro);text-align:center;word-break:break-word}
 .planes-lobby-pagos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}.planes-lobby-pagos>.virtual-box{min-width:0;margin-top:0}.planes-lobby-pagos .planes{grid-template-columns:1fr}.planes-lobby-pagos input,.planes-lobby-pagos select{max-width:100%}@media(max-width:760px){.planes-lobby-pagos{grid-template-columns:1fr}}
@@ -185,7 +204,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   <p id="estadoCambiarFoto" class="small muted" aria-live="polite"></p>
   <p id="bienvenidaLobby"></p>
   <button class="chat-launch" onclick="abrirChat()">💬 Chat GoldRewards</button>
-  <div class="card"><h3>🏆 Membresía activa</h3><p id="tiempoMembresia" class="code"></p></div>
+  <div class="card membership-active-card" id="membresiaActivaCard">
+    <div class="membership-card-heading">
+      <h3>🏆 Membresía activa</h3>
+      <span id="nombreMembresiaActiva" class="membership-plan-badge" aria-label="Nombre de la membresía activa"></span>
+    </div>
+    <p id="tiempoMembresia" class="code"></p>
+  </div>
   <h3>Resumen de tu cuenta</h3>
   <div class="grid lobby-stats">
     <div class="stat">Saldo disponible CUP<strong id="saldoDisponible">0 CUP</strong></div>
@@ -602,7 +627,20 @@ function cerrarLobbyMenu(){document.getElementById("lobbyDrawer")?.classList.rem
 function mostrarLobbySeccion(id){LOBBY_SECCIONES.forEach(x=>document.getElementById(x)?.classList.toggle("hidden",x!==id));cerrarLobbyMenu();document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"});}
 
 function actualizarFondoLobby(){const lobby=document.getElementById("lobby");if(!lobby)return;const url=perfilActual?.avatar_url;if(url){lobby.style.backgroundImage='linear-gradient(rgba(12,12,14,.84),rgba(12,12,14,.90)),url('+JSON.stringify(String(url))+')';}else{lobby.style.backgroundImage="linear-gradient(145deg,rgba(35,31,23,.96),rgba(18,18,21,.97))";}lobby.style.backgroundSize="cover";lobby.style.backgroundPosition="center";lobby.style.backgroundRepeat="no-repeat";lobby.style.backgroundAttachment="scroll";}
-async function cargarLobby(mem){actualizarFondoLobby();const header=document.getElementById("perfilLobbyHeader"),wrap=elemento("div",undefined,"avatar-edit-wrap");wrap.append(crearEncabezadoCuenta(perfilActual,"Tu cuenta", "account-avatar large"));const edit=elemento("button","Cambiar foto","avatar-edit-btn secundario");edit.type="button";edit.onclick=cambiarFotoPerfil;wrap.append(edit);header.replaceChildren(wrap);document.getElementById("bienvenidaLobby").textContent="¡Bienvenido, "+(perfilActual.full_name||perfilActual.username||"usuario")+"!";document.getElementById("tiempoMembresia").textContent=nombrePlan(mem.plan)+" · ";actualizarTiempoMembresia(mem.ends_at);if(perfilActual.referral_code){document.getElementById("miCodigo").textContent=perfilActual.referral_code;const l=new URL("https://goldrewards.github.io/goldrewards/");l.searchParams.set("ref",perfilActual.referral_code);document.getElementById("enlaceInvitacion").value=l.toString();}await Promise.all([cargarSaldoYGanancias(),cargarSaldoMonedasVirtuales(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos(),cargarReferidosUSDT(),cargarEstadoPagoVirtual(),cargarEstadoPagoCUPLobby(),cargarHistorialTransferencias()]);actualizarInfoTransferencia();}
+async function cargarLobby(mem){actualizarFondoLobby();const header=document.getElementById("perfilLobbyHeader"),wrap=elemento("div",undefined,"avatar-edit-wrap");wrap.append(crearEncabezadoCuenta(perfilActual,"Tu cuenta", "account-avatar large"));const edit=elemento("button","Cambiar foto","avatar-edit-btn secundario");edit.type="button";edit.onclick=cambiarFotoPerfil;wrap.append(edit);header.replaceChildren(wrap);document.getElementById("bienvenidaLobby").textContent="¡Bienvenido, "+(perfilActual.full_name||perfilActual.username||"usuario")+"!";aplicarColorMembresiaActiva(mem);const nombreMembresia=mem.membership_type==="virtual"?nombrePlanVirtual(mem.plan_id):nombrePlan(mem.plan);document.getElementById("nombreMembresiaActiva").textContent=nombreMembresia;document.getElementById("tiempoMembresia").textContent=nombreMembresia+" · ";actualizarTiempoMembresia(mem.ends_at);if(perfilActual.referral_code){document.getElementById("miCodigo").textContent=perfilActual.referral_code;const l=new URL("https://goldrewards.github.io/goldrewards/");l.searchParams.set("ref",perfilActual.referral_code);document.getElementById("enlaceInvitacion").value=l.toString();}await Promise.all([cargarSaldoYGanancias(),cargarSaldoMonedasVirtuales(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos(),cargarReferidosUSDT(),cargarEstadoPagoVirtual(),cargarEstadoPagoCUPLobby(),cargarHistorialTransferencias()]);actualizarInfoTransferencia();}
+
+function aplicarColorMembresiaActiva(mem){
+ const tarjeta=document.getElementById("membresiaActivaCard");
+ if(!tarjeta)return;
+ tarjeta.classList.remove("membership-blanco","membership-verde","membership-azul","membership-dorado","membership-rojo","membership-bronce","membership-plata","membership-oro","membership-diamante");
+ let color="";
+ if(mem?.membership_type==="virtual"){
+  color=({1:"membership-bronce",2:"membership-plata",3:"membership-oro",4:"membership-diamante"})[Number(mem.plan_id)]||"";
+ }else{
+  color=({basic:"membership-blanco",premium:"membership-verde",plan400:"membership-azul",plan800:"membership-dorado",plan1500:"membership-rojo"})[String(mem?.plan||"")]||"";
+ }
+ if(color)tarjeta.classList.add(color);
+}
 function actualizarTiempoMembresia(fin){const d=document.getElementById("tiempoMembresia"),f=new Date(fin).getTime(),plan=d.textContent.split(" · ")[0],a=()=>{const r=f-Date.now();if(r<=0){d.textContent="Membresía vencida. Cierra sesión e inicia nuevamente.";return;}const dias=Math.floor(r/86400000),h=Math.floor((r%86400000)/3600000),m=Math.floor((r%3600000)/60000);d.textContent=plan+" · Vence en "+dias+" días, "+h+" horas y "+m+" minutos";};a();if(window.relojMembresia)clearInterval(window.relojMembresia);window.relojMembresia=setInterval(a,60000);}
 async function cargarSaldoYGanancias(){
  const id=usuarioActual.id;
