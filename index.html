@@ -572,9 +572,28 @@ const PAISES_REGISTRO=[
 async function cargarPaisesRegistro(){
  const select=document.getElementById("pais");
  if(!select)return;
- // La lista va integrada en el HTML para que nunca dependa de una API externa.
- paisesRegistro=[...PAISES_REGISTRO];
- if(select.options.length<=1) select.innerHTML='<option value="">Selecciona tu país</option>'+paisesRegistro.map(x=>`<option value="${x.code}">${x.name}</option>`).join("");
+ select.disabled=true;
+ llenarSelect("pais",[],"Cargando países...");
+ try{
+  const {data,error}=await supabaseClient
+   .from("gr_paises")
+   .select("codigo,nombre")
+   .order("nombre",{ascending:true});
+  if(error)throw error;
+  paisesRegistro=(data||[]).map(x=>({code:String(x.codigo||"").toUpperCase(),name:String(x.nombre||"").trim()})).filter(x=>x.code&&x.name);
+  if(!paisesRegistro.length)throw new Error("No hay países disponibles en la base de datos.");
+  select.replaceChildren(new Option("Selecciona tu país",""));
+  paisesRegistro.forEach(x=>select.add(new Option(x.name,x.code)));
+ }catch(e){
+  console.error("Error cargando países desde Supabase:",e);
+  // Respaldo: conserva el catálogo integrado si temporalmente falla la consulta.
+  paisesRegistro=[...PAISES_REGISTRO];
+  select.replaceChildren(new Option("Selecciona tu país",""));
+  paisesRegistro.forEach(x=>select.add(new Option(x.name,x.code)));
+  mensaje("No se pudo leer temporalmente la ubicación desde la base de datos. Se cargó el catálogo de respaldo.");
+ }finally{
+  select.disabled=false;
+ }
  await detectarPaisPorIP();
 }
 
@@ -600,86 +619,113 @@ async function detectarPaisPorIP(){
     await cambiarPaisRegistro();
     return;
    }
-  }catch(e){ /* probar el siguiente servicio */ }
+  }catch(e){}
  }
- // Si la detección por IP está bloqueada, NO se fuerza Cuba: el usuario puede elegir cualquier país.
- select.value="";
 }
+
 function llenarSelect(id,valores,placeholder){
  const el=document.getElementById(id);if(!el)return;
  el.replaceChildren(new Option(placeholder,""));
- (valores||[]).forEach(v=>el.add(new Option(v,v)));
+ (valores||[]).forEach(v=>{
+  if(typeof v==="object")el.add(new Option(v.text,v.value));
+  else el.add(new Option(v,v));
+ });
  el.value="";
 }
-function poblarDatalist(id,valores){const dl=document.getElementById(id);if(!dl)return;dl.replaceChildren(...(valores||[]).map(v=>{const o=document.createElement("option");o.value=v;return o;}));}
-function seleccionarDatalist(inputId,hiddenId,listId){const input=document.getElementById(inputId),hidden=document.getElementById(hiddenId);if(!input||!hidden)return;input.addEventListener("change",()=>hidden.value=input.value.trim());}
-// Los nombres de países ya están incluidos en el HTML; no dependemos de
-// una segunda consulta remota para convertir el código ISO en nombre.
 
-async function llamadaGeoAPI(endpoint,params){
- // Usar las rutas GET /q: las rutas POST antiguas de CountriesNow pueden
- // fallar por redirecciones del servidor y provocar el aviso de lista vacía.
- const query=new URLSearchParams(params||{}).toString();
- const url="https://countriesnow.space/api/v0.1/countries/"+endpoint+"/q?"+query;
- const controller=new AbortController();
- const timer=setTimeout(()=>controller.abort(),15000);
- try{
-  const r=await fetch(url,{method:"GET",headers:{"Accept":"application/json"},cache:"no-store",signal:controller.signal});
-  if(!r.ok)throw new Error("El catálogo geográfico respondió HTTP "+r.status);
-  const d=await r.json();
-  if(d.error)throw new Error(d.msg||"No hay datos geográficos disponibles");
-  return d.data;
- }finally{clearTimeout(timer);}
-}
-async function nombrePaisAPI(code){
- return paisesRegistro.find(x=>String(x.code).toUpperCase()===String(code).toUpperCase())?.name||code;
-}
 async function cambiarPaisRegistro(){
- const code=document.getElementById("pais").value;
+ const code=String(document.getElementById("pais").value||"").toUpperCase();
  paisRegistroActual=code;
- const provincia=document.getElementById("provinciaBusqueda"),municipio=document.getElementById("municipioBusqueda");
- provincia.value="";municipio.value="";provincia.disabled=true;municipio.disabled=true;
- document.getElementById("provincia").value="";document.getElementById("municipio").value="";
- llenarSelect("provinciaBusqueda",[],"Cargando provincias / estados...");llenarSelect("municipioBusqueda",[],"Primero selecciona una provincia / región");
- if(!code){llenarSelect("provinciaBusqueda",[],"Primero selecciona tu país");return;}
+ const provincia=document.getElementById("provinciaBusqueda");
+ const municipio=document.getElementById("municipioBusqueda");
+ provincia.disabled=true;municipio.disabled=true;
+ document.getElementById("provincia").value="";
+ document.getElementById("municipio").value="";
+ llenarSelect("provinciaBusqueda",[],code?"Cargando provincias / estados...":"Primero selecciona tu país");
+ llenarSelect("municipioBusqueda",[],"Primero selecciona una provincia / región");
+ if(!code)return;
  try{
-  let regiones=[];
-  if(code==="CU")regiones=Object.keys(municipiosPorProvincia);
-  else{
-   const pais=await nombrePaisAPI(code);
-   const data=await llamadaGeoAPI("states",{country:pais});
-   regiones=(data?.states||[]).map(x=>typeof x==="string"?x:x.name).filter(Boolean);
+  const {data,error}=await supabaseClient
+   .from("gr_regiones")
+   .select("id,nombre")
+   .eq("codigo_pais",code)
+   .order("nombre",{ascending:true});
+  if(error)throw error;
+  const regiones=(data||[]).filter(x=>x?.id&&x?.nombre).map(x=>({value:String(x.id),text:String(x.nombre)}));
+  if(!regiones.length){
+   llenarSelect("provinciaBusqueda",[{value:"__SIN_REGION__",text:"No disponible para este territorio"}],"Sin regiones disponibles");
+   provincia.value="__SIN_REGION__";
+   provincia.disabled=false;
+   document.getElementById("provincia").value="No disponible";
+   llenarSelect("municipioBusqueda",[{value:"__SIN_CIUDAD__",text:"No disponible para este territorio"}],"Sin ciudades disponibles");
+   municipio.value="__SIN_CIUDAD__";
+   municipio.disabled=false;
+   document.getElementById("municipio").value="No disponible";
+   return;
   }
-  regiones=[...new Set(regiones)].sort((a,b)=>a.localeCompare(b,"es"));
-  if(!regiones.length)throw new Error("Este país no tiene regiones disponibles en el catálogo");
-  llenarSelect("provinciaBusqueda",regiones,"Selecciona una provincia / estado / región");provincia.disabled=false;
+  llenarSelect("provinciaBusqueda",regiones,"Selecciona una provincia / estado / región");
+  provincia.disabled=false;
  }catch(e){
-  console.error(e);llenarSelect("provinciaBusqueda",[],"No se pudieron cargar las regiones");
-  mensaje("No se pudo cargar la lista de provincias/estados de ese país. Comprueba tu conexión e inténtalo de nuevo.");
+  console.error("Error cargando regiones:",e);
+  llenarSelect("provinciaBusqueda",[],"No se pudieron cargar las regiones");
+  mensaje("No se pudo cargar la lista de provincias/estados desde la base de datos.");
  }
 }
+
 async function cargarMunicipios(){
- const p=document.getElementById("provinciaBusqueda").value.trim(),code=document.getElementById("pais").value;
- const provincia=document.getElementById("provinciaBusqueda"),municipio=document.getElementById("municipioBusqueda");
- document.getElementById("provincia").value=p;document.getElementById("municipio").value="";
- llenarSelect("municipioBusqueda",[],p?"Cargando ciudades / municipios...":"Primero selecciona una provincia / región");municipio.disabled=true;
- if(!p)return;
+ const regionId=document.getElementById("provinciaBusqueda").value;
+ const provincia=document.getElementById("provinciaBusqueda");
+ const municipio=document.getElementById("municipioBusqueda");
+ document.getElementById("municipio").value="";
+ municipio.disabled=true;
+ if(!regionId){
+  document.getElementById("provincia").value="";
+  llenarSelect("municipioBusqueda",[],"Primero selecciona una provincia / región");
+  return;
+ }
+ if(regionId==="__SIN_REGION__"){
+  document.getElementById("provincia").value="No disponible";
+  llenarSelect("municipioBusqueda",[{value:"__SIN_CIUDAD__",text:"No disponible para este territorio"}],"Sin ciudades disponibles");
+  municipio.value="__SIN_CIUDAD__";municipio.disabled=false;
+  document.getElementById("municipio").value="No disponible";
+  return;
+ }
+ const regionName=provincia.options[provincia.selectedIndex]?.text||"";
+ document.getElementById("provincia").value=regionName.trim();
+ llenarSelect("municipioBusqueda",[],"Cargando ciudades / municipios...");
  try{
-  let ciudades=[];
-  if(code==="CU")ciudades=municipiosPorProvincia[p]||[];
-  else{const pais=await nombrePaisAPI(code);const data=await llamadaGeoAPI("state/cities",{country:pais,state:p});ciudades=Array.isArray(data)?data:[];}
-  ciudades=[...new Set(ciudades.map(x=>String(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es"));
-  if(!ciudades.length)throw new Error("No hay ciudades o municipios en esta región");
-  llenarSelect("municipioBusqueda",ciudades,"Selecciona una ciudad / municipio");municipio.disabled=false;
+  const {data,error}=await supabaseClient
+   .from("gr_ciudades")
+   .select("nombre")
+   .eq("region_id",regionId)
+   .order("nombre",{ascending:true});
+  if(error)throw error;
+  const ciudades=[...new Set((data||[]).map(x=>String(x.nombre||"").trim()).filter(Boolean))];
+  if(!ciudades.length){
+   llenarSelect("municipioBusqueda",[{value:"__SIN_CIUDAD__",text:"No disponible para esta región"}],"Sin ciudades disponibles");
+   municipio.value="__SIN_CIUDAD__";municipio.disabled=false;
+   document.getElementById("municipio").value="No disponible";
+   return;
+  }
+  llenarSelect("municipioBusqueda",ciudades,"Selecciona una ciudad / municipio");
+  municipio.disabled=false;
  }catch(e){
-  console.error(e);llenarSelect("municipioBusqueda",[],"No hay ciudades disponibles para esta región");
-  mensaje("No se pudo cargar la lista de ciudades/municipios. Prueba seleccionando nuevamente la región.");
+  console.error("Error cargando ciudades:",e);
+  llenarSelect("municipioBusqueda",[],"No se pudieron cargar las ciudades");
+  mensaje("No se pudo cargar la lista de ciudades/municipios desde la base de datos.");
  }
 }
-function buscarMunicipios(){document.getElementById("municipio").value=document.getElementById("municipioBusqueda").value.trim();}
+
+function buscarMunicipios(){
+ const v=document.getElementById("municipioBusqueda").value;
+ document.getElementById("municipio").value=v==="__SIN_CIUDAD__"?"No disponible":v.trim();
+}
+
 document.addEventListener("DOMContentLoaded",()=>{
- document.getElementById("provinciaBusqueda").addEventListener("change",cargarMunicipios);
- document.getElementById("municipioBusqueda").addEventListener("change",buscarMunicipios);
+ const provincia=document.getElementById("provinciaBusqueda");
+ const municipio=document.getElementById("municipioBusqueda");
+ if(provincia)provincia.addEventListener("change",cargarMunicipios);
+ if(municipio)municipio.addEventListener("change",buscarMunicipios);
  cargarPaisesRegistro();
 });
 function generarClaveRecuperacion(){
@@ -699,7 +745,7 @@ function mostrarDatosRecuperacion(email,codigo,llave){
 function cerrarDatosRecuperacion(){document.getElementById("datosRecuperacionModal").classList.add("hidden");}
 async function copiarClaveRecuperacion(){const v=document.getElementById("datoRecuperacionLlave").value;try{await navigator.clipboard.writeText(v);mensaje("Clave de recuperación copiada.");}catch(e){document.getElementById("datoRecuperacionLlave").select();document.execCommand("copy");}}
 async function registrar(){
-const b=document.getElementById("botonRegistro"),full_name=document.getElementById("nombre").value.trim(),country_code=document.getElementById("pais").value,country_name=paisesRegistro.find(x=>x.code===country_code)?.name||country_code,province=document.getElementById("provinciaBusqueda").value.trim(),municipality=document.getElementById("municipioBusqueda").value.trim(),username=document.getElementById("usuario").value.trim().toLowerCase(),email=document.getElementById("correo").value.trim(),password=document.getElementById("clave").value,referral_code=document.getElementById("invitacion").value.trim().toUpperCase(),foto=document.getElementById("fotoRegistro").files[0];
+const b=document.getElementById("botonRegistro"),full_name=document.getElementById("nombre").value.trim(),country_code=document.getElementById("pais").value,country_name=paisesRegistro.find(x=>x.code===country_code)?.name||country_code,provinceRaw=document.getElementById("provincia").value.trim(),municipalityRaw=document.getElementById("municipio").value.trim(),province=provinceRaw||"No disponible",municipality=municipalityRaw||"No disponible",username=document.getElementById("usuario").value.trim().toLowerCase(),email=document.getElementById("correo").value.trim(),password=document.getElementById("clave").value,referral_code=document.getElementById("invitacion").value.trim().toUpperCase(),foto=document.getElementById("fotoRegistro").files[0];
 if(!full_name||!country_code||!province||!municipality||!username||!email||!password||!referral_code||!foto){mensaje("Completa todos los campos obligatorios, incluida tu ubicación y foto de perfil.");return;}
 if(!["image/jpeg","image/png","image/webp"].includes(foto.type)||foto.size>5*1024*1024){mensaje("La foto debe ser JPG, PNG o WEBP y pesar máximo 5 MB.");return;}
 if(!/^[a-z0-9_]{3,20}$/.test(username)||password.length<6){mensaje("Revisa el usuario y la contraseña.");return;}
