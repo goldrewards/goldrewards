@@ -891,6 +891,7 @@ async function registrar(){
 
   usuarioActual=loginData.user;
   perfilActual=await cargarPerfil(usuarioActual);
+  iniciarControlInactividad();
   try{
    await subirArchivoFotoPerfil(foto);
    perfilActual=await cargarPerfil(usuarioActual);
@@ -1822,8 +1823,10 @@ async function procesarRetiro(id,estado,b,moneda="CUP"){
   alert(aprobando?`Retiro ${moneda} aprobado.`:`Retiro ${moneda} rechazado.`);await cargarAdmin();
  }catch(e){alert("No se pudo procesar el retiro: "+errorTexto(e));b.disabled=false;}
 }
+const DURACION_INACTIVIDAD=300000;
 let temporizadorInactividad=null;
 let eventosInactividadRegistrados=false;
+let ultimaActividadKey=null;
 
 function detenerControlInactividad(){
  if(temporizadorInactividad!==null){
@@ -1832,43 +1835,66 @@ function detenerControlInactividad(){
  }
 }
 
-function reiniciarControlInactividad(){
+function obtenerClaveUltimaActividad(){
+ return usuarioActual?.id ? "goldrewards_ultima_actividad_"+usuarioActual.id : null;
+}
+
+function guardarUltimaActividad(){
  if(!usuarioActual)return;
+ const key=obtenerClaveUltimaActividad();
+ if(!key)return;
+ ultimaActividadKey=key;
+ try{localStorage.setItem(key,String(Date.now()));}catch(e){console.warn("No se pudo guardar la última actividad:",e);}
+}
 
+function programarCierreInactividad(){
+ if(!usuarioActual)return;
  detenerControlInactividad();
-
+ const key=obtenerClaveUltimaActividad();
+ let ultima=0;
+ try{ultima=Number(localStorage.getItem(key)||0);}catch(e){}
+ if(!Number.isFinite(ultima)||ultima<=0){
+  guardarUltimaActividad();
+  ultima=Date.now();
+ }
+ const transcurrido=Date.now()-ultima;
+ if(transcurrido>=DURACION_INACTIVIDAD){
+  salir(true);
+  return;
+ }
  temporizadorInactividad=setTimeout(()=>{
-  if(usuarioActual){
-   salir(true);
-  }
- },300000);
+  if(!usuarioActual)return;
+  const restante=DURACION_INACTIVIDAD-(Date.now()-ultima);
+  if(restante<=0){salir(true);}
+  else{programarCierreInactividad();}
+ },DURACION_INACTIVIDAD-transcurrido);
+}
+
+function registrarActividadUsuario(){
+ if(!usuarioActual||document.visibilityState==="hidden")return;
+ guardarUltimaActividad();
+ programarCierreInactividad();
+}
+
+function comprobarInactividadAlRegresar(){
+ if(!usuarioActual||document.visibilityState==="hidden")return;
+ // No se actualiza la hora aquí: volver a abrir la aplicación no cuenta como actividad.
+ programarCierreInactividad();
 }
 
 function iniciarControlInactividad(){
-
+ if(!usuarioActual)return;
+ ultimaActividadKey=obtenerClaveUltimaActividad();
  if(!eventosInactividadRegistrados){
-
-  const eventos=[
-   "pointerdown",
-   "pointermove",
-   "keydown",
-   "scroll",
-   "touchstart",
-   "click"
-  ];
-
-  eventos.forEach(evento=>{
-   document.addEventListener(
-    evento,
-    reiniciarControlInactividad,
-    {passive:true}
-   );
-  });
-
+  const eventos=["pointerdown","pointermove","keydown","scroll","touchstart","click"];
+  eventos.forEach(evento=>document.addEventListener(evento,registrarActividadUsuario,{passive:true}));
+  document.addEventListener("visibilitychange",comprobarInactividadAlRegresar);
+  window.addEventListener("focus",comprobarInactividadAlRegresar);
+  window.addEventListener("pageshow",comprobarInactividadAlRegresar);
   eventosInactividadRegistrados=true;
  }
-
- reiniciarControlInactividad();
+ // Al iniciar o restaurar una sesión se conserva la hora guardada y se calcula el tiempo restante.
+ programarCierreInactividad();
 }
 
 
@@ -1964,6 +1990,8 @@ async function salir(porInactividad=false){
 
   if(error)throw error;
 
+  try{if(ultimaActividadKey)localStorage.removeItem(ultimaActividadKey);}catch(e){}
+  ultimaActividadKey=null;
   usuarioActual=null;
   perfilActual=null;
   perfilesCache.clear();
