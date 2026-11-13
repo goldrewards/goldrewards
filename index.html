@@ -33,7 +33,7 @@ label{display:block;margin-top:8px;color:var(--muted)}
 .hero-emblem{width:78px;height:78px;display:grid;place-items:center;margin:0 auto 12px;border-radius:50%;font-size:40px;background:radial-gradient(circle at 35% 30%,#fff0a6,#d5a32e 58%,#75500e);box-shadow:0 0 0 6px rgba(246,207,85,.08),0 0 35px rgba(246,207,85,.2)}
 .eyebrow{font-size:.72rem;letter-spacing:3px;color:var(--oro);font-weight:bold}.hero-title{font-size:clamp(1.6rem,5vw,2.35rem);color:#fff0b2;margin:10px 0}.hero-copy{font-size:1.12rem;color:var(--oro);letter-spacing:1px}
 .gold-divider{display:flex;align-items:center;gap:12px;max-width:230px;margin:18px auto;color:var(--oro)}.gold-divider:before,.gold-divider:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--oro))}.gold-divider:after{transform:scaleX(-1)}
-.boton-principal{min-width:180px}.boton-reglas{display:block;margin:12px auto 0;background:transparent;color:var(--oro2);border:1px solid rgba(246,207,85,.45);box-shadow:none}.decoracion-oro{margin-top:18px;color:rgba(246,207,85,.68);letter-spacing:5px}
+.boton-principal{min-width:180px}.boton-login-inicio{display:block;min-width:180px;margin:12px auto;background:linear-gradient(135deg,#ffe58a,#d4a72c 55%,#9d7415);color:#17120a;border:1px solid rgba(255,226,130,.85);font-weight:800;box-shadow:0 5px 18px rgba(218,169,48,.22)}.boton-login-inicio:hover{background:linear-gradient(135deg,#fff0b2,#e0b83f 55%,#b88a20)}.boton-reglas{display:block;margin:12px auto 0;background:transparent;color:var(--oro2);border:1px solid rgba(246,207,85,.45);box-shadow:none}.decoracion-oro{margin-top:18px;color:rgba(246,207,85,.68);letter-spacing:5px}
 .chat-launch{background:linear-gradient(135deg,#33270f,#171512);color:var(--oro2);border:1px solid rgba(246,207,85,.55);box-shadow:0 0 22px rgba(246,207,85,.08)}
 .contador-usuarios{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 4px;padding:10px 18px;border-radius:999px;background:rgba(246,207,85,.10);border:1px solid rgba(246,207,85,.38);color:var(--oro2);font-weight:bold;box-shadow:0 0 22px rgba(246,207,85,.08)}
 .contador-usuarios .ojo{font-size:1.25rem}.logout-top{position:absolute;top:14px;right:14px;margin:0;z-index:20;padding:9px 13px;font-size:.82rem}.lobby-logout-top{position:absolute;top:12px;right:14px;margin:0;z-index:1101;padding:9px 13px;font-size:.82rem}#cuenta,#lobby,#panelAdmin{position:relative}
@@ -186,7 +186,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <div class="container hero" id="inicio">
   <div class="language-picker"><label for="selectorIdioma">🌐 Idioma</label><select id="selectorIdioma" onchange="cambiarIdioma(this.value)" aria-label="Seleccionar idioma"><option value="es">🇪🇸 Español</option><option value="en">🇺🇸 English</option><option value="fr">🇫🇷 Français</option><option value="pt">🇧🇷 Português</option></select></div>
-  <div class="hero-emblem" aria-label="GoldRewards">🪙</div><p class="eyebrow">COMUNIDAD EXCLUSIVA</p><h2 class="hero-title">Bienvenido a GoldRewards</h2><p class="hero-copy">Gana, comparte y crece</p><div class="gold-divider"><span>✦</span></div><p class="muted">Una comunidad para compartir invitaciones y obtener recompensas.</p><div class="contador-usuarios" title="Usuarios de la comunidad"><span class="ojo">👁️</span><span id="contadorUsuarios"><span class="gr-loading"><i class="gr-spinner"></i><span>Cargando...</span></span></span></div><p class="small muted">Miembros en la comunidad</p><button class="boton-principal" onclick="mostrar('registro')">Crear mi cuenta</button><button class="secundario" onclick="mostrar('login')">Iniciar sesión</button><button class="boton-reglas" onclick="abrirReglas()">📜 Leer reglas</button><div class="decoracion-oro">◆　🪙　◆</div>
+  <div class="hero-emblem" aria-label="GoldRewards">🪙</div><p class="eyebrow">COMUNIDAD EXCLUSIVA</p><h2 class="hero-title">Bienvenido a GoldRewards</h2><p class="hero-copy">Gana, comparte y crece</p><div class="gold-divider"><span>✦</span></div><p class="muted">Una comunidad para compartir invitaciones y obtener recompensas.</p><div class="contador-usuarios" title="Usuarios de la comunidad"><span class="ojo">👁️</span><span id="contadorUsuarios"><span class="gr-loading"><i class="gr-spinner"></i><span>Cargando...</span></span></span></div><p class="small muted">Miembros en la comunidad</p><button class="boton-login-inicio" onclick="mostrar('login')">Iniciar sesión</button><button class="boton-reglas" onclick="abrirReglas()">📜 Leer reglas</button><div class="decoracion-oro">◆　🪙　◆</div>
 </div>
 
 <div class="container hidden" id="registro">
@@ -211,7 +211,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div class="container hidden" id="lobby">
   <div class="lobby-controls">
     <button class="lobby-menu-btn" type="button" onclick="toggleLobbyMenu()" aria-label="Abrir menú" aria-expanded="false">☰</button>
-    <button class="lobby-logout-top secundario" type="button" onclick="salir()">Cerrar sesión</button>
+    <button class="lobby-logout-top admin-logout-top" type="button" onclick="salir()">Cerrar sesión</button>
   </div>
   <h2>🏆 Lobby GoldRewards</h2>
   <div id="perfilLobbyHeader"></div>
@@ -1098,12 +1098,14 @@ async function copiarCodigoRecibirSaldo(){
 function aplicarColorMembresiaActiva(mem){
  const tarjeta=document.getElementById("membresiaActivaCard");
  if(!tarjeta)return;
- tarjeta.classList.remove("membership-blanco","membership-verde","membership-azul","membership-dorado","membership-rojo","membership-bronce","membership-plata","membership-oro","membership-diamante");
+ const clases=["membership-blanco","membership-verde","membership-azul","membership-dorado","membership-rojo","membership-bronce","membership-plata","membership-oro","membership-diamante"];
+ tarjeta.classList.remove(...clases);
  let color="";
  if(mem?.membership_type==="virtual"){
   color=({1:"membership-bronce",2:"membership-plata",3:"membership-oro",4:"membership-diamante"})[Number(mem.plan_id)]||"";
  }else{
-  color=({basic:"membership-blanco",premium:"membership-verde",plan400:"membership-azul",plan800:"membership-dorado",plan1500:"membership-rojo"})[String(mem?.plan||"")]||"";
+  // La base de datos puede devolver el nombre canónico o el identificador antiguo del formulario.
+  color=({blanco:"membership-blanco",verde:"membership-verde",azul:"membership-azul",dorado:"membership-dorado",rojo:"membership-rojo",basic:"membership-blanco",premium:"membership-verde",plan400:"membership-azul",plan800:"membership-dorado",plan1500:"membership-rojo"})[String(mem?.plan||"").toLowerCase()]||"";
  }
  if(color)tarjeta.classList.add(color);
 }
