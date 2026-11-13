@@ -176,10 +176,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:620px){.location-grid{grid-template-columns:1fr}.location-grid .location-full{grid-column:auto}}
 
 </style>
-
-<style>
-#invitacion.referral-locked{background:#f4efe2;border:1px solid #c99b36;color:#765515;font-weight:700;cursor:not-allowed;}
-</style>
 </head>
 <body>
 <header><h1>GoldRewards</h1><p>Gana, comparte y crece</p></header>
@@ -202,7 +198,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div class="container hidden" id="login"><h2>Iniciar sesión</h2><input id="correoLogin" type="email" placeholder="Correo electrónico" autocomplete="username"><input id="claveLogin" type="password" placeholder="Contraseña" autocomplete="current-password"><button id="botonLogin" onclick="entrar()">Entrar</button><button type="button" class="secundario" onclick="abrirRecuperacionPassword()">¿Olvidó su contraseña?</button><button class="secundario" onclick="mostrar('inicio')">Volver</button><footer class="gr-footer"><div class="gr-footer-brand"><span class="gr-splash-mark">🪙</span> GOLDREWARDS</div><p>Gana, comparte y crece.</p><div class="gr-footer-meta"><span>© <span id="grYear"></span> GoldRewards</span><span>Plataforma de recompensas</span><a href="mailto:aceremiraesto@gmail.com">Soporte: aceremiraesto@gmail.com</a><span>Versión 2.1 Premium</span></div></footer></div>
 
 <div class="container hidden" id="cuenta">
-  <button class="logout-top secundario" onclick="salir()">Cerrar sesión</button><h2>Activa tu membresía GoldRewards</h2><div class="card" id="datosRecibirSaldoCuenta" style="margin-bottom:18px;border:1px solid rgba(212,175,55,.55);background:linear-gradient(145deg,rgba(212,175,55,.12),rgba(25,25,29,.92))"><h3>💳 Tus datos para invitar y recibir saldo</h3><div style="margin:12px 0;padding:13px;border:1px solid rgba(212,175,55,.35);border-radius:12px;background:rgba(0,0,0,.18)"><h4 style="margin:0 0 6px">🔗 Enlace de invitación</h4><p class="muted">Compártelo para invitar nuevos usuarios a GoldRewards.</p><input id="enlaceInvitacionCuenta" type="text" readonly aria-label="Tu enlace personal de invitación" placeholder="Cargando enlace..." style="width:100%;max-width:100%"><button type="button" onclick="copiarEnlaceCuenta()">Copiar enlace de invitación</button></div><div style="margin:12px 0;padding:13px;border:1px solid rgba(212,175,55,.35);border-radius:12px;background:rgba(0,0,0,.18)"><h4 style="margin:0 0 6px">🔐 Código de verificación para recibir transferencias</h4><p class="muted">Dale este código a quien te vaya a transferir saldo. Debe introducirlo como código del destinatario para enviarte CUP o USDT.</p><strong id="codigoRecibirSaldoCuenta" class="code" style="display:block;font-size:1.35rem;letter-spacing:1.5px;margin:8px 0">—</strong><button type="button" class="secundario" onclick="copiarCodigoRecibirSaldo()">Copiar código de verificación</button></div><div style="margin:12px 0"><small class="muted">Tu usuario</small><strong id="usuarioRecibirSaldoCuenta" style="display:block">—</strong></div><div class="stats" style="margin-top:14px"><div class="stat">Saldo CUP disponible<strong id="saldoRecibirCUPCuenta">Cargando...</strong></div><div class="stat">Saldo USDT disponible<strong id="saldoRecibirUSDTCuenta">Cargando...</strong></div></div></div><div id="fotoObligatoriaCuenta" class="card hidden"><h3>📸 Completa tu perfil</h3><p>Antes de continuar, sube tu foto de perfil obligatoria.</p><input id="fotoCuentaInput" type="file" accept="image/jpeg,image/png,image/webp"><button id="guardarFotoCuentaBtn" onclick="subirFotoCuenta()">Guardar foto de perfil</button><p id="estadoFotoCuenta" class="estado"></p></div><div id="perfilCuentaHeader"></div><p id="datos"></p><div class="card"><h3>🔐 Paso obligatorio antes de entrar al Lobby</h3><p class="muted">Selecciona una membresía CUP o USDT y elige cómo pagar: con el saldo disponible de tu cuenta o mediante transferencia con comprobante. Las compras con saldo se procesan automáticamente; las transferencias requieren aprobación del administrador.</p></div><hr><h3>Elige tu membresía</h3>
+  <button class="logout-top secundario" onclick="salir()">Cerrar sesión</button><h2>Activa tu membresía GoldRewards</h2><div id="fotoObligatoriaCuenta" class="card hidden"><h3>📸 Completa tu perfil</h3><p>Antes de continuar, sube tu foto de perfil obligatoria.</p><input id="fotoCuentaInput" type="file" accept="image/jpeg,image/png,image/webp"><button id="guardarFotoCuentaBtn" onclick="subirFotoCuenta()">Guardar foto de perfil</button><p id="estadoFotoCuenta" class="estado"></p></div><div id="perfilCuentaHeader"></div><p id="datos"></p><div class="card"><h3>🔐 Paso obligatorio antes de entrar al Lobby</h3><p class="muted">Selecciona una membresía CUP o USDT y elige cómo pagar: con el saldo disponible de tu cuenta o mediante transferencia con comprobante. Las compras con saldo se procesan automáticamente; las transferencias requieren aprobación del administrador.</p></div><hr><h3>Elige tu membresía</h3>
   <div class="planes"><div class="plan-opcion plan-cup plan-blanco"><strong>⚪ Plan Blanco</strong><div class="plan-precio">100 CUP</div><p>Duración: 30 días</p><p>Referido directo: 10 CUP (10%)</p><p>Segundo nivel: 1 CUP (1%)</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('basic','')">Comprar Plan Blanco</button></div><div class="plan-opcion plan-cup plan-verde"><strong>🟢 Plan Verde</strong><div class="plan-precio">200 CUP</div><p>Duración: 30 días</p><p>Referido directo: 20 CUP (10%)</p><p>Segundo nivel: 2 CUP (1%)</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('premium','')">Comprar Plan Verde</button></div><div class="plan-opcion plan-cup plan-azul"><strong>🔵 Plan Azul</strong><div class="plan-precio">400 CUP</div><p>Duración: 30 días</p><p>Referido directo: 40 CUP (10%)</p><p>Segundo nivel: 4 CUP (1%)</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('plan400','')">Comprar Plan Azul</button></div><div class="plan-opcion plan-cup plan-dorado"><strong>🟡 Plan Dorado</strong><div class="plan-precio">800 CUP</div><p>Duración: 30 días</p><p>Referido directo: 80 CUP (10%)</p><p>Segundo nivel: 8 CUP (1%)</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('plan800','')">Comprar Plan Dorado</button></div><div class="plan-opcion plan-cup plan-rojo"><strong>🔴 Plan Rojo</strong><div class="plan-precio">1500 CUP</div><p>Duración: 30 días</p><p>Referido directo: 150 CUP (10%)</p><p>Segundo nivel: 15 CUP (1%)</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('plan1500','')">Comprar Plan Rojo</button></div></div>
   <label for="planMembresia">Selecciona el plan que deseas activar</label><select id="planMembresia" onchange="actualizarDatosPlan()"><option value="basic">Plan Blanco — 100 CUP</option><option value="premium">Plan Verde — 200 CUP</option><option value="plan400">Plan Azul — 400 CUP</option><option value="plan800">Plan Dorado — 800 CUP</option><option value="plan1500">Plan Rojo — 1500 CUP</option></select><p id="detallePlan" class="muted">Plan Blanco: 100 CUP por 30 días. Comisión directa 10% e indirecta 1%.</p><hr><h3>Pago de membresía CUP</h3><p>Realiza tu transferencia a esta tarjeta:</p><h2 class="code">9224069998634642</h2><p>Titular: Cuenta del grupo de GoldRewards</p><p>Después de transferir, sube la captura del comprobante:</p><input type="file" id="comprobante" accept="image/jpeg,image/png,image/webp"><button id="botonComprobante" onclick="subirComprobante()">Enviar comprobante</button><p id="estadoDeposito" class="estado"></p>
   <div class="virtual-box"><h3>🪙 Membresías virtuales · Pago con USDT</h3><p class="muted">Red: BNB Smart Chain (BEP-20). Selecciona tu plan, realiza el pago a la dirección indicada y sube una captura del comprobante. La solicitud será revisada manualmente por el administrador.</p><div class="planes"><div class="plan-opcion plan-usdt plan-bronce"><strong>💠 Bronce</strong><div class="plan-precio">10 USDT</div><p>Duración: 30 días</p><p class="small muted">2 monedas directas · 1 de segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(1,'')">Comprar Bronce</button></div><div class="plan-opcion plan-usdt plan-plata"><strong>💠 Plata</strong><div class="plan-precio">20 USDT</div><p>Duración: 30 días</p><p class="small muted">5 monedas directas · 2 de segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(2,'')">Comprar Plata</button></div><div class="plan-opcion plan-usdt plan-oro"><strong>💠 Oro</strong><div class="plan-precio">40 USDT</div><p>Duración: 30 días</p><p class="small muted">10 monedas directas · 3 de segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(3,'')">Comprar Oro</button></div><div class="plan-opcion plan-usdt plan-diamante"><strong>💠 Diamante</strong><div class="plan-precio">60 USDT</div><p>Duración: 30 días</p><p class="small muted">15 monedas directas · 5 de segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(4,'')">Comprar Diamante</button></div></div><label for="virtualPlan">Selecciona el plan virtual</label><select id="virtualPlan"><option value="1">Bronce — 10 USDT</option><option value="2">Plata — 20 USDT</option><option value="3">Oro — 40 USDT</option><option value="4">Diamante — 60 USDT</option></select><p class="virtual-steps">Envía exactamente el importe del plan en <strong>USDT (BEP-20)</strong> a esta dirección:</p><div class="virtual-address">0x64887d34deE08a033111b970fA031C73d5a63206</div><p class="small muted">Nunca introduzcas tu clave privada ni frase semilla.</p><label for="comprobanteVirtual">Sube una captura del comprobante de pago</label><input type="file" id="comprobanteVirtual" accept="image/jpeg,image/png,image/webp"><button id="botonComprobanteVirtual" onclick="subirComprobanteVirtual()">Enviar comprobante virtual</button><p id="estadoPagoVirtual" class="virtual-status" aria-live="polite"></p></div>
@@ -262,7 +258,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <section class="lobby-section hidden" id="lobbyTransferencias"><div class="card transfer-card"><h3>🔁 Transferir saldo a otro usuario</h3><p class="muted">Envía saldo usando el código de referido. Los saldos CUP y USDT se mantienen separados.</p><label for="monedaTransferencia">Tipo de saldo</label><select id="monedaTransferencia" onchange="actualizarInfoTransferencia()"><option value="CUP">Saldo CUP</option><option value="VIRTUAL">Saldo virtual (USDT)</option></select><label for="codigoDestinatario">Código de referido del destinatario</label><input id="codigoDestinatario" type="text" maxlength="80" placeholder="Introduce el código de referido" oninput="buscarDestinatarioTransferencia()"><small id="nombreDestinatarioTransferencia" class="muted" style="display:block;min-height:18px;margin-top:4px;font-size:12px" aria-live="polite"></small><label for="montoTransferencia">Cantidad que recibirá</label><input id="montoTransferencia" type="number" min="1" step="1" placeholder="Cantidad a transferir"><p id="infoComisionTransferencia" class="muted">Comisión: 5 CUP. Se descontarán la cantidad y la comisión.</p><button id="botonTransferencia" onclick="transferirSaldo()">Continuar transferencia</button><p id="estadoTransferencia" class="estado" aria-live="polite"></p><h3>Historial de transferencias</h3><div id="historialTransferencias"><p class="muted">Cargando...</p></div></div></section>
     <section class="lobby-section hidden" id="lobbyHistorialMembresias"><h3>📋 Historial de membresías y depósitos</h3><div id="historialPagos"></div></section>
     <section class="lobby-section hidden" id="lobbyHistorialRetiros"><h3>📋 Historial de retiros</h3><div id="historialRetiros"></div></section>
-    <section class="lobby-section hidden" id="lobbyPlanes"><div class="card" id="datosRecibirSaldoPlanes" style="margin-bottom:18px;border:1px solid rgba(212,175,55,.55);background:linear-gradient(145deg,rgba(212,175,55,.12),rgba(25,25,29,.92))"><h3>💳 Tus datos para recibir saldo</h3><p class="muted">Comparte tu código de referido con la persona que te enviará saldo. Podrá usarlo para transferirte CUP o USDT.</p><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><small class="muted">Tu usuario</small><strong id="usuarioRecibirSaldo" style="display:block">—</strong></div><div><small class="muted">Tu código de referido</small><strong id="codigoRecibirSaldo" class="code" style="display:block;font-size:1.15rem;letter-spacing:1px">—</strong></div><button type="button" class="secundario" onclick="copiarCodigoRecibirSaldo()">Copiar código</button></div><div class="stats" style="margin-top:14px"><div class="stat">Saldo CUP disponible<strong id="saldoRecibirCUP">Cargando...</strong></div><div class="stat">Saldo USDT disponible<strong id="saldoRecibirUSDT">Cargando...</strong></div></div></div><h3>🏆 Activa o renueva tus planes</h3><p class="muted">Puedes comprar cualquier plan. Cada compra nueva requiere aprobación individual del administrador.</p>
+    <section class="lobby-section hidden" id="lobbyPlanes"><h3>🏆 Activa o renueva tus planes</h3><p class="muted">Puedes comprar cualquier plan. Cada compra nueva requiere aprobación individual del administrador.</p>
       <div class="virtual-box"><h3>🥇 Membresías CUP</h3><div class="planes"><div class="plan-opcion plan-cup plan-blanco"><strong>⚪ Plan Blanco</strong><div class="plan-precio">100 CUP</div><p>Duración: 30 días</p><p>Referido directo: 10 CUP (10%)</p><p>Segundo nivel: 1 CUP (1%)</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('basic','Lobby')">Comprar Plan Blanco</button></div><div class="plan-opcion plan-cup plan-verde"><strong>🟢 Plan Verde</strong><div class="plan-precio">200 CUP</div><p>Duración: 30 días</p><p>Referido directo: 20 CUP (10%)</p><p>Segundo nivel: 2 CUP (1%)</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('premium','Lobby')">Comprar Plan Verde</button></div><div class="plan-opcion plan-cup plan-azul"><strong>🔵 Plan Azul</strong><div class="plan-precio">400 CUP</div><p>Duración: 30 días</p><p>Referido directo: 40 CUP (10%)</p><p>Segundo nivel: 4 CUP (1%)</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('plan400','Lobby')">Comprar Plan Azul</button></div><div class="plan-opcion plan-cup plan-dorado"><strong>🟡 Plan Dorado</strong><div class="plan-precio">800 CUP</div><p>Duración: 30 días</p><p>Referido directo: 80 CUP (10%)</p><p>Segundo nivel: 8 CUP (1%)</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('plan800','Lobby')">Comprar Plan Dorado</button></div><div class="plan-opcion plan-cup plan-rojo"><strong>🔴 Plan Rojo</strong><div class="plan-precio">1500 CUP</div><p>Duración: 30 días</p><p>Referido directo: 150 CUP (10%)</p><p>Segundo nivel: 15 CUP (1%)</p><button type="button" class="btn-plan" onclick="elegirPlanCUP('plan1500','Lobby')">Comprar Plan Rojo</button></div></div><select id="planMembresiaLobby" onchange="actualizarDatosPlanLobby()" class="hidden" aria-hidden="true" tabindex="-1"><option value="basic">Plan Blanco — 100 CUP</option><option value="premium">Plan Verde — 200 CUP</option><option value="plan400">Plan Azul — 400 CUP</option><option value="plan800">Plan Dorado — 800 CUP</option><option value="plan1500">Plan Rojo — 1500 CUP</option></select><p id="detallePlanLobby" class="hidden"></p></div>
       <div class="virtual-box"><h3>🪙 Planes virtuales USDT</h3><p class="muted">Red: BNB Smart Chain (BEP-20).</p><div class="planes"><div class="plan-opcion plan-usdt plan-bronce"><strong>💠 Bronce</strong><div class="plan-precio">10 USDT</div><p>30 días · 2 directos · 1 segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(1,'Lobby')">Comprar Bronce</button></div><div class="plan-opcion plan-usdt plan-plata"><strong>💠 Plata</strong><div class="plan-precio">20 USDT</div><p>30 días · 5 directos · 2 segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(2,'Lobby')">Comprar Plata</button></div><div class="plan-opcion plan-usdt plan-oro"><strong>💠 Oro</strong><div class="plan-precio">40 USDT</div><p>30 días · 10 directos · 3 segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(3,'Lobby')">Comprar Oro</button></div><div class="plan-opcion plan-usdt plan-diamante"><strong>💠 Diamante</strong><div class="plan-precio">60 USDT</div><p>30 días · 15 directos · 5 segundo nivel</p><button type="button" class="btn-plan" onclick="elegirPlanVirtual(4,'Lobby')">Comprar Diamante</button></div></div><select id="virtualPlanLobby" class="hidden" aria-hidden="true" tabindex="-1"><option value="1">Bronce — 10 USDT</option><option value="2">Plata — 20 USDT</option><option value="3">Oro — 40 USDT</option><option value="4">Diamante — 60 USDT</option></select></div>
     </section>
@@ -441,33 +437,7 @@ async function subirFotoCuenta(){const input=document.getElementById("fotoCuenta
 async function cambiarFotoPerfil(){const input=document.getElementById("cambiarFotoInput");input.click();}
 async function procesarCambioFoto(archivo){const estado=document.getElementById("estadoCambiarFoto");if(!archivo)return;estado.textContent="Guardando foto...";try{await subirArchivoFotoPerfil(archivo);actualizarFondoLobby();const row=document.getElementById("perfilLobbyHeader");row.replaceChildren();const wrap=elemento("div",undefined,"avatar-edit-wrap");wrap.append(crearEncabezadoCuenta(perfilActual,"Tu cuenta", "account-avatar large"));const btn=elemento("button","Cambiar foto","avatar-edit-btn secundario");btn.type="button";btn.onclick=cambiarFotoPerfil;wrap.append(btn);row.append(wrap);estado.textContent="Foto de perfil actualizada.";}catch(e){estado.textContent="No se pudo cambiar la foto: "+errorTexto(e);}}
 async function cargarPerfiles(ids){const unicos=[...new Set((ids||[]).filter(Boolean).map(String))].filter(id=>!perfilesCache.has(id));if(unicos.length){try{const {data,error}=await supabaseClient.from("profiles").select("id,full_name,username,avatar_url,role,referral_code").in("id",unicos);if(error)throw error;(data||[]).forEach(p=>perfilesCache.set(String(p.id),p));}catch(e){console.warn("No se pudieron cargar algunas fotos de perfil; se mostrarán iniciales si hace falta.",e);}}return new Map((ids||[]).map(id=>[id,perfilesCache.get(String(id))||{id}]));}
-// Enlaces de invitación: ?ref=CODIGO. El código recibido queda bloqueado en el formulario.
-const codigoReferidoEnlace=(()=>{try{return (new URLSearchParams(window.location.search).get("ref")||new URLSearchParams(window.location.search).get("referral_code")||"").trim().toUpperCase();}catch(_){return "";}})();
-function aplicarCodigoReferidoEnlace(){
- const campo=document.getElementById("invitacion");
- if(!campo)return;
- // El campo siempre está bloqueado. Solo se rellena si la URL trae ?ref=CODIGO.
- campo.value=codigoReferidoEnlace||"";
- campo.readOnly=true;
- campo.setAttribute("readonly","readonly");
- campo.setAttribute("aria-readonly","true");
- campo.title=codigoReferidoEnlace
-  ?"Código asignado automáticamente por el enlace de invitación."
-  :"Para registrarte, abre el enlace personal que te compartió otro usuario.";
- campo.classList.add("referral-locked");
- const etiqueta=document.querySelector('label[for="invitacion"]');
- if(etiqueta)etiqueta.textContent=codigoReferidoEnlace
-  ?"Código de referencia (asignado por invitación)"
-  :"Código de referencia (se completa al entrar por un enlace)";
-}
-function mostrar(id){
- document.querySelectorAll(".container").forEach(x=>x.classList.add("hidden"));
- const destino=document.getElementById(id);
- if(!destino)return;
- destino.classList.remove("hidden");
- const msg=document.getElementById("message");if(msg)msg.textContent="";
- if(id==="registro"){aplicarCodigoReferidoEnlace();inicializarUbicacionRegistro();}
-}
+function mostrar(id){document.querySelectorAll(".container").forEach(x=>x.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");document.getElementById("message").textContent="";}
 function mensaje(t){const el=document.getElementById("message");if(el)el.textContent=t;notificarPremium(t,"info");}
 function dinero(v){return `${Number(v||0).toLocaleString("es-ES")} CUP`;}
 function fecha(v){const lang=localStorage.getItem("goldrewards_idioma")||"es";const locale={es:"es-ES",en:"en-US",fr:"fr-FR",pt:"pt-BR"}[lang]||"es-ES";return v?new Date(v).toLocaleString(locale):"—";}
@@ -646,112 +616,72 @@ function seleccionarDatalist(inputId,hiddenId,listId){const input=document.getEl
 // Los nombres de países ya están incluidos en el HTML; no dependemos de
 // una segunda consulta remota para convertir el código ISO en nombre.
 
-// Catálogo geográfico: se consulta directamente la base de datos de GoldRewards.
-// Esquema existente: gr_paises(codigo,nombre),
-// gr_regiones(id,codigo_pais,nombre), gr_ciudades(region_id,nombre).
-let regionesRegistroCache = [];
-let regionRegistroActualId = null;
-
+async function llamadaGeoAPI(endpoint,params){
+ // Usar las rutas GET /q: las rutas POST antiguas de CountriesNow pueden
+ // fallar por redirecciones del servidor y provocar el aviso de lista vacía.
+ const query=new URLSearchParams(params||{}).toString();
+ const url="https://countriesnow.space/api/v0.1/countries/"+endpoint+"/q?"+query;
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),15000);
+ try{
+  const r=await fetch(url,{method:"GET",headers:{"Accept":"application/json"},cache:"no-store",signal:controller.signal});
+  if(!r.ok)throw new Error("El catálogo geográfico respondió HTTP "+r.status);
+  const d=await r.json();
+  if(d.error)throw new Error(d.msg||"No hay datos geográficos disponibles");
+  return d.data;
+ }finally{clearTimeout(timer);}
+}
+async function nombrePaisAPI(code){
+ return paisesRegistro.find(x=>String(x.code).toUpperCase()===String(code).toUpperCase())?.name||code;
+}
 async function cambiarPaisRegistro(){
  const code=document.getElementById("pais").value;
  paisRegistroActual=code;
- regionRegistroActualId=null;
- regionesRegistroCache=[];
- const provincia=document.getElementById("provinciaBusqueda");
- const municipio=document.getElementById("municipioBusqueda");
- provincia.value="";
- municipio.value="";
- provincia.disabled=true;
- municipio.disabled=true;
- document.getElementById("provincia").value="";
- document.getElementById("municipio").value="";
- llenarSelect("provinciaBusqueda",[],"Cargando provincias / estados...");
- llenarSelect("municipioBusqueda",[],"Primero selecciona una provincia / región");
-
- if(!code){
-  llenarSelect("provinciaBusqueda",[],"Primero selecciona tu país");
-  return;
- }
-
+ const provincia=document.getElementById("provinciaBusqueda"),municipio=document.getElementById("municipioBusqueda");
+ provincia.value="";municipio.value="";provincia.disabled=true;municipio.disabled=true;
+ document.getElementById("provincia").value="";document.getElementById("municipio").value="";
+ llenarSelect("provinciaBusqueda",[],"Cargando provincias / estados...");llenarSelect("municipioBusqueda",[],"Primero selecciona una provincia / región");
+ if(!code){llenarSelect("provinciaBusqueda",[],"Primero selecciona tu país");return;}
  try{
-  const {data,error}=await supabaseClient
-   .from("gr_regiones")
-   .select("id,nombre")
-   .eq("codigo_pais",code)
-   .order("nombre",{ascending:true});
-
-  if(error)throw error;
-  regionesRegistroCache=Array.isArray(data)?data:[];
-  if(!regionesRegistroCache.length){
-   throw new Error("No hay provincias o regiones cargadas para el país "+code);
+  let regiones=[];
+  if(code==="CU")regiones=Object.keys(municipiosPorProvincia);
+  else{
+   const pais=await nombrePaisAPI(code);
+   const data=await llamadaGeoAPI("states",{country:pais});
+   regiones=(data?.states||[]).map(x=>typeof x==="string"?x:x.name).filter(Boolean);
   }
-
-  provincia.replaceChildren(new Option("Selecciona una provincia / estado / región",""));
-  regionesRegistroCache.forEach(r=>{
-   provincia.add(new Option(r.nombre,String(r.id)));
-  });
-  provincia.value="";
-  provincia.disabled=false;
+  regiones=[...new Set(regiones)].sort((a,b)=>a.localeCompare(b,"es"));
+  if(!regiones.length)throw new Error("Este país no tiene regiones disponibles en el catálogo");
+  llenarSelect("provinciaBusqueda",regiones,"Selecciona una provincia / estado / región");provincia.disabled=false;
  }catch(e){
-  console.error("ERROR CARGANDO REGIONES DESDE SUPABASE:",e);
-  llenarSelect("provinciaBusqueda",[],"No se pudieron cargar las regiones");
-  mensaje("No se pudo cargar la lista de provincias/estados. Comprueba que las tablas gr_regiones tengan datos y permitan lectura pública. Detalle: "+errorTexto(e));
+  console.error(e);llenarSelect("provinciaBusqueda",[],"No se pudieron cargar las regiones");
+  mensaje("No se pudo cargar la lista de provincias/estados de ese país. Comprueba tu conexión e inténtalo de nuevo.");
  }
 }
-
 async function cargarMunicipios(){
- const provincia=document.getElementById("provinciaBusqueda");
- const municipio=document.getElementById("municipioBusqueda");
- const regionId=provincia.value;
- const region=regionesRegistroCache.find(r=>String(r.id)===String(regionId));
-
- regionRegistroActualId=region?region.id:null;
- document.getElementById("provincia").value=region?.nombre||"";
- document.getElementById("municipio").value="";
- llenarSelect("municipioBusqueda",[],region?"Cargando ciudades / municipios...":"Primero selecciona una provincia / región");
- municipio.disabled=true;
-
- if(!region)return;
-
+ const p=document.getElementById("provinciaBusqueda").value.trim(),code=document.getElementById("pais").value;
+ const provincia=document.getElementById("provinciaBusqueda"),municipio=document.getElementById("municipioBusqueda");
+ document.getElementById("provincia").value=p;document.getElementById("municipio").value="";
+ llenarSelect("municipioBusqueda",[],p?"Cargando ciudades / municipios...":"Primero selecciona una provincia / región");municipio.disabled=true;
+ if(!p)return;
  try{
-  const {data,error}=await supabaseClient
-   .from("gr_ciudades")
-   .select("nombre")
-   .eq("region_id",region.id)
-   .order("nombre",{ascending:true});
-
-  if(error)throw error;
-  const ciudades=[...new Set((data||[]).map(x=>String(x.nombre||"").trim()).filter(Boolean))];
-
-  if(!ciudades.length){
-   throw new Error("No hay ciudades cargadas para la región "+region.nombre);
-  }
-
-  llenarSelect("municipioBusqueda",ciudades,"Selecciona una ciudad / municipio");
-  municipio.disabled=false;
+  let ciudades=[];
+  if(code==="CU")ciudades=municipiosPorProvincia[p]||[];
+  else{const pais=await nombrePaisAPI(code);const data=await llamadaGeoAPI("state/cities",{country:pais,state:p});ciudades=Array.isArray(data)?data:[];}
+  ciudades=[...new Set(ciudades.map(x=>String(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es"));
+  if(!ciudades.length)throw new Error("No hay ciudades o municipios en esta región");
+  llenarSelect("municipioBusqueda",ciudades,"Selecciona una ciudad / municipio");municipio.disabled=false;
  }catch(e){
-  console.error("ERROR CARGANDO CIUDADES DESDE SUPABASE:",e);
-  llenarSelect("municipioBusqueda",[],"No hay ciudades disponibles para esta región");
-  mensaje("No se pudo cargar la lista de ciudades/municipios. Comprueba la tabla gr_ciudades y sus permisos de lectura. Detalle: "+errorTexto(e));
+  console.error(e);llenarSelect("municipioBusqueda",[],"No hay ciudades disponibles para esta región");
+  mensaje("No se pudo cargar la lista de ciudades/municipios. Prueba seleccionando nuevamente la región.");
  }
 }
-
-function buscarMunicipios(){
- document.getElementById("municipio").value=
-  document.getElementById("municipioBusqueda").value.trim();
-}
-let ubicacionRegistroInicializada=false;
-async function inicializarUbicacionRegistro(){
- if(ubicacionRegistroInicializada)return;
- ubicacionRegistroInicializada=true;
- const provincia=document.getElementById("provinciaBusqueda");
- const municipio=document.getElementById("municipioBusqueda");
- if(provincia)provincia.addEventListener("change",cargarMunicipios);
- if(municipio)municipio.addEventListener("change",buscarMunicipios);
- // La detección del país y la consulta de regiones solo comienzan
- // cuando el visitante abre explícitamente el formulario de registro.
- await cargarPaisesRegistro();
-}
+function buscarMunicipios(){document.getElementById("municipio").value=document.getElementById("municipioBusqueda").value.trim();}
+document.addEventListener("DOMContentLoaded",()=>{
+ document.getElementById("provinciaBusqueda").addEventListener("change",cargarMunicipios);
+ document.getElementById("municipioBusqueda").addEventListener("change",buscarMunicipios);
+ cargarPaisesRegistro();
+});
 function generarClaveRecuperacion(){
  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
  const bytes=new Uint8Array(24);crypto.getRandomValues(bytes);
@@ -766,98 +696,40 @@ function mostrarDatosRecuperacion(email,codigo,llave){
  document.getElementById("datoRecuperacionLlave").value=llave;
  document.getElementById("datosRecuperacionModal").classList.remove("hidden");
 }
-function cerrarDatosRecuperacion(){document.getElementById("datosRecuperacionModal").classList.add("hidden");actualizarDatosRecibirSaldo();}
+function cerrarDatosRecuperacion(){document.getElementById("datosRecuperacionModal").classList.add("hidden");}
 async function copiarClaveRecuperacion(){const v=document.getElementById("datoRecuperacionLlave").value;try{await navigator.clipboard.writeText(v);mensaje("Clave de recuperación copiada.");}catch(e){document.getElementById("datoRecuperacionLlave").select();document.execCommand("copy");}}
 async function registrar(){
- const b=document.getElementById("botonRegistro");
- const full_name=document.getElementById("nombre").value.trim();
- const country_code=document.getElementById("pais").value;
- const country_name=paisesRegistro.find(x=>x.code===country_code)?.name||country_code;
- const province=document.getElementById("provinciaBusqueda").value.trim();
- const municipality=document.getElementById("municipioBusqueda").value.trim();
- const username=document.getElementById("usuario").value.trim().toLowerCase();
- const email=document.getElementById("correo").value.trim().toLowerCase();
- const password=document.getElementById("clave").value;
- const referral_code=codigoReferidoEnlace;
- const foto=document.getElementById("fotoRegistro").files[0];
-
- if(!referral_code){
-  mensaje("Para crear una cuenta necesitas abrir el enlace personal de invitación de otro usuario.");
-  return;
- }
- if(!full_name||!country_code||!province||!municipality||!username||!email||!password||!foto){
-  mensaje("Completa todos los campos obligatorios, incluida tu ubicación y foto de perfil.");return;
- }
- if(!['image/jpeg','image/png','image/webp'].includes(foto.type)||foto.size>5*1024*1024){
-  mensaje("La foto debe ser JPG, PNG o WEBP y pesar máximo 5 MB.");return;
- }
- if(!/^[a-z0-9_]{3,20}$/.test(username)||password.length<6){
-  mensaje("Revisa el usuario y la contraseña.");return;
- }
-
- b.disabled=true;
- try{
-  const {data:d,error:eu}=await supabaseClient.rpc("check_username_available",{p_username:username});
-  if(eu)throw eu;
-  if(!d?.[0]?.available)throw new Error("Ese nombre de usuario ya está ocupado.");
-
-  const {data:r,error:re}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});
-  if(re)throw re;
-  if(r!==true)throw new Error("El enlace de invitación no es válido. Pide uno nuevo.");
-
-  const recoveryKey=generarClaveRecuperacion();
-  const recoveryHash=await sha256Hex(normalizarClaveRecuperacion(recoveryKey));
-
-  const {data,error}=await supabaseClient.functions.invoke("registrar-usuario",{body:{
+const b=document.getElementById("botonRegistro"),full_name=document.getElementById("nombre").value.trim(),country_code=document.getElementById("pais").value,country_name=paisesRegistro.find(x=>x.code===country_code)?.name||country_code,province=document.getElementById("provinciaBusqueda").value.trim(),municipality=document.getElementById("municipioBusqueda").value.trim(),username=document.getElementById("usuario").value.trim().toLowerCase(),email=document.getElementById("correo").value.trim(),password=document.getElementById("clave").value,referral_code=document.getElementById("invitacion").value.trim().toUpperCase(),foto=document.getElementById("fotoRegistro").files[0];
+if(!full_name||!country_code||!province||!municipality||!username||!email||!password||!referral_code||!foto){mensaje("Completa todos los campos obligatorios, incluida tu ubicación y foto de perfil.");return;}
+if(!['image/jpeg','image/png','image/webp'].includes(foto.type)||foto.size>5*1024*1024){mensaje("La foto debe ser JPG, PNG o WEBP y pesar máximo 5 MB.");return;}
+if(!/^[a-z0-9_]{3,20}$/.test(username)||password.length<6){mensaje("Revisa el usuario y la contraseña.");return;}
+b.disabled=true;
+try{
+ const {data:d,error:eu}=await supabaseClient.rpc("check_username_available",{p_username:username});if(eu)throw eu;if(!d?.[0]?.available)throw new Error("Ese nombre de usuario ya está ocupado.");
+ const {data:r,error:re}=await supabaseClient.rpc("check_referral_code",{p_code:referral_code});if(re)throw re;if(r!==true)throw new Error("El código de referencia no existe.");
+ const recoveryKey=generarClaveRecuperacion();
+ const recoveryHash=await sha256Hex(normalizarClaveRecuperacion(recoveryKey));
+ const {data,error}=await supabaseClient.functions.invoke("registrar-usuario",{body:{
    email,password,full_name,username,
    referral_code:null,
    referred_by:referral_code,
    country:country_name,country_code,province,municipality,
    recovery_key_hash:recoveryHash
-  }});
-  if(error)throw error;
-  if(!data?.success)throw new Error(data?.error||"No se pudo completar el registro.");
-
-  // La función Edge debe devolver success solo después de crear Auth y perfil.
-  const {data:loginData,error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
-  if(loginError){
-   mensaje("La cuenta se creó, pero no se pudo iniciar sesión automáticamente. Entra con tu correo y contraseña. "+loginError.message);
-   mostrar("login");document.getElementById("correoLogin").value=email;return;
-  }
-
-  usuarioActual=loginData.user;
-  perfilActual=await cargarPerfil(usuarioActual);
-  try{
-   await subirArchivoFotoPerfil(foto);
-   perfilActual=await cargarPerfil(usuarioActual);
-  }catch(errorFoto){
-   console.warn("No se pudo subir la foto en este momento:",errorFoto);
-  }
-
-  ["nombre","usuario","correo","clave","invitacion","provinciaBusqueda","municipioBusqueda"].forEach(id=>{
-   const campo=document.getElementById(id);if(campo)campo.value="";
-  });
-  document.getElementById("fotoRegistro").value="";
-  document.getElementById("pais").value="";
-  mostrarDatosRecuperacion(email,perfilActual?.referral_code||"Tu código personal",recoveryKey);
-  mostrar("cuenta");
-  // Al entrar por primera vez a la pantalla de compra, rellenar enlace y código propios.
-  actualizarDatosRecibirSaldo();
-  if(!perfilActual?.avatar_url){
-   document.getElementById("fotoObligatoriaCuenta").classList.remove("hidden");
-   mensaje("Cuenta creada. Completa la foto de perfil y guarda tu clave de recuperación.");
-  }else{
-   mensaje("Cuenta creada correctamente. Guarda tu información de recuperación.");
-  }
-  await actualizarContadorUsuarios();
- }catch(e){
-  const detalle=errorTexto(e);
-  mensaje("No se pudo completar el registro: "+detalle+". Si aparece que el correo ya está registrado, la función registrar-usuario debe revertir la creación incompleta en Supabase; el HTML por sí solo no puede borrar usuarios de Auth de forma segura.");
- }finally{
-  b.disabled=false;
- }
+ }});
+ if(error)throw error;
+ if(!data?.success)throw new Error(data?.error||"No se pudo completar el registro.");
+ const {data:loginData,error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
+ if(loginError)throw new Error("La cuenta fue creada correctamente, pero no se pudo iniciar sesión: "+loginError.message);
+ usuarioActual=loginData.user;
+ perfilActual=await cargarPerfil(usuarioActual);
+ await subirArchivoFotoPerfil(foto);
+ perfilActual=await cargarPerfil(usuarioActual);
+ ["nombre","usuario","correo","clave","invitacion","provinciaBusqueda","municipioBusqueda"].forEach(id=>document.getElementById(id).value="");document.getElementById("fotoRegistro").value="";document.getElementById("pais").value="";
+ mostrarDatosRecuperacion(email,perfilActual?.referral_code||"Tu código personal",recoveryKey);
+ mostrar("cuenta");mensaje("Cuenta creada correctamente. Guarda tu información de recuperación antes de continuar.");await actualizarContadorUsuarios();
+}catch(e){mensaje("No se pudo completar el registro: "+errorTexto(e));}
+finally{b.disabled=false;}
 }
-
 function abrirRecuperacionPassword(){document.getElementById("recuperarPasswordModal").classList.remove("hidden");document.getElementById("estadoRecuperarPassword").textContent="";}
 function cerrarRecuperacionPassword(){document.getElementById("recuperarPasswordModal").classList.add("hidden");}
 function cerrarNuevaPassword(){document.getElementById("nuevaPasswordModal").classList.add("hidden");sessionStorage.removeItem("grRecoveryToken");}
@@ -951,17 +823,8 @@ async function entrar(){
  }
 
 }
-async function dirigirUsuario(){
- if(!usuarioActual||!perfilActual)return;
- if(perfilActual.role!=="admin"&&!perfilActual.recovery_key_hash){await prepararLlaveCuentaAntigua();return;}
- if(perfilActual.role==="admin"){
-  mostrar("panelAdmin");document.getElementById("mensajeAdmin").textContent="Bienvenido al panel de administración.";await cargarAdmin();return;
- }
- // Todos los usuarios entran al Lobby. La membresía solo habilita el chat y los beneficios que correspondan.
- const mem=await buscarMembresiaActiva(usuarioActual.id);
- mostrar("lobby");await cargarLobby(mem||null);
-}
-async function cargarCuenta(){document.getElementById("perfilCuentaHeader").replaceChildren(crearEncabezadoCuenta(perfilActual,"Tu perfil", "account-avatar large"));document.getElementById("datos").textContent="Nombre: "+(perfilActual.full_name||"")+"\nUsuario: @"+(perfilActual.username||"")+"\nCódigo de invitación: "+(perfilActual.referral_code||"En preparación");const {data,error}=await supabaseClient.from("payment_requests").select("status,plan,amount_cup,created_at").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();const e=document.getElementById("estadoDeposito"),b=document.getElementById("botonComprobante");if(error){e.textContent="No se pudo consultar tu depósito: "+errorTexto(error);return;}if(data){e.textContent="Tienes una solicitud de "+nombrePlan(data.plan)+" ("+dinero(data.amount_cup)+") pendiente. Cuando sea aprobada podrás comprar cualquier otra membresía.";b.disabled=true;document.getElementById("planMembresia").disabled=false;}else{e.textContent="Puedes comprar con saldo o mediante transferencia. Las transferencias requieren aprobación individual.";b.disabled=false;document.getElementById("planMembresia").disabled=false;}actualizarDatosPlan();await Promise.all([cargarSaldoYGanancias(),cargarSaldoMonedasVirtuales()]);actualizarDatosRecibirSaldo();await cargarEstadoPagoVirtual();}
+async function dirigirUsuario(){if(!usuarioActual||!perfilActual)return;if(perfilActual.role!=="admin"&&!perfilActual.recovery_key_hash){await prepararLlaveCuentaAntigua();return;}if(perfilActual.role!=="admin"&&usuarioActual.user_metadata?.avatar_required&&!perfilActual.avatar_url){mostrar("cuenta");document.getElementById("fotoObligatoriaCuenta").classList.remove("hidden");document.querySelectorAll("#cuenta > :not(.logout-top):not(h2):not(#fotoObligatoriaCuenta)").forEach(x=>{x.dataset.fotoGate="1";x.classList.add("hidden");});return;}if(perfilActual.role==="admin"){mostrar("panelAdmin");document.getElementById("mensajeAdmin").textContent="Bienvenido al panel de administración.";await cargarAdmin();return;}const mem=await buscarMembresiaActiva(usuarioActual.id);if(mem){mostrar("lobby");await cargarLobby(mem);}else{mostrar("cuenta");await cargarCuenta();}}
+async function cargarCuenta(){document.getElementById("perfilCuentaHeader").replaceChildren(crearEncabezadoCuenta(perfilActual,"Tu perfil", "account-avatar large"));document.getElementById("datos").textContent="Nombre: "+(perfilActual.full_name||"")+"\nUsuario: @"+(perfilActual.username||"")+"\nCódigo de invitación: "+(perfilActual.referral_code||"En preparación");const {data,error}=await supabaseClient.from("payment_requests").select("status,plan,amount_cup,created_at").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();const e=document.getElementById("estadoDeposito"),b=document.getElementById("botonComprobante");if(error){e.textContent="No se pudo consultar tu depósito: "+errorTexto(error);return;}if(data){e.textContent="Tienes una solicitud de "+nombrePlan(data.plan)+" ("+dinero(data.amount_cup)+") pendiente. Cuando sea aprobada podrás comprar cualquier otra membresía.";b.disabled=true;document.getElementById("planMembresia").disabled=false;}else{e.textContent="Puedes comprar con saldo o mediante transferencia. Las transferencias requieren aprobación individual.";b.disabled=false;document.getElementById("planMembresia").disabled=false;}actualizarDatosPlan();await cargarEstadoPagoVirtual();}
 function actualizarDatosPlanLobby(){const p=document.getElementById("planMembresiaLobby").value,d=datosPlanCUP(p);if(d)document.getElementById("detallePlanLobby").textContent=`${d.nombre}: ${d.precio} CUP por 30 días. Comisión directa: ${d.directo} CUP (10%). Comisión indirecta: ${d.indirecto} CUP (1%).`;}
 async function cargarEstadoPagoCUPLobby(){
  const {data,error}=await supabaseClient.from("payment_requests").select("id,status,plan,amount_cup,created_at").eq("user_id",usuarioActual.id).eq("status","pending").order("created_at",{ascending:false}).limit(1).maybeSingle();
@@ -1001,59 +864,7 @@ function cerrarLobbyMenu(){document.getElementById("lobbyDrawer")?.classList.rem
 function mostrarLobbySeccion(id){LOBBY_SECCIONES.forEach(x=>document.getElementById(x)?.classList.toggle("hidden",x!==id));cerrarLobbyMenu();document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"});}
 
 function actualizarFondoLobby(){const lobby=document.getElementById("lobby");if(!lobby)return;const url=perfilActual?.avatar_url;if(url){lobby.style.backgroundImage='linear-gradient(rgba(12,12,14,.84),rgba(12,12,14,.90)),url('+JSON.stringify(String(url))+')';}else{lobby.style.backgroundImage="linear-gradient(145deg,rgba(35,31,23,.96),rgba(18,18,21,.97))";}lobby.style.backgroundSize="cover";lobby.style.backgroundPosition="center";lobby.style.backgroundRepeat="no-repeat";lobby.style.backgroundAttachment="scroll";}
-async function cargarLobby(mem){
- actualizarFondoLobby();
- const header=document.getElementById("perfilLobbyHeader"),wrap=elemento("div",undefined,"avatar-edit-wrap");
- wrap.append(crearEncabezadoCuenta(perfilActual,"Tu cuenta", "account-avatar large"));
- const edit=elemento("button","Cambiar foto","avatar-edit-btn secundario");edit.type="button";edit.onclick=cambiarFotoPerfil;wrap.append(edit);header.replaceChildren(wrap);
- document.getElementById("bienvenidaLobby").textContent="¡Bienvenido, "+(perfilActual.full_name||perfilActual.username||"usuario")+"!";
- aplicarColorMembresiaActiva(mem);
- const card=document.getElementById("membresiaActivaCard"),chat=document.querySelector("#lobby .chat-launch");
- if(mem){
-  card.classList.remove("hidden");
-  const nombreMembresia=mem.membership_type==="virtual"?nombrePlanVirtual(mem.plan_id):nombrePlan(mem.plan);
-  document.getElementById("nombreMembresiaActiva").textContent=nombreMembresia;
-  document.getElementById("tiempoMembresia").textContent="";actualizarTiempoMembresia(mem.ends_at);
-  if(chat){chat.disabled=false;chat.textContent="💬 Chat GoldRewards";chat.title="Chat para miembros activos";}
- }else{
-  card.classList.remove("hidden");card.classList.add("membership-active-card");
-  document.getElementById("nombreMembresiaActiva").textContent="Sin plan activo";
-  document.getElementById("tiempoMembresia").textContent="Elige una membresía para desbloquear el chat.";
-  if(window.relojMembresia){clearInterval(window.relojMembresia);window.relojMembresia=null;}
-  if(chat){chat.disabled=false;chat.textContent="🔒 Chat GoldRewards · Activa un plan";chat.title="Compra una membresía para desbloquear el chat";}
- }
- if(perfilActual.referral_code){document.getElementById("miCodigo").textContent=perfilActual.referral_code;const l=new URL("https://goldrewards.github.io/goldrewards/");l.searchParams.set("ref",perfilActual.referral_code);document.getElementById("enlaceInvitacion").value=l.toString();}
- await Promise.all([cargarSaldoYGanancias(),cargarSaldoMonedasVirtuales(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos(),cargarReferidosUSDT(),cargarEstadoPagoVirtual(),cargarEstadoPagoCUPLobby(),cargarHistorialTransferencias()]);
- actualizarDatosRecibirSaldo();
- actualizarInfoTransferencia();
-}
-
-function actualizarDatosRecibirSaldo(){
- const saldoCup=document.getElementById("saldoDisponible");
- const saldoUsdt=document.getElementById("saldoMonedasVirtuales");
- const usuarioTexto=perfilActual?.username?"@"+perfilActual.username:(perfilActual?.full_name||"—");
- const codigoTexto=perfilActual?.referral_code||"No disponible";
- const enlaceCuenta=document.getElementById("enlaceInvitacionCuenta");
- if(enlaceCuenta){if(perfilActual?.referral_code){const url=new URL("https://goldrewards.github.io/goldrewards/");url.searchParams.set("ref",perfilActual.referral_code);enlaceCuenta.value=url.toString();}else{enlaceCuenta.value="";}}
- ["usuarioRecibirSaldo","usuarioRecibirSaldoCuenta"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=usuarioTexto;});
- ["codigoRecibirSaldo","codigoRecibirSaldoCuenta"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=codigoTexto;});
- ["saldoRecibirCUP","saldoRecibirCUPCuenta"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=saldoCup?.textContent||"0 CUP";});
- ["saldoRecibirUSDT","saldoRecibirUSDTCuenta"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=saldoUsdt?.textContent||"0 USDT";});
-}
-async function copiarEnlaceCuenta(){
- const campo=document.getElementById("enlaceInvitacionCuenta");
- const enlace=campo?.value||"";
- if(!enlace){mensaje("Tu enlace de invitación todavía no está disponible.");return;}
- try{await navigator.clipboard.writeText(enlace);mensaje("Enlace de invitación copiado.");}
- catch(e){campo.focus();campo.select();try{document.execCommand("copy");mensaje("Enlace de invitación copiado.");}catch(_){mensaje("Copia manualmente el enlace que aparece en pantalla.");}}
-}
-
-async function copiarCodigoRecibirSaldo(){
- const codigo=perfilActual?.referral_code;
- if(!codigo){mensaje("Tu código todavía no está disponible.");return;}
- try{await navigator.clipboard.writeText(codigo);mensaje("Código de referido copiado. Compártelo para recibir saldo.");}
- catch(e){const campo=document.createElement("textarea");campo.value=codigo;document.body.appendChild(campo);campo.select();try{document.execCommand("copy");mensaje("Código de referido copiado.");}catch(_){mensaje("Copia manualmente tu código: "+codigo);}campo.remove();}
-}
+async function cargarLobby(mem){actualizarFondoLobby();const header=document.getElementById("perfilLobbyHeader"),wrap=elemento("div",undefined,"avatar-edit-wrap");wrap.append(crearEncabezadoCuenta(perfilActual,"Tu cuenta", "account-avatar large"));const edit=elemento("button","Cambiar foto","avatar-edit-btn secundario");edit.type="button";edit.onclick=cambiarFotoPerfil;wrap.append(edit);header.replaceChildren(wrap);document.getElementById("bienvenidaLobby").textContent="¡Bienvenido, "+(perfilActual.full_name||perfilActual.username||"usuario")+"!";aplicarColorMembresiaActiva(mem);const nombreMembresia=mem.membership_type==="virtual"?nombrePlanVirtual(mem.plan_id):nombrePlan(mem.plan);document.getElementById("nombreMembresiaActiva").textContent=nombreMembresia;document.getElementById("tiempoMembresia").textContent="";actualizarTiempoMembresia(mem.ends_at);if(perfilActual.referral_code){document.getElementById("miCodigo").textContent=perfilActual.referral_code;const l=new URL("https://goldrewards.github.io/goldrewards/");l.searchParams.set("ref",perfilActual.referral_code);document.getElementById("enlaceInvitacion").value=l.toString();}await Promise.all([cargarSaldoYGanancias(),cargarSaldoMonedasVirtuales(),cargarHistorialPagos(),cargarHistorialRetiros(),cargarReferidos(),cargarReferidosUSDT(),cargarEstadoPagoVirtual(),cargarEstadoPagoCUPLobby(),cargarHistorialTransferencias()]);actualizarInfoTransferencia();}
 
 function aplicarColorMembresiaActiva(mem){
  const tarjeta=document.getElementById("membresiaActivaCard");
@@ -1094,7 +905,6 @@ async function cargarSaldoYGanancias(){
  const disponible=comisiones+ajustes+entradas-salidas-usados;
  document.getElementById("gananciasTotales").textContent=dinero(Math.max(0,comisiones-usados));
  document.getElementById("saldoDisponible").textContent=dinero(disponible);
- actualizarDatosRecibirSaldo();
  document.getElementById("cantidadReferidos").textContent=String(new Set((g||[]).map(x=>x.referred_user_id).filter(Boolean)).size);
  const c=document.getElementById("historialGanancias");c.replaceChildren();
  const movimientos=[
@@ -1188,7 +998,6 @@ async function cargarSaldoMonedasVirtuales(){
  });
 
  saldo.textContent=fmt(total)+" USDT";
- actualizarDatosRecibirSaldo();
 
  const comisiones=(g||[]).reduce(
  (s,x)=>s+Number(x.amount||0),0
@@ -1421,64 +1230,7 @@ async function cargarHistorialRetiros(){
   c.append(q);
  });
 }
-async function solicitarRetiro(){
- const b=document.getElementById("botonRetiro");
- const e=document.getElementById("estadoRetiro");
- const cantidad=Number(document.getElementById("montoRetiro").value);
- const tarjeta=document.getElementById("tarjetaRetiro").value.trim();
-
- if(!Number.isInteger(cantidad)||cantidad<250||cantidad>1000){
-  e.textContent="El retiro debe ser un número entero entre 250 y 1000 CUP, sin decimales.";
-  return;
- }
- if(tarjeta.length<8){
-  e.textContent="Introduce un número de tarjeta válido.";
-  return;
- }
- if(!usuarioActual?.id){
-  e.textContent="Tu sesión ha expirado. Inicia sesión nuevamente.";
-  return;
- }
-
- b.disabled=true;
- e.textContent="Verificando el límite diario...";
- try{
-  const ahora=new Date();
-  const inicioDia=new Date(ahora);
-  inicioDia.setHours(0,0,0,0);
-  const finDia=new Date(inicioDia);
-  finDia.setDate(finDia.getDate()+1);
-
-  const {data:solicitudes,error:errorConteo}=await supabaseClient
-   .from("withdrawal_requests")
-   .select("id")
-   .eq("user_id",usuarioActual.id)
-   .gte("created_at",inicioDia.toISOString())
-   .lt("created_at",finDia.toISOString());
-
-  if(errorConteo)throw errorConteo;
-  if((solicitudes||[]).length>=2){
-   e.textContent="Ya alcanzaste el máximo de 2 solicitudes de retiro CUP por día.";
-   return;
-  }
-
-  e.textContent="Enviando solicitud...";
-  const {data,error}=await supabaseClient.rpc("request_withdrawal",{
-   p_amount:cantidad,
-   p_card_number:tarjeta
-  });
-  if(error)throw error;
-
-  e.textContent="Solicitud enviada correctamente. Número: "+data;
-  document.getElementById("montoRetiro").value="";
-  document.getElementById("tarjetaRetiro").value="";
-  await Promise.all([cargarSaldoYGanancias(),cargarHistorialRetiros()]);
- }catch(x){
-  e.textContent="No se pudo solicitar: "+errorTexto(x);
- }finally{
-  b.disabled=false;
- }
-}
+async function solicitarRetiro(){const b=document.getElementById("botonRetiro"),e=document.getElementById("estadoRetiro"),cantidad=Number(document.getElementById("montoRetiro").value),tarjeta=document.getElementById("tarjetaRetiro").value.trim();if(!Number.isInteger(cantidad)||cantidad<250||cantidad>1000){e.textContent="El retiro debe ser un número entero entre 250 y 1000 CUP, sin decimales.";return;}if(tarjeta.length<8){e.textContent="Introduce un número de tarjeta válido.";return;}b.disabled=true;try{const {data,error}=await supabaseClient.rpc("request_withdrawal",{p_amount:cantidad,p_card_number:tarjeta});if(error)throw error;e.textContent="Solicitud enviada correctamente. Número: "+data;document.getElementById("montoRetiro").value="";document.getElementById("tarjetaRetiro").value="";await Promise.all([cargarSaldoYGanancias(),cargarHistorialRetiros()]);}catch(x){e.textContent="No se pudo solicitar: "+errorTexto(x);}finally{b.disabled=false;}}
 async function solicitarRetiroUSDT(){
  const b=document.getElementById("botonRetiroUSDT");
  const e=document.getElementById("estadoRetiroUSDT");
@@ -1540,11 +1292,7 @@ async function solicitarRetiroUSDT(){
 async function copiarEnlace(){const v=document.getElementById("enlaceInvitacion").value;if(!v){mensaje("Tu código todavía no está disponible.");return;}try{await navigator.clipboard.writeText(v);mensaje("Enlace copiado.");}catch(e){document.getElementById("enlaceInvitacion").select();mensaje("Selecciona y copia el enlace.");}}
 
 // Mensajes visuales uniformes y año dinámico.
-document.addEventListener("DOMContentLoaded",()=>{
- const y=document.getElementById("grYear");if(y)y.textContent=new Date().getFullYear();
- aplicarCodigoReferidoEnlace();
- if(codigoReferidoEnlace)mostrar("registro");
-});
+document.addEventListener("DOMContentLoaded",()=>{const y=document.getElementById("grYear");if(y)y.textContent=new Date().getFullYear();});
 function notificarPremium(texto,tipo="info"){
  const region=document.getElementById("grToastRegion");if(!region){mensaje(texto);return;}
  const item=document.createElement("div");item.className="gr-toast "+(tipo==="error"?"error":tipo==="success"?"success":"");
@@ -1669,8 +1417,13 @@ async function verDetalleCuentaAdmin(userId){
   c.replaceChildren();const p=data.profile||{};
   c.append(crearEncabezadoCuenta(p,"Información de la cuenta", "account-avatar large"));
   let g=agregarSeccionDetalle(c,"Datos de registro");
-  [["ID de usuario",userId],["Nombre completo",p.full_name],["Nombre de usuario",p.username],["Correo electrónico",data.email],["Rol",p.role],["Provincia",p.province],["Municipio",p.municipality],["Código de referencia",p.referral_code],["Referido por (ID)",p.referred_by],["Etiqueta administrativa",p.admin_label],["Fecha de registro",fecha(p.created_at)]].forEach(([k,v])=>g.append(campoDetalle(k,v)));
-  if(p.avatar_url){const av=elemento("div",undefined,"card");av.append(elemento("h4","Foto de perfil"));const im=document.createElement("img");im.className="admin-receipt-img";im.src=p.avatar_url;im.alt="Foto de perfil";av.append(im);c.append(av);}
+  [["ID de usuario",userId],["Nombre completo",p.full_name],["Nombre de usuario",p.username],["Correo electrónico",data.email],["Rol",p.role],["País",p.country],["Código de país",p.country_code],["Provincia / Estado",p.province],["Municipio",p.municipality],["Localidad",p.locality],["Código de referencia",p.referral_code],["Referido por (ID)",p.referred_by],["Etiqueta administrativa",p.admin_label],["Fecha de registro",fecha(p.created_at)]].forEach(([k,v])=>g.append(campoDetalle(k,v)));
+  if(p.avatar_url){
+   const av=elemento("div",undefined,"card");av.append(elemento("h4","Foto de perfil"));
+   const enlace=document.createElement("a");enlace.href=p.avatar_url;enlace.target="_blank";enlace.rel="noopener noreferrer";enlace.title="Abrir foto de perfil en tamaño completo";
+   const im=document.createElement("img");im.className="admin-receipt-img";im.src=p.avatar_url;im.alt="Foto de perfil de la cuenta";im.loading="lazy";enlace.append(im);av.append(enlace);
+   const abrir=elemento("a","Abrir foto en tamaño completo","comprobante-link");abrir.href=p.avatar_url;abrir.target="_blank";abrir.rel="noopener noreferrer";av.append(abrir);c.append(av);
+  }else{const av=elemento("div",undefined,"card");av.append(elemento("h4","Foto de perfil"),elemento("p","Esta cuenta no tiene una foto de perfil guardada.","muted"));c.append(av);}
   const membresias=Array.isArray(data.memberships)?data.memberships:[];g=agregarSeccionDetalle(c,"Membresías");if(!membresias.length)g.append(campoDetalle("Información","No hay membresías registradas."));membresias.forEach((m,i)=>{g.append(campoDetalle("Membresía "+(i+1),m.plan),campoDetalle("Estado",m.status),campoDetalle("Inicio",fecha(m.starts_at)),campoDetalle("Vencimiento",fecha(m.ends_at)));});
   const cups=Array.isArray(data.cup_payments)?data.cup_payments:[];c.append(elemento("h3","Historial de pagos CUP ("+cups.length+")","admin-subheading"));if(!cups.length)c.append(elemento("p","No hay pagos CUP registrados.","muted"));for(const x of cups){g=agregarSeccionDetalle(c,"Pago CUP · "+dinero(x.amount_cup));g.append(campoDetalle("Plan",nombrePlan(x.plan)),campoDetalle("Estado",x.status),campoDetalle("Fecha",fecha(x.created_at)),campoDetalle("ID de solicitud",x.id));await agregarComprobanteDetalle(c,x.receipt_url,"Comprobante CUP");}
   const virtuales=Array.isArray(data.virtual_payments)?data.virtual_payments:[];c.append(elemento("h3","Historial de pagos virtuales ("+virtuales.length+")","admin-subheading"));if(!virtuales.length)c.append(elemento("p","No hay pagos virtuales registrados.","muted"));for(const x of virtuales){g=agregarSeccionDetalle(c,"Pago virtual · "+Number(x.amount||0)+" USDT");g.append(campoDetalle("Plan",nombrePlanVirtual(x.plan_id)),campoDetalle("Estado",x.status),campoDetalle("Fecha",fecha(x.created_at)),campoDetalle("Fecha de aprobación",fecha(x.confirmed_at)),campoDetalle("ID de solicitud",x.id));await agregarComprobanteDetalle(c,x.receipt_url,"Comprobante virtual USDT");}
