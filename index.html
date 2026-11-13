@@ -371,7 +371,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div id="adminDetalleModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="adminDetalleTitulo"><div class="modal-panel"><button class="modal-close" onclick="cerrarDetalleCuenta()" aria-label="Cerrar">✕</button><h2 id="adminDetalleTitulo">Información de la cuenta</h2><div id="adminDetalleContenido"><p class="muted">Cargando información...</p></div></div></div>
 
 <div id="paqueteModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel"><button class="modal-close" onclick="cerrarPaquete()" aria-label="Cerrar">✕</button><div class="modal-icon">💳</div><h2 id="paqueteTitulo">Información del paquete</h2><div id="paqueteDetalle" class="card"></div><div id="paquetePago"></div><div class="payment-methods"><button type="button" id="botonPagarSaldoPaquete" style="display:block;width:100%" onclick="pagarConSaldoPaquete()">Pagar con saldo de mi cuenta</button><p id="estadoPagoSaldoPaquete" class="estado" aria-live="polite"></p><button type="button" class="secundario" style="display:block;width:100%" onclick="continuarPagoPaquete()">Pagar por transferencia y subir comprobante</button><p class="muted" style="text-align:center">El pago por transferencia queda pendiente hasta la aprobación del administrador. El pago con saldo se procesa automáticamente.</p></div></div></div>
-<div id="reglasModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel"><button class="modal-close" onclick="cerrarReglas()" aria-label="Cerrar">✕</button><div class="modal-icon">📜</div><h2>Reglas completas de GoldRewards</h2><p class="muted">Estas reglas explican el registro, las membresías CUP y USDT, las comisiones por invitación, los pagos, el saldo, los retiros y las herramientas disponibles en tu cuenta.</p><ol class="reglas-lista">
+<div id="reglasModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel"><button class="modal-close" onclick="cerrarReglas()" aria-label="Cerrar">✕</button><div class="modal-icon">📜</div><h2>Reglas completas de GoldRewards</h2><p class="muted">Estas reglas explican el registro, las membresías CUP y USDT, las comisiones por invitación, los métodos de pago, los retiros y las herramientas disponibles en tu cuenta.</p><ol class="reglas-lista">
 <li><strong>1- Registro:</strong> crea una cuenta con nombre, provincia, municipio, usuario, correo, contraseña y código de invitación válido cuando el formulario lo solicite. Los datos deben ser reales y estar escritos correctamente.</li>
 <li><strong>2- Inicio de sesión:</strong> entra con el correo y la contraseña registrados. Si la sesión caduca o se cierra por seguridad, vuelve a iniciar sesión.</li>
 <li><strong>3- Perfil y foto:</strong> completa los datos del perfil y carga una foto JPG, PNG o WEBP de hasta 5 MB cuando la página la solicite. Puedes cambiarla desde el Lobby.</li>
@@ -2158,6 +2158,66 @@ function traducirReglas(idioma){
  };
  const atualizadas=reglasActualizadas[idioma]||reglasActualizadas.es;
  Object.entries(atualizadas).forEach(([indice,contenido])=>{if(elementos[Number(indice)])elementos[Number(indice)].textContent=contenido;});
+ // Aclaraciones vigentes: sin compra de membresías con saldo ni transferencias de saldo entre miembros.
+ const aclaraciones={
+  es:{
+   17:'18- Pago de membresías: las membresías se pagan mediante los métodos de pago externos que muestra la plataforma y el envío del comprobante solicitado. No se acepta el saldo de la cuenta como método de pago.',
+   25:'26- Lobby: el menú del miembro da acceso a invitaciones, referidos, ganancias CUP y USDT, retiros, planes, historiales, chat y perfil. No incluye transferencia de saldo entre miembros.',
+   32:'33- Comisiones de los paquetes: los importes directos y de segundo nivel indicados para cada paquete son comisiones por referidos cuando la operación correspondiente queda aprobada; no son descuentos sobre el precio.',
+   33:'34- Descuentos: el HTML no establece descuentos sobre el precio de ninguno de los paquetes CUP o USDT. El precio publicado es el importe que debe pagarse.',
+   34:'35- Bonificaciones adicionales: el HTML no establece una bonificación extra por paquete ni una bonificación adicional por renovación. No debe anunciarse un beneficio que no esté definido en el sistema.',
+   36:'37- Historial de membresías y depósitos: permite revisar las solicitudes, los importes, los planes, las fechas y los estados registrados en tu cuenta.',
+   37:'38- Historial de retiros: permite revisar tus solicitudes de retiro y el estado registrado de cada una.',
+   38:'39- Renovaciones: una renovación requiere realizar una nueva operación de pago mediante los métodos habilitados y esperar su procesamiento o aprobación. Cada membresía tiene una vigencia de 30 días desde su activación.',
+   39:'40- Comisiones en renovaciones: las comisiones de referidos se rigen por los importes del paquete y las condiciones de aprobación. El HTML no define una bonificación adicional específica por renovar.',
+   40:'41- Revisión de operaciones: antes de pagar, comprueba el paquete, la moneda, el importe y los datos de pago. Conserva el comprobante hasta que la operación aparezca registrada.',
+   46:'47- Cuentas duplicadas y manipulación: no se permite crear cuentas duplicadas para alterar referidos, comisiones, saldos, pagos, membresías o retiros.',
+   48:'49- Incidencias: si una operación muestra un error, verifica primero su estado, conserva los datos y el comprobante y contacta con el soporte. No repitas un pago sin comprobar si ya fue registrado.'
+  },
+  en:{
+   17:'18- Membership payments: memberships must be paid using the external payment methods shown by the platform and the requested receipt. Account balance is not an accepted payment method.',
+   25:'26- Lobby: the member menu provides invitations, referrals, CUP and USDT earnings, withdrawals, plans, histories, chat and profile. It does not include member-to-member balance transfers.',
+   32:'33- Package commissions: the direct and second-level amounts shown for each package are referral commissions when the relevant transaction is approved; they are not price discounts.',
+   33:'34- Discounts: the HTML does not define price discounts for any CUP or USDT package. The published price is the amount to be paid.',
+   34:'35- Additional bonuses: the HTML does not define an extra package bonus or an additional renewal bonus. Do not advertise benefits that are not defined in the system.',
+   36:'37- Membership and deposit history: review requests, amounts, plans, dates and statuses recorded for your account.',
+   37:'38- Withdrawal history: review your withdrawal requests and each recorded status.',
+   38:'39- Renewals: renew by making a new payment through an enabled payment method and waiting for processing or approval. Each membership lasts 30 days from activation.',
+   39:'40- Renewal commissions: referral commissions follow the package amounts and approval conditions. The HTML does not define a separate renewal bonus.',
+   40:'41- Transaction review: before paying, verify the package, currency, amount and payment details. Keep the receipt until the transaction is recorded.',
+   46:'47- Duplicate accounts and manipulation: creating duplicate accounts to alter referrals, commissions, balances, payments, memberships or withdrawals is not allowed.',
+   48:'49- Issues: if a transaction shows an error, check its status, keep the details and receipt, and contact support. Do not repeat a payment without checking whether it was recorded.'
+  },
+  fr:{
+   17:'18- Paiement des adhésions : payez avec les moyens de paiement externes affichés par la plateforme et joignez le justificatif demandé. Le solde du compte ne peut pas servir à payer une adhésion.',
+   25:'26- Lobby : le menu membre donne accès aux invitations, parrainages, gains CUP et USDT, retraits, forfaits, historiques, chat et profil. Il ne permet pas de transférer le solde entre membres.',
+   32:'33- Commissions des forfaits : les montants directs et de second niveau sont des commissions de parrainage lorsque l’opération est approuvée ; ce ne sont pas des réductions de prix.',
+   33:'34- Réductions : le HTML ne prévoit aucune réduction de prix pour les forfaits CUP ou USDT. Le prix affiché est le montant à payer.',
+   34:'35- Bonus supplémentaires : le HTML ne prévoit ni bonus supplémentaire par forfait ni bonus supplémentaire de renouvellement. N’annoncez pas d’avantage non défini dans le système.',
+   36:'37- Historique des adhésions et dépôts : consultez les demandes, montants, forfaits, dates et statuts enregistrés sur votre compte.',
+   37:'38- Historique des retraits : consultez vos demandes de retrait et leur statut.',
+   38:'39- Renouvellements : effectuez un nouveau paiement avec un moyen autorisé et attendez son traitement ou son approbation. Chaque adhésion dure 30 jours à compter de son activation.',
+   39:'40- Commissions de renouvellement : les commissions de parrainage suivent les montants du forfait et les conditions d’approbation. Le HTML ne définit pas de bonus distinct de renouvellement.',
+   40:'41- Vérification : avant de payer, vérifiez le forfait, la devise, le montant et les coordonnées de paiement. Conservez le justificatif jusqu’à l’enregistrement de l’opération.',
+   46:'47- Comptes en double et manipulation : il est interdit de créer des comptes en double pour modifier les parrainages, commissions, soldes, paiements, adhésions ou retraits.',
+   48:'49- Problèmes : en cas d’erreur, vérifiez le statut, conservez les détails et le justificatif, puis contactez le support. Ne répétez pas un paiement sans vérifier son enregistrement.'
+  },
+  pt:{
+   17:'18- Pagamento de assinaturas: pague usando os métodos externos exibidos pela plataforma e envie o comprovante solicitado. O saldo da conta não é aceito como forma de pagamento.',
+   25:'26- Lobby: o menu do membro dá acesso a convites, indicações, ganhos CUP e USDT, saques, planos, históricos, chat e perfil. Não inclui transferência de saldo entre membros.',
+   32:'33- Comissões dos pacotes: os valores diretos e de segundo nível são comissões por indicação quando a operação correspondente é aprovada; não são descontos no preço.',
+   33:'34- Descontos: o HTML não define descontos no preço de nenhum pacote CUP ou USDT. O preço publicado é o valor que deve ser pago.',
+   34:'35- Bônus adicionais: o HTML não define bônus extra por pacote nem bônus adicional por renovação. Não anuncie benefícios que não estejam definidos no sistema.',
+   36:'37- Histórico de assinaturas e depósitos: consulte solicitações, valores, planos, datas e status registrados na sua conta.',
+   37:'38- Histórico de saques: consulte suas solicitações de saque e o status registrado de cada uma.',
+   38:'39- Renovações: faça um novo pagamento por um método habilitado e aguarde o processamento ou a aprovação. Cada assinatura dura 30 dias a partir da ativação.',
+   39:'40- Comissões nas renovações: as comissões por indicação seguem os valores do pacote e as condições de aprovação. O HTML não define um bônus separado por renovação.',
+   40:'41- Conferência das operações: antes de pagar, confira o pacote, a moeda, o valor e os dados de pagamento. Guarde o comprovante até a operação ser registrada.',
+   46:'47- Contas duplicadas e manipulação: não é permitido criar contas duplicadas para alterar indicações, comissões, saldos, pagamentos, assinaturas ou saques.',
+   48:'49- Problemas: se uma operação apresentar erro, verifique o status, guarde os dados e o comprovante e entre em contato com o suporte. Não repita um pagamento sem conferir se já foi registrado.'
+  }
+ };
+ Object.entries(aclaraciones[idioma]||aclaraciones.es).forEach(([indice,contenido])=>{if(elementos[Number(indice)])elementos[Number(indice)].textContent=contenido;});
  const titulo=document.querySelector('#reglasModal h2');
  const intro=document.querySelector('#reglasModal .modal-panel>p');
  const aceptar=document.querySelector('#reglasModal .modal-panel>button:last-child');
