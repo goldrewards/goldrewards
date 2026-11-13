@@ -773,8 +773,9 @@ async function registrar(){
  const full_name=document.getElementById("nombre").value.trim();
  const country_code=document.getElementById("pais").value;
  const country_name=paisesRegistro.find(x=>x.code===country_code)?.name||country_code;
- const province=document.getElementById("provinciaBusqueda").value.trim();
- const municipality=document.getElementById("municipioBusqueda").value.trim();
+ // Guardar los nombres legibles, no los IDs internos de los selectores.
+ const province=document.getElementById("provincia").value.trim();
+ const municipality=document.getElementById("municipio").value.trim();
  const username=document.getElementById("usuario").value.trim().toLowerCase();
  const email=document.getElementById("correo").value.trim().toLowerCase();
  const password=document.getElementById("clave").value;
@@ -1668,8 +1669,25 @@ async function verDetalleCuentaAdmin(userId){
   const {data,error}=await supabaseClient.rpc("admin_get_account_details",{p_user_id:userId});if(error)throw error;if(!data)throw new Error("No se encontró la cuenta.");
   c.replaceChildren();const p=data.profile||{};
   c.append(crearEncabezadoCuenta(p,"Información de la cuenta", "account-avatar large"));
+
+  // Compatibilidad con cuentas antiguas que guardaron el ID numérico de región.
+  let provinciaVisible=p.province||"";
+  let codigoPais=p.country_code||"";
+  if(/^\d+$/.test(String(provinciaVisible))){
+   const {data:region,error:regionError}=await supabaseClient
+    .from("gr_regiones").select("nombre,codigo_pais")
+    .eq("id",Number(provinciaVisible)).maybeSingle();
+   if(!regionError&&region){provinciaVisible=region.nombre||provinciaVisible;codigoPais=codigoPais||String(region.codigo_pais||"").trim();}
+  }
+  let paisVisible=p.country||"";
+  if(!paisVisible&&codigoPais){
+   const {data:pais,error:paisError}=await supabaseClient
+    .from("gr_paises").select("nombre").eq("codigo",codigoPais).maybeSingle();
+   if(!paisError&&pais?.nombre)paisVisible=pais.nombre;
+  }
+
   let g=agregarSeccionDetalle(c,"Datos de registro");
-  [["ID de usuario",userId],["Nombre completo",p.full_name],["Nombre de usuario",p.username],["Correo electrónico",data.email],["Rol",p.role],["Provincia",p.province],["Municipio",p.municipality],["Código de referencia",p.referral_code],["Referido por (ID)",p.referred_by],["Etiqueta administrativa",p.admin_label],["Fecha de registro",fecha(p.created_at)]].forEach(([k,v])=>g.append(campoDetalle(k,v)));
+  [["ID de usuario",userId],["Nombre completo",p.full_name],["Nombre de usuario",p.username],["Correo electrónico",data.email],["Rol",p.role],["País",paisVisible],["Provincia / Estado",provinciaVisible],["Municipio",p.municipality],["Código de referencia",p.referral_code],["Referido por (ID)",p.referred_by],["Etiqueta administrativa",p.admin_label],["Fecha de registro",fecha(p.created_at)]].forEach(([k,v])=>g.append(campoDetalle(k,v)));
   if(p.avatar_url){const av=elemento("div",undefined,"card");av.append(elemento("h4","Foto de perfil"));const im=document.createElement("img");im.className="admin-receipt-img";im.src=p.avatar_url;im.alt="Foto de perfil";av.append(im);c.append(av);}
   const membresias=Array.isArray(data.memberships)?data.memberships:[];g=agregarSeccionDetalle(c,"Membresías");if(!membresias.length)g.append(campoDetalle("Información","No hay membresías registradas."));membresias.forEach((m,i)=>{g.append(campoDetalle("Membresía "+(i+1),m.plan),campoDetalle("Estado",m.status),campoDetalle("Inicio",fecha(m.starts_at)),campoDetalle("Vencimiento",fecha(m.ends_at)));});
   const cups=Array.isArray(data.cup_payments)?data.cup_payments:[];c.append(elemento("h3","Historial de pagos CUP ("+cups.length+")","admin-subheading"));if(!cups.length)c.append(elemento("p","No hay pagos CUP registrados.","muted"));for(const x of cups){g=agregarSeccionDetalle(c,"Pago CUP · "+dinero(x.amount_cup));g.append(campoDetalle("Plan",nombrePlan(x.plan)),campoDetalle("Estado",x.status),campoDetalle("Fecha",fecha(x.created_at)),campoDetalle("ID de solicitud",x.id));await agregarComprobanteDetalle(c,x.receipt_url,"Comprobante CUP");}
